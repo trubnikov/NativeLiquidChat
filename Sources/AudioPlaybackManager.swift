@@ -35,7 +35,7 @@ final class AudioPlaybackManager {
       buffer.frameLength = buffer.frameCapacity
       if let channelData = buffer.floatChannelData {
         samples.withUnsafeBufferPointer { pointer in
-          channelData[0].assign(from: pointer.baseAddress!, count: pointer.count)
+          channelData[0].update(from: pointer.baseAddress!, count: pointer.count)
         }
       }
 
@@ -56,7 +56,7 @@ final class AudioPlaybackManager {
         try wavData.write(to: tmpURL)
         let file = try AVAudioFile(forReading: tmpURL)
         self.configureSessionIfNeeded(sampleRate: file.fileFormat.sampleRate)
-        self.ensureFormat(sampleRate: file.fileFormat.sampleRate)
+        _ = self.ensureFormat(sampleRate: file.fileFormat.sampleRate)
         self.player.scheduleFile(
           file, at: nil,
           completionHandler: {

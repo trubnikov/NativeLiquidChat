@@ -288,15 +288,9 @@ class ChatStore {
         
         generationTask = Task { @MainActor [weak self] in
             guard let self else { return }
-            do {
-                for try await event in stream {
-                    if Task.isCancelled { break }
-                    self.handleEvent(event, sessionIndex: sessionIndex)
-                }
-            } catch {
-                self.appendMessage(to: sessionIndex, content: "Generation Error: \(error.localizedDescription)", isUser: false)
-                self.isLoadingResponse = false
-                self.currentAssistantMessage = ""
+            for await event in stream {
+                if Task.isCancelled { break }
+                self.handleEvent(event, sessionIndex: sessionIndex)
             }
             self.generationTask = nil
         }
