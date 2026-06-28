@@ -5,12 +5,18 @@ struct ChatMessageData: Codable, Identifiable {
     let content: String
     let isUser: Bool
     let timestamp: Date
+    var imageData: Data?
+    var audioData: Data?
+    var speed: Double? // tokens/sec speed if generated
     
-    init(id: UUID = UUID(), content: String, isUser: Bool, timestamp: Date = Date()) {
+    init(id: UUID = UUID(), content: String, isUser: Bool, timestamp: Date = Date(), imageData: Data? = nil, audioData: Data? = nil, speed: Double? = nil) {
         self.id = id
         self.content = content
         self.isUser = isUser
         self.timestamp = timestamp
+        self.imageData = imageData
+        self.audioData = audioData
+        self.speed = speed
     }
 }
 

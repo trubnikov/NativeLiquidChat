@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI
 
 struct ContentView: View {
     @State private var store = ChatStore()
@@ -8,6 +9,11 @@ struct ContentView: View {
     @State private var renameTemp = ""
     @State private var showingRenameAlert = false
     @State private var sessionToRename: UUID?
+    
+    // Multimedia states
+    @State private var selectedItem: PhotosPickerItem? = nil
+    @State private var attachedImage: UIImage? = nil
+    @State private var showingCamera = false
     
     @FocusState private var isInputFocused: Bool
     
@@ -19,7 +25,7 @@ struct ContentView: View {
                     ForEach(store.sessions) { session in
                         NavigationLink(value: session.id) {
                             HStack {
-                                Image(systemName: "bubble.left.and.bubble.right")
+                                Image(systemName: session.modelName.contains("Audio") ? "waveform" : (session.modelName.contains("VL") ? "eye" : "bubble.left.and.bubble.right"))
                                     .foregroundColor(.blue)
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(session.title)
@@ -81,6 +87,8 @@ struct ContentView: View {
                                 downloadProgress: store.downloadProgress,
                                 onSelect: { selectedModel in
                                     store.updateModel(id: session.id, modelName: selectedModel)
+                                    attachedImage = nil
+                                    selectedItem = nil
                                 }
                             )
                             Spacer()
@@ -126,12 +134,14 @@ struct ContentView: View {
                                     }
                                     
                                     ForEach(session.messages) { msg in
-                                        MessageBubbleView(message: msg)
+                                        MessageBubbleView(message: msg, onPlayAudio: { data in
+                                            store.playAudio(data)
+                                        })
                                     }
                                     
                                     // Streaming message
                                     if store.isLoadingResponse && !store.currentAssistantMessage.isEmpty {
-                                        MessageBubbleView(message: ChatMessageData(content: store.currentAssistantMessage, isUser: false))
+                                        MessageBubbleView(message: ChatMessageData(content: store.currentAssistantMessage, isUser: false), onPlayAudio: { _ in })
                                             .id("current")
                                     } else if store.isLoadingResponse {
                                         HStack {
@@ -146,6 +156,7 @@ struct ContentView: View {
                                 }
                                 .padding()
                             }
+                            .scrollDismissesKeyboard(.interactively) // Hide keyboard interactively on scroll!
                             .onChange(of: session.messages.count) {
                                 withAnimation { proxy.scrollTo("bottom", anchor: .bottom) }
                             }
@@ -154,10 +165,73 @@ struct ContentView: View {
                             }
                         }
                         
+                        // Selected Image Preview (if present)
+                        if let image = attachedImage {
+                            HStack {
+                                Image(uiImage: image)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 60, height: 60)
+                                    .cornerRadius(8)
+                                    .clipped()
+                                
+                                Text("Image attached")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                
+                                Spacer()
+                                
+                                Button(action: {
+                                    attachedImage = nil
+                                    selectedItem = nil
+                                }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundColor(.gray)
+                                }
+                            }
+                            .padding()
+                            .background(.regularMaterial)
+                        }
+                        
                         // Glassmorphism Input Bar
                         VStack(spacing: 0) {
                             Divider()
                             HStack(alignment: .bottom, spacing: 12) {
+                                
+                                // Image Upload Button (Vision model only)
+                                if session.modelName.contains("VL") {
+                                    Menu {
+                                        PhotosPicker(selection: $selectedItem, matching: .images) {
+                                            Label("Photo Library", systemImage: "photo.on.rectangle")
+                                        }
+                                        Button(action: { showingCamera = true }) {
+                                            Label("Camera", systemImage: "camera")
+                                        }
+                                    } label: {
+                                        Image(systemName: "plus.circle.fill")
+                                            .font(.system(size: 28))
+                                            .foregroundColor(.blue)
+                                    }
+                                }
+                                
+                                // Audio Recording Button (Audio model only)
+                                if session.modelName.contains("Audio") {
+                                    Button(action: {
+                                        store.toggleRecording()
+                                    }) {
+                                        Image(systemName: store.isRecording ? "stop.circle.fill" : "mic.circle.fill")
+                                            .font(.system(size: 28))
+                                            .foregroundColor(store.isRecording ? .red : .blue)
+                                    }
+                                    .contextMenu {
+                                        if store.isRecording {
+                                            Button(role: .destructive, action: { store.cancelRecording() }) {
+                                                Label("Cancel Recording", systemImage: "trash")
+                                            }
+                                        }
+                                    }
+                                }
+                                
                                 TextField("Message LFM...", text: $inputText, axis: .vertical)
                                     .focused($isInputFocused)
                                     .lineLimit(1...5)
@@ -169,19 +243,35 @@ struct ContentView: View {
                                             .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
                                     )
                                 
-                                Button(action: {
-                                    let text = inputText
-                                    inputText = ""
-                                    Task {
-                                        await store.sendMessage(text)
+                                if store.isLoadingResponse {
+                                    // STOP BUTTON to cancel response generation
+                                    Button(action: {
+                                        store.stopGeneration()
+                                    }) {
+                                        Image(systemName: "stop.circle.fill")
+                                            .font(.system(size: 36))
+                                            .foregroundColor(.red)
                                     }
-                                }) {
-                                    Image(systemName: "arrow.up.circle.fill")
-                                        .font(.system(size: 36))
-                                        .symbolEffect(.bounce, value: inputText.isEmpty)
-                                        .foregroundColor(!inputText.isEmpty && !store.isLoadingResponse ? .blue : .secondary)
+                                } else {
+                                    // SEND BUTTON
+                                    Button(action: {
+                                        let text = inputText
+                                        let img = attachedImage
+                                        inputText = ""
+                                        attachedImage = nil
+                                        selectedItem = nil
+                                        isInputFocused = false // Hide keyboard when model starts generating
+                                        Task {
+                                            await store.sendMessage(text, attachedImage: img)
+                                        }
+                                    }) {
+                                        Image(systemName: "arrow.up.circle.fill")
+                                            .font(.system(size: 36))
+                                            .symbolEffect(.bounce, value: inputText.isEmpty)
+                                            .foregroundColor(!inputText.isEmpty || attachedImage != nil ? .blue : .secondary)
+                                    }
+                                    .disabled(inputText.isEmpty && attachedImage == nil)
                                 }
-                                .disabled(inputText.isEmpty || store.isLoadingResponse)
                             }
                             .padding(.horizontal)
                             .padding(.vertical, 12)
@@ -217,6 +307,17 @@ struct ContentView: View {
                     }
                     .presentationDetents([.medium])
                 }
+                .sheet(isPresented: $showingCamera) {
+                    CameraPicker(isPresented: $showingCamera, selectedImage: $attachedImage)
+                }
+                .onChange(of: selectedItem) { _, newItem in
+                    Task {
+                        if let data = try? await newItem?.loadTransferable(type: Data.self),
+                           let image = UIImage(data: data) {
+                            attachedImage = image
+                        }
+                    }
+                }
             } else {
                 Text("Select a chat session or create a new one.")
                     .foregroundColor(.secondary)
@@ -238,14 +339,39 @@ struct ContentView: View {
 
 struct MessageBubbleView: View {
     let message: ChatMessageData
+    let onPlayAudio: (Data) -> Void
     
     var body: some View {
         HStack {
             if message.isUser { Spacer() }
             
-            Text(message.content)
-                .font(.body)
-                .foregroundColor(message.isUser ? .white : .primary)
+            VStack(alignment: message.isUser ? .trailing : .leading, spacing: 4) {
+                // Image display if attached
+                if let imgData = message.imageData, let uiImage = UIImage(data: imgData) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxWidth: 240, maxHeight: 240)
+                        .cornerRadius(12)
+                        .padding(.bottom, 4)
+                }
+                
+                HStack(spacing: 8) {
+                    // Audio Playback button if audio is attached
+                    if let audData = message.audioData {
+                        Button(action: {
+                            onPlayAudio(audData)
+                        }) {
+                            Image(systemName: "play.circle.fill")
+                                .font(.title2)
+                                .foregroundColor(message.isUser ? .white : .blue)
+                        }
+                    }
+                    
+                    Text(message.content)
+                        .font(.body)
+                        .foregroundColor(message.isUser ? .white : .primary)
+                }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
                 .background(
@@ -262,6 +388,15 @@ struct MessageBubbleView: View {
                         Label("Copy", systemImage: "doc.on.doc")
                     }
                 }
+                
+                // Tokens/sec Speed counter
+                if let speedVal = message.speed {
+                    Text(String(format: "%.1f tokens/sec", speedVal))
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 8)
+                }
+            }
             
             if !message.isUser { Spacer() }
         }

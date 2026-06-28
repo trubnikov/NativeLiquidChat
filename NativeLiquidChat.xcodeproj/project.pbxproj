@@ -9,8 +9,11 @@
 /* Begin PBXBuildFile section */
 		16E846ABE7C39A6E39189EFA /* ChatStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 993DCDDF88FEF91ABE327C1C /* ChatStore.swift */; };
 		1FC480EDCD9B7D66AA14C661 /* LeapSDK in Frameworks */ = {isa = PBXBuildFile; productRef = E4F9D45BB1DF427DA74E3E04 /* LeapSDK */; };
+		220B6A9AC9AAF85EF9DF0380 /* AudioPlaybackManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C7B76C167EF4958D8DA35E4 /* AudioPlaybackManager.swift */; };
 		3E78A3C67F010FF680B388DA /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCEEC0E25493168C1338526B /* ContentView.swift */; };
+		4635020FF16600947B13802C /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D3B65F4DD881E141C02829 /* AudioRecorder.swift */; };
 		5C377BCD0622DA020E8FE94E /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20F15652552BF8AC888C972 /* Models.swift */; };
+		603DD5CC91E625C7C2065B2E /* CameraPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DD73FEC565B6E5E0DB36EE4 /* CameraPicker.swift */; };
 		7E255EDCFBEDBA7685A98CD1 /* NativeLiquidChatApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 890C24E5039C187ED13994BA /* NativeLiquidChatApp.swift */; };
 		888ECD713E47B230A6A554D7 /* ModelSelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 050B122B6452165B08C01340 /* ModelSelectorView.swift */; };
 		BEC00D3464B79E2650BC7152 /* LeapModelDownloader in Frameworks */ = {isa = PBXBuildFile; productRef = DCF3CAF6641D234A4BF0225F /* LeapModelDownloader */; };
@@ -19,10 +22,13 @@
 /* Begin PBXFileReference section */
 		01B274B2CD6315298B8BDBE6 /* NativeLiquidChat.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = NativeLiquidChat.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		050B122B6452165B08C01340 /* ModelSelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelSelectorView.swift; sourceTree = "<group>"; };
+		0C7B76C167EF4958D8DA35E4 /* AudioPlaybackManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlaybackManager.swift; sourceTree = "<group>"; };
+		1DD73FEC565B6E5E0DB36EE4 /* CameraPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPicker.swift; sourceTree = "<group>"; };
 		890C24E5039C187ED13994BA /* NativeLiquidChatApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeLiquidChatApp.swift; sourceTree = "<group>"; };
 		993DCDDF88FEF91ABE327C1C /* ChatStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatStore.swift; sourceTree = "<group>"; };
 		CCEEC0E25493168C1338526B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		E20F15652552BF8AC888C972 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		E9D3B65F4DD881E141C02829 /* AudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorder.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -49,6 +55,9 @@
 		8F808B4C9FF93DBAB4D48E58 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				0C7B76C167EF4958D8DA35E4 /* AudioPlaybackManager.swift */,
+				E9D3B65F4DD881E141C02829 /* AudioRecorder.swift */,
+				1DD73FEC565B6E5E0DB36EE4 /* CameraPicker.swift */,
 				993DCDDF88FEF91ABE327C1C /* ChatStore.swift */,
 				CCEEC0E25493168C1338526B /* ContentView.swift */,
 				E20F15652552BF8AC888C972 /* Models.swift */,
@@ -150,6 +159,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				220B6A9AC9AAF85EF9DF0380 /* AudioPlaybackManager.swift in Sources */,
+				4635020FF16600947B13802C /* AudioRecorder.swift in Sources */,
+				603DD5CC91E625C7C2065B2E /* CameraPicker.swift in Sources */,
 				16E846ABE7C39A6E39189EFA /* ChatStore.swift in Sources */,
 				3E78A3C67F010FF680B388DA /* ContentView.swift in Sources */,
 				888ECD713E47B230A6A554D7 /* ModelSelectorView.swift in Sources */,
@@ -168,6 +180,9 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "We need access to your camera to capture images for the visual model.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need access to your microphone to capture audio prompts.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We need access to your photo library to select images for the visual model.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/Frameworks/LeapSDK.framework/Frameworks @executable_path/Frameworks/LeapModelDownloader.framework/Frameworks";
@@ -242,6 +257,9 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "We need access to your camera to capture images for the visual model.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need access to your microphone to capture audio prompts.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We need access to your photo library to select images for the visual model.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/Frameworks/LeapSDK.framework/Frameworks @executable_path/Frameworks/LeapModelDownloader.framework/Frameworks";
