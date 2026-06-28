@@ -1,0 +1,367 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		16E846ABE7C39A6E39189EFA /* ChatStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 993DCDDF88FEF91ABE327C1C /* ChatStore.swift */; };
+		1FC480EDCD9B7D66AA14C661 /* LeapSDK in Frameworks */ = {isa = PBXBuildFile; productRef = E4F9D45BB1DF427DA74E3E04 /* LeapSDK */; };
+		3E78A3C67F010FF680B388DA /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCEEC0E25493168C1338526B /* ContentView.swift */; };
+		5C377BCD0622DA020E8FE94E /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20F15652552BF8AC888C972 /* Models.swift */; };
+		7E255EDCFBEDBA7685A98CD1 /* NativeLiquidChatApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 890C24E5039C187ED13994BA /* NativeLiquidChatApp.swift */; };
+		888ECD713E47B230A6A554D7 /* ModelSelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 050B122B6452165B08C01340 /* ModelSelectorView.swift */; };
+		BEC00D3464B79E2650BC7152 /* LeapModelDownloader in Frameworks */ = {isa = PBXBuildFile; productRef = DCF3CAF6641D234A4BF0225F /* LeapModelDownloader */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		01B274B2CD6315298B8BDBE6 /* NativeLiquidChat.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = NativeLiquidChat.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		050B122B6452165B08C01340 /* ModelSelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelSelectorView.swift; sourceTree = "<group>"; };
+		890C24E5039C187ED13994BA /* NativeLiquidChatApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeLiquidChatApp.swift; sourceTree = "<group>"; };
+		993DCDDF88FEF91ABE327C1C /* ChatStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatStore.swift; sourceTree = "<group>"; };
+		CCEEC0E25493168C1338526B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		E20F15652552BF8AC888C972 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		2DF4D88C64054725BEB66728 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1FC480EDCD9B7D66AA14C661 /* LeapSDK in Frameworks */,
+				BEC00D3464B79E2650BC7152 /* LeapModelDownloader in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		7835BE6507B65EEC2986D007 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				01B274B2CD6315298B8BDBE6 /* NativeLiquidChat.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		8F808B4C9FF93DBAB4D48E58 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				993DCDDF88FEF91ABE327C1C /* ChatStore.swift */,
+				CCEEC0E25493168C1338526B /* ContentView.swift */,
+				E20F15652552BF8AC888C972 /* Models.swift */,
+				050B122B6452165B08C01340 /* ModelSelectorView.swift */,
+				890C24E5039C187ED13994BA /* NativeLiquidChatApp.swift */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		C9125EE81014ABD4EB8B3B36 = {
+			isa = PBXGroup;
+			children = (
+				8F808B4C9FF93DBAB4D48E58 /* Sources */,
+				7835BE6507B65EEC2986D007 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2D087F7ED63C5545B6DC00D8 /* NativeLiquidChat */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FB8B438D342B3CAD1621A784 /* Build configuration list for PBXNativeTarget "NativeLiquidChat" */;
+			buildPhases = (
+				BE248C754EF8B63F2D79E6B0 /* Sources */,
+				2DF4D88C64054725BEB66728 /* Frameworks */,
+				BEEE4A815686137B7E2950CA /* Sign nested LeapSDK dylibs */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = NativeLiquidChat;
+			packageProductDependencies = (
+				E4F9D45BB1DF427DA74E3E04 /* LeapSDK */,
+				DCF3CAF6641D234A4BF0225F /* LeapModelDownloader */,
+			);
+			productName = NativeLiquidChat;
+			productReference = 01B274B2CD6315298B8BDBE6 /* NativeLiquidChat.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		D8A5BA17DEBAB6B65381BD32 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = 9807AFD1D61B7A473BCC78A3 /* Build configuration list for PBXProject "NativeLiquidChat" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = C9125EE81014ABD4EB8B3B36;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A775239C9FA272ABC0DD72B7 /* XCRemoteSwiftPackageReference "leap-sdk" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 7835BE6507B65EEC2986D007 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				2D087F7ED63C5545B6DC00D8 /* NativeLiquidChat */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		BEEE4A815686137B7E2950CA /* Sign nested LeapSDK dylibs */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Sign nested LeapSDK dylibs";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e\nFRAMEWORKS_DIR=\"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Frameworks\"\n[ -d \"$FRAMEWORKS_DIR\" ] || exit 0\n[ \"$CODE_SIGNING_ALLOWED\" = \"YES\" ] || exit 0\nfind \"$FRAMEWORKS_DIR\" -name \"*.dylib\" | while read dylib; do\n  codesign --force --sign \"$EXPANDED_CODE_SIGN_IDENTITY\" --timestamp=none \"$dylib\"\ndone\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		BE248C754EF8B63F2D79E6B0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				16E846ABE7C39A6E39189EFA /* ChatStore.swift in Sources */,
+				3E78A3C67F010FF680B388DA /* ContentView.swift in Sources */,
+				888ECD713E47B230A6A554D7 /* ModelSelectorView.swift in Sources */,
+				5C377BCD0622DA020E8FE94E /* Models.swift in Sources */,
+				7E255EDCFBEDBA7685A98CD1 /* NativeLiquidChatApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1D1038613FC3407C15340B6E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/Frameworks/LeapSDK.framework/Frameworks @executable_path/Frameworks/LeapModelDownloader.framework/Frameworks";
+				OTHER_LDFLAGS = "$(inherited) -ObjC -L$(BUILT_PRODUCTS_DIR)/LeapSDK.framework/Frameworks -L$(BUILT_PRODUCTS_DIR)/LeapModelDownloader.framework/Frameworks -linference_engine -linference_engine_llamacpp_backend";
+				PRODUCT_BUNDLE_IDENTIFIER = com.dimatrubnikov.NativeLiquidChat;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		850C236E94BB6AB9C5302096 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		B7AE00E2E721198C01E45096 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/Frameworks/LeapSDK.framework/Frameworks @executable_path/Frameworks/LeapModelDownloader.framework/Frameworks";
+				OTHER_LDFLAGS = "$(inherited) -ObjC -L$(BUILT_PRODUCTS_DIR)/LeapSDK.framework/Frameworks -L$(BUILT_PRODUCTS_DIR)/LeapModelDownloader.framework/Frameworks -linference_engine -linference_engine_llamacpp_backend";
+				PRODUCT_BUNDLE_IDENTIFIER = com.dimatrubnikov.NativeLiquidChat;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		BB982EDC44664F7D25393BA7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		9807AFD1D61B7A473BCC78A3 /* Build configuration list for PBXProject "NativeLiquidChat" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BB982EDC44664F7D25393BA7 /* Debug */,
+				850C236E94BB6AB9C5302096 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		FB8B438D342B3CAD1621A784 /* Build configuration list for PBXNativeTarget "NativeLiquidChat" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1D1038613FC3407C15340B6E /* Debug */,
+				B7AE00E2E721198C01E45096 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A775239C9FA272ABC0DD72B7 /* XCRemoteSwiftPackageReference "leap-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Liquid4All/leap-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.10.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		DCF3CAF6641D234A4BF0225F /* LeapModelDownloader */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A775239C9FA272ABC0DD72B7 /* XCRemoteSwiftPackageReference "leap-sdk" */;
+			productName = LeapModelDownloader;
+		};
+		E4F9D45BB1DF427DA74E3E04 /* LeapSDK */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A775239C9FA272ABC0DD72B7 /* XCRemoteSwiftPackageReference "leap-sdk" */;
+			productName = LeapSDK;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = D8A5BA17DEBAB6B65381BD32 /* Project object */;
+}

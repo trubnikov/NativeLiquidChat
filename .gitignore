@@ -1,0 +1,19 @@
+# Xcode
+#
+# build/
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcodeproj/project.xcworkspace/
+*.xcworkspace/*
+!*.xcworkspace/contents.xcworkspacedata
+!*.xcworkspace/xcshareddata/
+xcuserdata/
+
+# Additional builds
+build/
+DerivedData/
+
+# OS metadata
+.DS_Store
+EOF
