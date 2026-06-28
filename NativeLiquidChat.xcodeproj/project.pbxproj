@@ -10,6 +10,7 @@
 		16E846ABE7C39A6E39189EFA /* ChatStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 993DCDDF88FEF91ABE327C1C /* ChatStore.swift */; };
 		1FC480EDCD9B7D66AA14C661 /* LeapSDK in Frameworks */ = {isa = PBXBuildFile; productRef = E4F9D45BB1DF427DA74E3E04 /* LeapSDK */; };
 		220B6A9AC9AAF85EF9DF0380 /* AudioPlaybackManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C7B76C167EF4958D8DA35E4 /* AudioPlaybackManager.swift */; };
+		29E620DCB7A8D535BD51369E /* SystemTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C75395DA2BCE3897DE259A3 /* SystemTools.swift */; };
 		3E78A3C67F010FF680B388DA /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCEEC0E25493168C1338526B /* ContentView.swift */; };
 		4635020FF16600947B13802C /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D3B65F4DD881E141C02829 /* AudioRecorder.swift */; };
 		5C377BCD0622DA020E8FE94E /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20F15652552BF8AC888C972 /* Models.swift */; };
@@ -26,6 +27,7 @@
 		1DD73FEC565B6E5E0DB36EE4 /* CameraPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPicker.swift; sourceTree = "<group>"; };
 		890C24E5039C187ED13994BA /* NativeLiquidChatApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeLiquidChatApp.swift; sourceTree = "<group>"; };
 		993DCDDF88FEF91ABE327C1C /* ChatStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatStore.swift; sourceTree = "<group>"; };
+		9C75395DA2BCE3897DE259A3 /* SystemTools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemTools.swift; sourceTree = "<group>"; };
 		CCEEC0E25493168C1338526B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		E20F15652552BF8AC888C972 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		E9D3B65F4DD881E141C02829 /* AudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorder.swift; sourceTree = "<group>"; };
@@ -63,6 +65,7 @@
 				E20F15652552BF8AC888C972 /* Models.swift */,
 				050B122B6452165B08C01340 /* ModelSelectorView.swift */,
 				890C24E5039C187ED13994BA /* NativeLiquidChatApp.swift */,
+				9C75395DA2BCE3897DE259A3 /* SystemTools.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -167,6 +170,7 @@
 				888ECD713E47B230A6A554D7 /* ModelSelectorView.swift in Sources */,
 				5C377BCD0622DA020E8FE94E /* Models.swift in Sources */,
 				7E255EDCFBEDBA7685A98CD1 /* NativeLiquidChatApp.swift in Sources */,
+				29E620DCB7A8D535BD51369E /* SystemTools.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

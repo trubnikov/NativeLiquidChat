@@ -12,6 +12,7 @@ class ChatStore {
     var loadedModelName: String?
     var downloadProgress: Double = 0.0
     var isLoadingResponse = false
+    var executionStatus: String?
     
     // Voice/Audio State
     var isRecording = false
@@ -112,7 +113,7 @@ class ChatStore {
         do {
             let options = LiquidInferenceEngineManifestOptions(
                 contextSize: 1024,
-                nGpuLayers: 0 // Set to 0 to prevent OOM/GPU crashes on some mobile models if needed, or use default
+                nGpuLayers: 0
             )
             let runner = try await Leap.shared.load(
                 model: modelName,
@@ -148,14 +149,12 @@ class ChatStore {
         
         let session = sessions[index]
         
-        // Ensure model is loaded
         let success = await ensureModelLoaded(for: session.modelName)
         guard success, let runner = modelRunner else {
             appendMessage(to: index, content: "Failed to initialize \(session.modelName). Please try again.", isUser: false)
             return
         }
         
-        // Prepare content array
         var contentArray: [ChatMessageContent] = []
         var imageData: Data? = nil
         
@@ -177,20 +176,17 @@ class ChatStore {
         
         let userMessage = ChatMessage_withArray(role: .user, content: contentArray)
         
-        // Append user message with image if present
         let displayPrompt = trimmed.isEmpty ? "[Image]" : trimmed
         appendMessage(to: index, content: displayPrompt, isUser: true, imageData: imageData)
         
         isLoadingResponse = true
+        executionStatus = nil
         currentAssistantMessage = ""
         currentAssistantSpeed = nil
         
-        // Initialize Conversation if needed
         setupConversationIfNeeded(for: session, runner: runner)
-        
         playbackManager.reset()
         
-        // Trigger haptic
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         
         streamResponse(for: userMessage, sessionIndex: index)
@@ -255,10 +251,14 @@ class ChatStore {
             return
         }
         
-        let content = ChatMessageContent.fromFloatSamples(samples, sampleRate: sampleRate)
+        // FIX: Handled the throwing call properly!
+        guard let content = try? ChatMessageContent.fromFloatSamples(samples, sampleRate: sampleRate) else {
+            appendMessage(to: index, content: "Failed to process audio samples.", isUser: false)
+            return
+        }
+        
         let chatMessage = ChatMessage(role: .user, content: content)
         
-        // Extract raw wav data for storing in history
         var audioData: Data? = nil
         if case .audio(let audioContent) = onEnum(of: content) {
             audioData = audioContent.data.toData()
@@ -268,6 +268,7 @@ class ChatStore {
         appendMessage(to: index, content: displayPrompt, isUser: true, audioData: audioData)
         
         isLoadingResponse = true
+        executionStatus = nil
         currentAssistantMessage = ""
         currentAssistantSpeed = nil
         
@@ -290,7 +291,7 @@ class ChatStore {
             do {
                 for try await event in stream {
                     if Task.isCancelled { break }
-                    self.handleEvent(event)
+                    self.handleEvent(event, sessionIndex: sessionIndex)
                 }
             } catch {
                 self.appendMessage(to: sessionIndex, content: "Generation Error: \(error.localizedDescription)", isUser: false)
@@ -306,6 +307,7 @@ class ChatStore {
         generationTask?.cancel()
         generationTask = nil
         isLoadingResponse = false
+        executionStatus = nil
         
         if !currentAssistantMessage.isEmpty {
             if let sessionId = currentSessionId,
@@ -318,7 +320,7 @@ class ChatStore {
     }
     
     @MainActor
-    private func handleEvent(_ event: any MessageResponse) {
+    private func handleEvent(_ event: any MessageResponse, sessionIndex: Int) {
         switch onEnum(of: event) {
         case .chunk(let chunk):
             currentAssistantMessage.append(chunk.text)
@@ -347,45 +349,69 @@ class ChatStore {
                 currentAssistantSpeed = Double(speedVal)
             }
             
-            if let sessionId = currentSessionId,
-               let index = sessions.firstIndex(where: { $0.id == sessionId }) {
-                appendMessage(
-                    to: index,
-                    content: text.isEmpty ? "(Audio response)" : text,
-                    isUser: false,
-                    audioData: audioData,
-                    speed: currentAssistantSpeed
-                )
+            // Check if model emitted a TOOL CALL
+            if text.contains("[TOOL_CALL:") {
+                if let toolCall = parseToolCall(from: text) {
+                    executionStatus = "⚙️ Executing: \(toolCall)..."
+                    
+                    let result = SystemTools.executeTool(callString: toolCall)
+                    executionStatus = nil
+                    
+                    // Display execution in logs
+                    appendMessage(to: sessionIndex, content: "⚙️ Executed: \(toolCall)\nResult: \(result)", isUser: false)
+                    
+                    // Auto-reply to model with tool result
+                    currentAssistantMessage = ""
+                    let toolResponse = ChatMessage(role: .user, textContent: "[TOOL_RESULT: \(result)]")
+                    streamResponse(for: toolResponse, sessionIndex: sessionIndex)
+                    return
+                }
             }
+            
+            appendMessage(
+                to: sessionIndex,
+                content: text.isEmpty ? "(Audio response)" : text,
+                isUser: false,
+                audioData: audioData,
+                speed: currentAssistantSpeed
+            )
             
             currentAssistantMessage = ""
             isLoadingResponse = false
             
-            // Play back the full audio if present
             if let audioData {
                 playbackManager.play(wavData: audioData)
             }
             
-            // Trigger success haptic
             UINotificationFeedbackGenerator().notificationOccurred(.success)
         default:
             break
         }
     }
     
+    private func parseToolCall(from text: String) -> String? {
+        // Simple parser to extract string between [TOOL_CALL: and ]
+        guard let startRange = text.range(of: "[TOOL_CALL:") else { return nil }
+        let sub = text[startRange.upperBound...]
+        guard let endRange = sub.range(of: "]") else { return nil }
+        return String(sub[..<endRange.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    
     private func setupConversationIfNeeded(for session: ChatSession, runner: any ModelRunner) {
         if conversation == nil {
             var history: [ChatMessage] = []
-            if !session.systemPrompt.isEmpty {
-                history.append(ChatMessage(role: .system, textContent: session.systemPrompt))
+            
+            // Inject System Rules and Tool Descriptions
+            var systemPrompt = session.systemPrompt
+            if systemPrompt.isEmpty {
+                systemPrompt = "You are a helpful AI assistant."
             }
+            systemPrompt += SystemTools.systemPromptExtension
+            
+            history.append(ChatMessage(role: .system, textContent: systemPrompt))
+            
             for msg in session.messages {
-                if let audioData = msg.audioData {
-                    // Reconstruct audio content if needed, but for simplicity of context we'll append it as text or skip to prevent heavy context
-                    history.append(ChatMessage(role: msg.isUser ? .user : .assistant, textContent: msg.content))
-                } else {
-                    history.append(ChatMessage(role: msg.isUser ? .user : .assistant, textContent: msg.content))
-                }
+                history.append(ChatMessage(role: msg.isUser ? .user : .assistant, textContent: msg.content))
             }
             conversation = Conversation(modelRunner: runner, history: history)
         }
@@ -401,10 +427,5 @@ class ChatStore {
         )
         sessions[index].messages.append(newMessage)
         save()
-    }
-}
-extension [Float] {
-    func toFloatArray() -> [Float] {
-        return self
     }
 }

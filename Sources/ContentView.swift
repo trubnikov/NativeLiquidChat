@@ -139,11 +139,27 @@ struct ContentView: View {
                                         })
                                     }
                                     
+                                    // Tool execution status banner
+                                    if let status = store.executionStatus {
+                                        HStack(spacing: 8) {
+                                            ProgressView()
+                                                .scaleEffect(0.8)
+                                            Text(status)
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        .padding(.vertical, 8)
+                                        .padding(.horizontal, 16)
+                                        .background(.regularMaterial)
+                                        .cornerRadius(12)
+                                        .id("execution")
+                                    }
+                                    
                                     // Streaming message
                                     if store.isLoadingResponse && !store.currentAssistantMessage.isEmpty {
                                         MessageBubbleView(message: ChatMessageData(content: store.currentAssistantMessage, isUser: false), onPlayAudio: { _ in })
                                             .id("current")
-                                    } else if store.isLoadingResponse {
+                                    } else if store.isLoadingResponse && store.executionStatus == nil {
                                         HStack {
                                             ProgressView()
                                                 .padding()
@@ -156,12 +172,17 @@ struct ContentView: View {
                                 }
                                 .padding()
                             }
-                            .scrollDismissesKeyboard(.interactively) // Hide keyboard interactively on scroll!
+                            .scrollDismissesKeyboard(.interactively)
                             .onChange(of: session.messages.count) {
                                 withAnimation { proxy.scrollTo("bottom", anchor: .bottom) }
                             }
                             .onChange(of: store.currentAssistantMessage) {
                                 withAnimation { proxy.scrollTo("current", anchor: .bottom) }
+                            }
+                            .onChange(of: store.executionStatus) {
+                                if store.executionStatus != nil {
+                                    withAnimation { proxy.scrollTo("execution", anchor: .bottom) }
+                                }
                             }
                         }
                         
@@ -333,72 +354,6 @@ struct ContentView: View {
                 }
                 sessionToRename = nil
             }
-        }
-    }
-}
-
-struct MessageBubbleView: View {
-    let message: ChatMessageData
-    let onPlayAudio: (Data) -> Void
-    
-    var body: some View {
-        HStack {
-            if message.isUser { Spacer() }
-            
-            VStack(alignment: message.isUser ? .trailing : .leading, spacing: 4) {
-                // Image display if attached
-                if let imgData = message.imageData, let uiImage = UIImage(data: imgData) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(maxWidth: 240, maxHeight: 240)
-                        .cornerRadius(12)
-                        .padding(.bottom, 4)
-                }
-                
-                HStack(spacing: 8) {
-                    // Audio Playback button if audio is attached
-                    if let audData = message.audioData {
-                        Button(action: {
-                            onPlayAudio(audData)
-                        }) {
-                            Image(systemName: "play.circle.fill")
-                                .font(.title2)
-                                .foregroundColor(message.isUser ? .white : .blue)
-                        }
-                    }
-                    
-                    Text(message.content)
-                        .font(.body)
-                        .foregroundColor(message.isUser ? .white : .primary)
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                .background(
-                    message.isUser
-                    ? LinearGradient(colors: [.blue, .cyan], startPoint: .topLeading, endPoint: .bottomTrailing)
-                    : LinearGradient(colors: [Color(uiColor: .secondarySystemGroupedBackground), Color(uiColor: .tertiarySystemGroupedBackground)], startPoint: .top, endPoint: .bottom)
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                .shadow(color: .black.opacity(0.04), radius: 3, x: 0, y: 1)
-                .contextMenu {
-                    Button(action: {
-                        UIPasteboard.general.string = message.content
-                    }) {
-                        Label("Copy", systemImage: "doc.on.doc")
-                    }
-                }
-                
-                // Tokens/sec Speed counter
-                if let speedVal = message.speed {
-                    Text(String(format: "%.1f tokens/sec", speedVal))
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                        .padding(.horizontal, 8)
-                }
-            }
-            
-            if !message.isUser { Spacer() }
         }
     }
 }
