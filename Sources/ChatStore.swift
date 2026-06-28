@@ -343,25 +343,6 @@ class ChatStore {
                 currentAssistantSpeed = Double(speedVal)
             }
             
-            // Check if model emitted a TOOL CALL
-            if text.contains("[TOOL_CALL:") {
-                if let toolCall = parseToolCall(from: text) {
-                    executionStatus = "⚙️ Executing: \(toolCall)..."
-                    
-                    let result = SystemTools.executeTool(callString: toolCall)
-                    executionStatus = nil
-                    
-                    // Display execution in logs
-                    appendMessage(to: sessionIndex, content: "⚙️ Executed: \(toolCall)\nResult: \(result)", isUser: false)
-                    
-                    // Auto-reply to model with tool result
-                    currentAssistantMessage = ""
-                    let toolResponse = ChatMessage(role: .user, textContent: "[TOOL_RESULT: \(result)]")
-                    streamResponse(for: toolResponse, sessionIndex: sessionIndex)
-                    return
-                }
-            }
-            
             appendMessage(
                 to: sessionIndex,
                 content: text.isEmpty ? "(Audio response)" : text,
@@ -383,24 +364,14 @@ class ChatStore {
         }
     }
     
-    private func parseToolCall(from text: String) -> String? {
-        // Simple parser to extract string between [TOOL_CALL: and ]
-        guard let startRange = text.range(of: "[TOOL_CALL:") else { return nil }
-        let sub = text[startRange.upperBound...]
-        guard let endRange = sub.range(of: "]") else { return nil }
-        return String(sub[..<endRange.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-    
     private func setupConversationIfNeeded(for session: ChatSession, runner: any ModelRunner) {
         if conversation == nil {
             var history: [ChatMessage] = []
             
-            // Inject System Rules and Tool Descriptions
             var systemPrompt = session.systemPrompt
             if systemPrompt.isEmpty {
                 systemPrompt = "You are a helpful AI assistant."
             }
-            systemPrompt += SystemTools.systemPromptExtension
             
             history.append(ChatMessage(role: .system, textContent: systemPrompt))
             

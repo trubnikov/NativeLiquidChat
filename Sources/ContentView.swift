@@ -138,28 +138,11 @@ struct ContentView: View {
                                             store.playAudio(data)
                                         })
                                     }
-                                    
-                                    // Tool execution status banner
-                                    if let status = store.executionStatus {
-                                        HStack(spacing: 8) {
-                                            ProgressView()
-                                                .scaleEffect(0.8)
-                                            Text(status)
-                                                .font(.caption)
-                                                .foregroundColor(.secondary)
-                                        }
-                                        .padding(.vertical, 8)
-                                        .padding(.horizontal, 16)
-                                        .background(.regularMaterial)
-                                        .cornerRadius(12)
-                                        .id("execution")
-                                    }
-                                    
                                     // Streaming message
                                     if store.isLoadingResponse && !store.currentAssistantMessage.isEmpty {
                                         MessageBubbleView(message: ChatMessageData(content: store.currentAssistantMessage, isUser: false), onPlayAudio: { _ in })
                                             .id("current")
-                                    } else if store.isLoadingResponse && store.executionStatus == nil {
+                                    } else if store.isLoadingResponse {
                                         HStack {
                                             ProgressView()
                                                 .padding()
@@ -178,11 +161,6 @@ struct ContentView: View {
                             }
                             .onChange(of: store.currentAssistantMessage) {
                                 withAnimation { proxy.scrollTo("current", anchor: .bottom) }
-                            }
-                            .onChange(of: store.executionStatus) {
-                                if store.executionStatus != nil {
-                                    withAnimation { proxy.scrollTo("execution", anchor: .bottom) }
-                                }
                             }
                         }
                         
