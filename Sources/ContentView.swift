@@ -25,7 +25,7 @@ struct ContentView: View {
                     ForEach(store.sessions) { session in
                         NavigationLink(value: session.id) {
                             HStack {
-                                Image(systemName: session.modelName.contains("Audio") ? "waveform" : (session.modelName.contains("VL") ? "eye" : "bubble.left.and.bubble.right"))
+                                Image(systemName: session.iconName) // Optimization: use iconName property to avoid nested ternary compiler slow down
                                     .foregroundColor(.blue)
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(session.title)
@@ -281,7 +281,7 @@ struct ContentView: View {
                                         inputText = ""
                                         attachedImage = nil
                                         selectedItem = nil
-                                        isInputFocused = false // Hide keyboard when model starts generating
+                                        isInputFocused = false
                                         Task {
                                             await store.sendMessage(text, attachedImage: img)
                                         }
@@ -354,6 +354,76 @@ struct ContentView: View {
                 }
                 sessionToRename = nil
             }
+        }
+    }
+}
+
+// MARK: - MessageBubbleView (restored and optimized to prevent compiler bottlenecks)
+struct MessageBubbleView: View {
+    let message: ChatMessageData
+    let onPlayAudio: (Data) -> Void
+    
+    var body: some View {
+        HStack {
+            if message.isUser { Spacer() }
+            
+            VStack(alignment: message.isUser ? .trailing : .leading, spacing: 4) {
+                // Image display if attached
+                if let imgData = message.imageData, let uiImage = UIImage(data: imgData) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxWidth: 240, maxHeight: 240)
+                        .cornerRadius(12)
+                        .padding(.bottom, 4)
+                }
+                
+                HStack(spacing: 8) {
+                    // Audio Playback button if audio is attached
+                    if let audData = message.audioData {
+                        Button(action: {
+                            onPlayAudio(audData)
+                        }) {
+                            Image(systemName: "play.circle.fill")
+                                .font(.title2)
+                                .foregroundColor(message.isUser ? .white : .blue)
+                        }
+                    }
+                    
+                    Text(message.content)
+                        .font(.body)
+                        .foregroundColor(message.isUser ? .white : .primary)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background {
+                    // Optimization: replaced ternary operator inside background modifier with if-else view builder to avoid compiler bottleneck
+                    if message.isUser {
+                        LinearGradient(colors: [.blue, .cyan], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    } else {
+                        LinearGradient(colors: [Color(uiColor: .secondarySystemGroupedBackground), Color(uiColor: .tertiarySystemGroupedBackground)], startPoint: .top, endPoint: .bottom)
+                    }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .shadow(color: .black.opacity(0.04), radius: 3, x: 0, y: 1)
+                .contextMenu {
+                    Button(action: {
+                        UIPasteboard.general.string = message.content
+                    }) {
+                        Label("Copy", systemImage: "doc.on.doc")
+                    }
+                }
+                
+                // Tokens/sec Speed counter
+                if let speedVal = message.speed {
+                    Text(String(format: "%.1f tokens/sec", speedVal))
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 8)
+                }
+            }
+            
+            if !message.isUser { Spacer() }
         }
     }
 }

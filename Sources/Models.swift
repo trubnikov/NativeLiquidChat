@@ -28,6 +28,16 @@ struct ChatSession: Codable, Identifiable {
     var messages: [ChatMessageData]
     let createdAt: Date
     
+    var iconName: String {
+        if modelName.contains("Audio") {
+            return "waveform"
+        } else if modelName.contains("VL") {
+            return "eye"
+        } else {
+            return "bubble.left.and.bubble.right"
+        }
+    }
+    
     init(id: UUID = UUID(), title: String = "New Chat", modelName: String = "LFM2.5-1.2B-Instruct", systemPrompt: String = "", messages: [ChatMessageData] = [], createdAt: Date = Date()) {
         self.id = id
         self.title = title
