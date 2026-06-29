@@ -282,6 +282,8 @@ class ChatStore {
         
         let userMessage = ChatMessage_withArray(role: .user, content: contentArray)
         
+        setupConversationIfNeeded(for: session, runner: runner)
+        
         let displayPrompt = trimmed.isEmpty ? "[Image]" : trimmed
         appendMessage(to: index, content: displayPrompt, isUser: true, imageData: imageData)
         
@@ -290,7 +292,6 @@ class ChatStore {
         currentAssistantMessage = ""
         currentAssistantSpeed = nil
         
-        setupConversationIfNeeded(for: session, runner: runner)
         playbackManager.reset()
         
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
@@ -370,6 +371,8 @@ class ChatStore {
             audioData = audioContent.data.toData()
         }
         
+        setupConversationIfNeeded(for: session, runner: runner)
+        
         let displayPrompt = "🎤 Voice message (\(samples.count / sampleRate)s)"
         appendMessage(to: index, content: displayPrompt, isUser: true, audioData: audioData)
         
@@ -378,7 +381,6 @@ class ChatStore {
         currentAssistantMessage = ""
         currentAssistantSpeed = nil
         
-        setupConversationIfNeeded(for: session, runner: runner)
         playbackManager.reset()
         
         streamResponse(for: chatMessage, sessionIndex: index)
