@@ -1,5 +1,6 @@
 import SwiftUI
 import PhotosUI
+import LeapModelDownloader
 
 struct ContentView: View {
     @State private var store = ChatStore()
@@ -9,6 +10,7 @@ struct ContentView: View {
     @State private var renameTemp = ""
     @State private var showingRenameAlert = false
     @State private var sessionToRename: UUID?
+    @State private var selectedModelTemp = ""
     
     // Multimedia states
     @State private var selectedItem: PhotosPickerItem? = nil
@@ -55,6 +57,11 @@ struct ContentView: View {
                             }
                         }
                     }
+                    .onDelete { indexSet in
+                        for index in indexSet {
+                            store.deleteSession(id: store.sessions[index].id)
+                        }
+                    }
                 }
             }
             .navigationTitle("Liquid Chat")
@@ -78,23 +85,31 @@ struct ContentView: View {
                         .ignoresSafeArea()
                     
                     VStack(spacing: 0) {
-                        // Custom Navigation Bar / Model Selector
+                        // Custom Navigation Bar / Model Indicator
                         HStack {
                             Spacer()
-                            ModelSelectorView(
-                                currentModel: session.modelName,
-                                isModelLoading: store.isModelLoading,
-                                downloadProgress: store.downloadProgress,
-                                onSelect: { selectedModel in
-                                    store.updateModel(id: session.id, modelName: selectedModel)
-                                    attachedImage = nil
-                                    selectedItem = nil
+                            HStack(spacing: 6) {
+                                Image(systemName: "cpu")
+                                    .foregroundColor(store.isModelLoading ? .orange : .blue)
+                                Text(session.modelName)
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                if store.isModelLoading {
+                                    if store.downloadProgress > 0 && store.downloadProgress < 1.0 {
+                                        Text("\(Int(store.downloadProgress * 100))%")
+                                            .font(.caption2)
+                                            .foregroundColor(.orange)
+                                    } else {
+                                        ProgressView()
+                                            .scaleEffect(0.7)
+                                    }
                                 }
-                            )
+                            }
                             Spacer()
                             
                             Button(action: {
                                 systemPromptTemp = session.systemPrompt
+                                selectedModelTemp = session.modelName
                                 showingSettings = true
                             }) {
                                 Image(systemName: "slider.horizontal.3")
@@ -287,6 +302,32 @@ struct ContentView: View {
                                 TextField("Act as a translator, coder, etc.", text: $systemPromptTemp, axis: .vertical)
                                     .lineLimit(4...10)
                             }
+                            
+                            Section(header: Text("Model Management")) {
+                                Picker("Active Model", selection: $selectedModelTemp) {
+                                    Text("LFM-Instruct (Text)").tag("LFM2.5-1.2B-Instruct")
+                                    Text("LFM-VL (Vision)").tag("LFM2.5-VL-1.6B")
+                                    Text("LFM-Audio (Voice)").tag("LFM2.5-Audio-1.5B")
+                                }
+                                .pickerStyle(.menu)
+                                
+                                ForEach(["LFM2.5-1.2B-Instruct", "LFM2.5-VL-1.6B", "LFM2.5-Audio-1.5B"], id: \.self) { model in
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(model)
+                                                .font(.body)
+                                                .fontWeight(.medium)
+                                            Text(modelDescription(for: model))
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        Spacer()
+                                        
+                                        modelActionView(for: model)
+                                    }
+                                    .padding(.vertical, 4)
+                                }
+                            }
                         }
                         .navigationTitle("Chat Settings")
                         .navigationBarTitleDisplayMode(.inline)
@@ -299,12 +340,13 @@ struct ContentView: View {
                             ToolbarItem(placement: .confirmationAction) {
                                 Button("Save") {
                                     store.updateSystemPrompt(id: session.id, systemPrompt: systemPromptTemp)
+                                    store.updateModel(id: session.id, modelName: selectedModelTemp)
                                     showingSettings = false
                                 }
                             }
                         }
                     }
-                    .presentationDetents([.medium])
+                    .presentationDetents([.medium, .large])
                 }
                 .sheet(isPresented: $showingCamera) {
                     CameraPicker(isPresented: $showingCamera, selectedImage: $attachedImage)
@@ -334,6 +376,56 @@ struct ContentView: View {
             }
         }
     }
+    
+    // Helper methods for model management
+    private func modelDescription(for model: String) -> String {
+            switch model {
+            case "LFM2.5-1.2B-Instruct": return "Text generation, fast local inference"
+            case "LFM2.5-VL-1.6B": return "Vision, supports image analysis"
+            case "LFM2.5-Audio-1.5B": return "Audio, supports voice input/output"
+            default: return ""
+            }
+        }
+        
+        @ViewBuilder
+        private func modelActionView(for model: String) -> some View {
+            let status = store.modelStatuses[model] ?? .notDownloaded
+            switch status {
+            case .downloaded:
+                HStack(spacing: 12) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                    Button(role: .destructive, action: {
+                        Task {
+                            await store.deleteModel(model)
+                        }
+                    }) {
+                        Image(systemName: "trash")
+                            .foregroundColor(.red)
+                    }
+                    .buttonStyle(.borderless)
+                }
+            case .downloading(let progress):
+                HStack(spacing: 8) {
+                    ProgressView(value: progress)
+                        .frame(width: 60)
+                    Text("\(Int(progress * 100))%")
+                        .font(.caption2)
+                        .foregroundColor(.orange)
+                }
+            case .notDownloaded:
+                Button(action: {
+                    Task {
+                        await store.downloadModel(model)
+                    }
+                }) {
+                    Image(systemName: "arrow.down.circle")
+                        .font(.title3)
+                        .foregroundColor(.blue)
+                }
+                .buttonStyle(.borderless)
+            }
+        }
 }
 
 // MARK: - MessageBubbleView (restored and optimized to prevent compiler bottlenecks)

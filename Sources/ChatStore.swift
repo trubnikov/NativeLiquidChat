@@ -1,5 +1,5 @@
 import SwiftUI
-import LeapSDK
+import LeapModelDownloader
 import AVFoundation
 
 @Observable
@@ -13,6 +13,16 @@ class ChatStore {
     var downloadProgress: Double = 0.0
     var isLoadingResponse = false
     var executionStatus: String?
+    
+    // Model Download & Disk Management State
+    enum ModelStatus: Hashable {
+        case notDownloaded
+        case downloading(progress: Double)
+        case downloaded
+    }
+    
+    var modelStatuses: [String: ModelStatus] = [:]
+    private var downloader: ModelDownloader!
     
     // Voice/Audio State
     var isRecording = false
@@ -41,6 +51,25 @@ class ChatStore {
             self.currentSessionId = self.sessions.first?.id
         }
         playbackManager.prepareSession()
+        
+        // Setup local model downloader
+        let paths = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)
+        let saveDir = paths[0].appendingPathComponent("leap_models").path
+        let config = LeapDownloaderConfig(
+            saveDir: saveDir,
+            validateSha256: true,
+            disableSslValidation: false,
+            baseUrl: nil,
+            connectTimeoutMillis: 30000,
+            socketTimeoutMillis: 60000,
+            requestTimeoutMillis: 600000
+        )
+        self.downloader = ModelDownloader(config: config, sessionConfiguration: nil)
+        
+        // Initial check of model statuses on disk
+        Task {
+            await checkModelStatuses()
+        }
     }
     
     func createSession(modelName: String = "LFM2.5-1.2B-Instruct", systemPrompt: String = "") {
@@ -96,6 +125,67 @@ class ChatStore {
         ChatStorage.saveSessions(sessions)
     }
     
+    // MARK: - Model Status and Storage Management
+    
+    func checkModelStatuses() async {
+        let models = ["LFM2.5-1.2B-Instruct", "LFM2.5-VL-1.6B", "LFM2.5-Audio-1.5B"]
+        for model in models {
+            do {
+                let status = try await downloader.queryStatus(modelName: model, quantizationType: "Q4_0")
+                await MainActor.run {
+                    if status is ModelDownloadStatusDownloaded {
+                        self.modelStatuses[model] = .downloaded
+                    } else if let progressStatus = status as? ModelDownloadStatusDownloadInProgress {
+                        self.modelStatuses[model] = .downloading(progress: progressStatus.progress)
+                    } else {
+                        self.modelStatuses[model] = .notDownloaded
+                    }
+                }
+            } catch {
+                print("Error querying status for \(model): \(error.localizedDescription)")
+                await MainActor.run {
+                    self.modelStatuses[model] = .notDownloaded
+                }
+            }
+        }
+    }
+    
+    func downloadModel(_ modelName: String) async {
+        await MainActor.run {
+            self.modelStatuses[modelName] = .downloading(progress: 0.0)
+        }
+        
+        do {
+            _ = try await downloader.downloadModel(modelName: modelName, quantizationType: "Q4_0") { [weak self] progress, _ in
+                Task { @MainActor in
+                    self?.modelStatuses[modelName] = .downloading(progress: progress.doubleValue)
+                }
+            }
+            await checkModelStatuses()
+        } catch {
+            print("Failed to download model \(modelName): \(error.localizedDescription)")
+            await checkModelStatuses()
+        }
+    }
+    
+    func deleteModel(_ modelName: String) async {
+        do {
+            if loadedModelName == modelName {
+                await MainActor.run {
+                    self.modelRunner = nil
+                    self.conversation = nil
+                    self.loadedModelName = nil
+                }
+            }
+            
+            try await downloader.removeModel(modelName: modelName, quantizationType: "Q4_0")
+            await checkModelStatuses()
+        } catch {
+            print("Failed to delete model \(modelName): \(error.localizedDescription)")
+            await checkModelStatuses()
+        }
+    }
+    
     @MainActor
     func ensureModelLoaded(for modelName: String) async -> Bool {
         if loadedModelName == modelName && modelRunner != nil {
@@ -115,13 +205,17 @@ class ChatStore {
                 contextSize: 1024,
                 nGpuLayers: 0
             )
-            let runner = try await Leap.shared.load(
-                model: modelName,
-                quantization: "Q4_0",
+            
+            let runner = try await downloader.loadModel(
+                modelName: modelName,
+                quantizationType: "Q4_0",
                 options: options,
-                progress: { [weak self] progress, _ in
+                generationTimeParameters: nil,
+                forceDownload: false,
+                downloadProgress: { [weak self] progress, _ in
                     Task { @MainActor in
-                        self?.downloadProgress = progress
+                        self?.downloadProgress = progress.doubleValue
+                        self?.modelStatuses[modelName] = .downloading(progress: progress.doubleValue)
                     }
                 }
             )
@@ -129,10 +223,12 @@ class ChatStore {
             self.modelRunner = runner
             self.loadedModelName = modelName
             self.isModelLoading = false
+            await checkModelStatuses()
             return true
         } catch {
             isModelLoading = false
             print("Failed to load model \(modelName): \(error.localizedDescription)")
+            await checkModelStatuses()
             return false
         }
     }

@@ -27,11 +27,11 @@ targets:
         INFOPLIST_KEY_NSPhotoLibraryUsageDescription: "We need access to your photo library to select images for the visual model."
         ENABLE_USER_SCRIPT_SANDBOXING: NO
         SWIFT_VERSION: 5.9
-        OTHER_LDFLAGS: "$(inherited) -ObjC -L$(BUILT_PRODUCTS_DIR)/LeapSDK.framework/Frameworks -L$(BUILT_PRODUCTS_DIR)/LeapModelDownloader.framework/Frameworks -linference_engine -linference_engine_llamacpp_backend"
-        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks @executable_path/Frameworks/LeapSDK.framework/Frameworks @executable_path/Frameworks/LeapModelDownloader.framework/Frameworks"
+        OTHER_LDFLAGS: "$(inherited) -ObjC -L$(BUILT_PRODUCTS_DIR)/LeapModelDownloader.framework/Frameworks -linference_engine -linference_engine_llamacpp_backend"
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks @executable_path/Frameworks/LeapModelDownloader.framework/Frameworks"
+        OTHER_SWIFT_FLAGS: "$(inherited) -DLEAP_DUAL_IMPORT_ALLOW"
+        GCC_PREPROCESSOR_DEFINITIONS: "$(inherited) LEAP_DUAL_IMPORT_ALLOW=1"
     dependencies:
-      - package: LeapSDK
-        product: LeapSDK
       - package: LeapSDK
         product: LeapModelDownloader
     postBuildScripts:
@@ -46,3 +46,11 @@ targets:
           find "$FRAMEWORKS_DIR" -name "*.dylib" | while read dylib; do
             codesign --force --sign "$EXPANDED_CODE_SIGN_IDENTITY" --timestamp=none "$dylib"
           done
+
+schemes:
+  NativeLiquidChat:
+    build:
+      targets:
+        NativeLiquidChat: [run, test, profile, analyze]
+    run:
+      config: Debug
