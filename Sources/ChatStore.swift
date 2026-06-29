@@ -36,6 +36,12 @@ class ChatStore {
     private var conversation: (any Conversation)?
     private var generationTask: Task<Void, Never>?
     
+    var showingCamera = false
+    var attachedImage: UIImage? = nil
+    
+    // Hold strong references to download tasks to prevent them from being deallocated and crashing
+    private var activeDownloads: [String: Any] = [:]
+    
     private let playbackManager = AudioPlaybackManager()
     private let recorder = AudioRecorder()
     
@@ -156,14 +162,19 @@ class ChatStore {
         }
         
         do {
-            _ = try await downloader.downloadModel(modelName: modelName, quantizationType: "Q4_0") { [weak self] progress, _ in
+            let task = try await downloader.downloadModel(modelName: modelName, quantizationType: "Q4_0") { [weak self] progress, _ in
                 Task { @MainActor in
                     self?.modelStatuses[modelName] = .downloading(progress: progress.doubleValue)
+                    if progress.doubleValue >= 1.0 {
+                        self?.activeDownloads.removeValue(forKey: modelName)
+                    }
                 }
             }
+            activeDownloads[modelName] = task
             await checkModelStatuses()
         } catch {
             print("Failed to download model \(modelName): \(error.localizedDescription)")
+            activeDownloads.removeValue(forKey: modelName)
             await checkModelStatuses()
         }
     }
@@ -215,7 +226,6 @@ class ChatStore {
                 downloadProgress: { [weak self] progress, _ in
                     Task { @MainActor in
                         self?.downloadProgress = progress.doubleValue
-                        self?.modelStatuses[modelName] = .downloading(progress: progress.doubleValue)
                     }
                 }
             )

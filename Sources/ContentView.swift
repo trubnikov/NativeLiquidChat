@@ -250,11 +250,13 @@ struct ContentView: View {
                                     .focused($isInputFocused)
                                     .lineLimit(1...5)
                                     .padding(12)
-                                    .background(.regularMaterial)
+                                    .background(.ultraThinMaterial)
                                     .cornerRadius(20)
+                                    .shadow(color: .white.opacity(0.15), radius: 2, x: 0, y: -1) // Top specular highlight
+                                    .shadow(color: .black.opacity(0.15), radius: 6, x: 0, y: 4) // Drop shadow
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 20)
-                                            .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+                                            .stroke(LinearGradient(colors: [.white.opacity(0.6), .white.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
                                     )
                                 
                                 if store.isLoadingResponse {
@@ -283,13 +285,28 @@ struct ContentView: View {
                                             .font(.system(size: 36))
                                             .symbolEffect(.bounce, value: inputText.isEmpty)
                                             .foregroundColor(!inputText.isEmpty || attachedImage != nil ? .blue : .secondary)
+                                            // Glass effect send button
+                                            .background(.ultraThinMaterial)
+                                            .clipShape(Circle())
+                                            .shadow(color: .black.opacity(0.15), radius: 4, x: 0, y: 2)
                                     }
                                     .disabled(inputText.isEmpty && attachedImage == nil)
                                 }
                             }
                             .padding(.horizontal)
                             .padding(.vertical, 12)
-                            .background(.ultraThinMaterial)
+                            // Refined iOS 27 Liquid Glass Background
+                            .background {
+                                Rectangle()
+                                    .fill(.ultraThinMaterial)
+                                    .ignoresSafeArea(edges: .bottom)
+                                    // Extra depth layer
+                                    .overlay(
+                                        Rectangle()
+                                            .fill(LinearGradient(colors: [.clear, .black.opacity(0.05)], startPoint: .top, endPoint: .bottom))
+                                    )
+                            }
+                            .shadow(color: .black.opacity(0.1), radius: 20, x: 0, y: -10) // Smooth diffusion
                         }
                     }
                 }
