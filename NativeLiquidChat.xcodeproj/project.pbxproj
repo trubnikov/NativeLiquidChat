@@ -7,25 +7,55 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		051C9E00ADD329693DE453F0 /* ChatStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0878B3A98605D4BDEC699587 /* ChatStorageTests.swift */; };
 		16E846ABE7C39A6E39189EFA /* ChatStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 993DCDDF88FEF91ABE327C1C /* ChatStore.swift */; };
-		1FC480EDCD9B7D66AA14C661 /* LeapModelDownloader in Frameworks */ = {isa = PBXBuildFile; productRef = DCF3CAF6641D234A4BF0225F /* LeapModelDownloader */; };
+		1A2034768DD4FC1520D08CA4 /* ModelManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84EE3E9A6056629418916A27 /* ModelManager.swift */; };
+		1FC480EDCD9B7D66AA14C661 /* LeapSDK in Frameworks */ = {isa = PBXBuildFile; productRef = E4F9D45BB1DF427DA74E3E04 /* LeapSDK */; };
 		220B6A9AC9AAF85EF9DF0380 /* AudioPlaybackManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C7B76C167EF4958D8DA35E4 /* AudioPlaybackManager.swift */; };
+		2BBE4F0350365549606C1489 /* ModelsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F558E3F536D0C9ADD38DACE4 /* ModelsView.swift */; };
 		3E78A3C67F010FF680B388DA /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCEEC0E25493168C1338526B /* ContentView.swift */; };
 		4635020FF16600947B13802C /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D3B65F4DD881E141C02829 /* AudioRecorder.swift */; };
 		5C377BCD0622DA020E8FE94E /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20F15652552BF8AC888C972 /* Models.swift */; };
 		603DD5CC91E625C7C2065B2E /* CameraPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DD73FEC565B6E5E0DB36EE4 /* CameraPicker.swift */; };
+		6C5CC08B0433FA961FADE3E7 /* EmptyChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15A2F55129813D3BE7737388 /* EmptyChatView.swift */; };
+		75BA73F1E5F330BF7154121D /* TypingIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69FC04211C6B05B6079D97C8 /* TypingIndicator.swift */; };
+		76BEB3A71FE9D8D76FB195BD /* ModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D521148AB7A23CDCFB9B9B8D /* ModelsTests.swift */; };
 		7E255EDCFBEDBA7685A98CD1 /* NativeLiquidChatApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 890C24E5039C187ED13994BA /* NativeLiquidChatApp.swift */; };
+		96C994F7E65C4FF95D5E09AC /* ModelCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB3322B586046C7B93B42359 /* ModelCatalog.swift */; };
+		BEC00D3464B79E2650BC7152 /* LeapModelDownloader in Frameworks */ = {isa = PBXBuildFile; productRef = DCF3CAF6641D234A4BF0225F /* LeapModelDownloader */; };
+		D3083BE98A2F2BDA4005DB80 /* ChatStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19A56CD75751D17343CEC018 /* ChatStoreTests.swift */; };
+		FC6FF8FF1C761DA4E1C63FA0 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC36999EC0C748E6C0D2CD5C /* AppTheme.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		8B9EBE1E5604A5BDF3B28FAB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D8A5BA17DEBAB6B65381BD32 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2D087F7ED63C5545B6DC00D8;
+			remoteInfo = NativeLiquidChat;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
-		01B274B2CD6315298B8BDBE6 /* NativeLiquidChat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NativeLiquidChat.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		01B274B2CD6315298B8BDBE6 /* NativeLiquidChat.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = NativeLiquidChat.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0878B3A98605D4BDEC699587 /* ChatStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatStorageTests.swift; sourceTree = "<group>"; };
 		0C7B76C167EF4958D8DA35E4 /* AudioPlaybackManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlaybackManager.swift; sourceTree = "<group>"; };
+		15A2F55129813D3BE7737388 /* EmptyChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyChatView.swift; sourceTree = "<group>"; };
+		19A56CD75751D17343CEC018 /* ChatStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatStoreTests.swift; sourceTree = "<group>"; };
 		1DD73FEC565B6E5E0DB36EE4 /* CameraPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPicker.swift; sourceTree = "<group>"; };
+		69FC04211C6B05B6079D97C8 /* TypingIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingIndicator.swift; sourceTree = "<group>"; };
+		84EE3E9A6056629418916A27 /* ModelManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelManager.swift; sourceTree = "<group>"; };
 		890C24E5039C187ED13994BA /* NativeLiquidChatApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeLiquidChatApp.swift; sourceTree = "<group>"; };
 		993DCDDF88FEF91ABE327C1C /* ChatStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatStore.swift; sourceTree = "<group>"; };
+		BC36999EC0C748E6C0D2CD5C /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
 		CCEEC0E25493168C1338526B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		D521148AB7A23CDCFB9B9B8D /* ModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelsTests.swift; sourceTree = "<group>"; };
+		D9B3C350605FC09B6F0ED035 /* NativeLiquidChatTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = NativeLiquidChatTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E20F15652552BF8AC888C972 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		E9D3B65F4DD881E141C02829 /* AudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorder.swift; sourceTree = "<group>"; };
+		EB3322B586046C7B93B42359 /* ModelCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelCatalog.swift; sourceTree = "<group>"; };
+		F558E3F536D0C9ADD38DACE4 /* ModelsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -33,7 +63,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1FC480EDCD9B7D66AA14C661 /* LeapModelDownloader in Frameworks */,
+				1FC480EDCD9B7D66AA14C661 /* LeapSDK in Frameworks */,
+				BEC00D3464B79E2650BC7152 /* LeapModelDownloader in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -44,6 +75,7 @@
 			isa = PBXGroup;
 			children = (
 				01B274B2CD6315298B8BDBE6 /* NativeLiquidChat.app */,
+				D9B3C350605FC09B6F0ED035 /* NativeLiquidChatTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -51,21 +83,38 @@
 		8F808B4C9FF93DBAB4D48E58 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				BC36999EC0C748E6C0D2CD5C /* AppTheme.swift */,
 				0C7B76C167EF4958D8DA35E4 /* AudioPlaybackManager.swift */,
 				E9D3B65F4DD881E141C02829 /* AudioRecorder.swift */,
 				1DD73FEC565B6E5E0DB36EE4 /* CameraPicker.swift */,
 				993DCDDF88FEF91ABE327C1C /* ChatStore.swift */,
 				CCEEC0E25493168C1338526B /* ContentView.swift */,
+				15A2F55129813D3BE7737388 /* EmptyChatView.swift */,
+				EB3322B586046C7B93B42359 /* ModelCatalog.swift */,
+				84EE3E9A6056629418916A27 /* ModelManager.swift */,
 				E20F15652552BF8AC888C972 /* Models.swift */,
+				F558E3F536D0C9ADD38DACE4 /* ModelsView.swift */,
 				890C24E5039C187ED13994BA /* NativeLiquidChatApp.swift */,
+				69FC04211C6B05B6079D97C8 /* TypingIndicator.swift */,
 			);
 			path = Sources;
+			sourceTree = "<group>";
+		};
+		923B441F90061BC624BAE87D /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				0878B3A98605D4BDEC699587 /* ChatStorageTests.swift */,
+				19A56CD75751D17343CEC018 /* ChatStoreTests.swift */,
+				D521148AB7A23CDCFB9B9B8D /* ModelsTests.swift */,
+			);
+			path = Tests;
 			sourceTree = "<group>";
 		};
 		C9125EE81014ABD4EB8B3B36 = {
 			isa = PBXGroup;
 			children = (
 				8F808B4C9FF93DBAB4D48E58 /* Sources */,
+				923B441F90061BC624BAE87D /* Tests */,
 				7835BE6507B65EEC2986D007 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -87,11 +136,30 @@
 			);
 			name = NativeLiquidChat;
 			packageProductDependencies = (
+				E4F9D45BB1DF427DA74E3E04 /* LeapSDK */,
 				DCF3CAF6641D234A4BF0225F /* LeapModelDownloader */,
 			);
 			productName = NativeLiquidChat;
 			productReference = 01B274B2CD6315298B8BDBE6 /* NativeLiquidChat.app */;
 			productType = "com.apple.product-type.application";
+		};
+		A323C775B8192F59EE399DCE /* NativeLiquidChatTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C2C4BC5079A6A5DD905766FA /* Build configuration list for PBXNativeTarget "NativeLiquidChatTests" */;
+			buildPhases = (
+				C7E8FD7C1A7B3C88F0A7E63E /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				EEA9D28CF8AA1724DB6FB7D3 /* PBXTargetDependency */,
+			);
+			name = NativeLiquidChatTests;
+			packageProductDependencies = (
+			);
+			productName = NativeLiquidChatTests;
+			productReference = D9B3C350605FC09B6F0ED035 /* NativeLiquidChatTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -101,6 +169,16 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					2D087F7ED63C5545B6DC00D8 = {
+						DevelopmentTeam = Q4MWQ3X44V;
+						ProvisioningStyle = Automatic;
+					};
+					A323C775B8192F59EE399DCE = {
+						DevelopmentTeam = Q4MWQ3X44V;
+						ProvisioningStyle = Automatic;
+					};
+				};
 			};
 			buildConfigurationList = 9807AFD1D61B7A473BCC78A3 /* Build configuration list for PBXProject "NativeLiquidChat" */;
 			developmentRegion = en;
@@ -120,6 +198,7 @@
 			projectRoot = "";
 			targets = (
 				2D087F7ED63C5545B6DC00D8 /* NativeLiquidChat */,
+				A323C775B8192F59EE399DCE /* NativeLiquidChatTests */,
 			);
 		};
 /* End PBXProject section */
@@ -151,17 +230,41 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FC6FF8FF1C761DA4E1C63FA0 /* AppTheme.swift in Sources */,
 				220B6A9AC9AAF85EF9DF0380 /* AudioPlaybackManager.swift in Sources */,
 				4635020FF16600947B13802C /* AudioRecorder.swift in Sources */,
 				603DD5CC91E625C7C2065B2E /* CameraPicker.swift in Sources */,
 				16E846ABE7C39A6E39189EFA /* ChatStore.swift in Sources */,
 				3E78A3C67F010FF680B388DA /* ContentView.swift in Sources */,
+				6C5CC08B0433FA961FADE3E7 /* EmptyChatView.swift in Sources */,
+				96C994F7E65C4FF95D5E09AC /* ModelCatalog.swift in Sources */,
+				1A2034768DD4FC1520D08CA4 /* ModelManager.swift in Sources */,
 				5C377BCD0622DA020E8FE94E /* Models.swift in Sources */,
+				2BBE4F0350365549606C1489 /* ModelsView.swift in Sources */,
 				7E255EDCFBEDBA7685A98CD1 /* NativeLiquidChatApp.swift in Sources */,
+				75BA73F1E5F330BF7154121D /* TypingIndicator.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C7E8FD7C1A7B3C88F0A7E63E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				051C9E00ADD329693DE453F0 /* ChatStorageTests.swift in Sources */,
+				D3083BE98A2F2BDA4005DB80 /* ChatStoreTests.swift in Sources */,
+				76BEB3A71FE9D8D76FB195BD /* ModelsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		EEA9D28CF8AA1724DB6FB7D3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2D087F7ED63C5545B6DC00D8 /* NativeLiquidChat */;
+			targetProxy = 8B9EBE1E5604A5BDF3B28FAB /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		1D1038613FC3407C15340B6E /* Debug */ = {
@@ -169,41 +272,43 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 1;
+				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Q4MWQ3X44V;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"$(inherited)",
-					"LEAP_DUAL_IMPORT_ALLOW=1",
-				);
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = NativeLiquidChat;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSCameraUsageDescription = "We need access to your camera to capture images for the visual model.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need access to your microphone to capture audio prompts.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We need access to your photo library to select images for the visual model.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/Frameworks/LeapModelDownloader.framework/Frameworks",
-				);
-				MARKETING_VERSION = 1;
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-ObjC",
-					"-L$(BUILT_PRODUCTS_DIR)/LeapModelDownloader.framework/Frameworks",
-					"-linference_engine",
-					"-linference_engine_llamacpp_backend",
-				);
-				OTHER_SWIFT_FLAGS = "$(inherited) -DLEAP_DUAL_IMPORT_ALLOW";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/Frameworks/LeapSDK.framework/Frameworks @executable_path/Frameworks/LeapModelDownloader.framework/Frameworks";
+				OTHER_LDFLAGS = "$(inherited) -ObjC -L$(BUILT_PRODUCTS_DIR)/LeapSDK.framework/Frameworks -L$(BUILT_PRODUCTS_DIR)/LeapModelDownloader.framework/Frameworks -linference_engine -linference_engine_llamacpp_backend";
 				PRODUCT_BUNDLE_IDENTIFIER = com.dimatrubnikov.NativeLiquidChat;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.9;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
+		};
+		43E25C615E081FF3E5918E5C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = Q4MWQ3X44V;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.dimatrubnikov.NativeLiquidChatTests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NativeLiquidChat.app/NativeLiquidChat";
+			};
+			name = Release;
 		};
 		850C236E94BB6AB9C5302096 /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -266,41 +371,43 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 1;
+				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Q4MWQ3X44V;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"$(inherited)",
-					"LEAP_DUAL_IMPORT_ALLOW=1",
-				);
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = NativeLiquidChat;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSCameraUsageDescription = "We need access to your camera to capture images for the visual model.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need access to your microphone to capture audio prompts.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We need access to your photo library to select images for the visual model.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/Frameworks/LeapModelDownloader.framework/Frameworks",
-				);
-				MARKETING_VERSION = 1;
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-ObjC",
-					"-L$(BUILT_PRODUCTS_DIR)/LeapModelDownloader.framework/Frameworks",
-					"-linference_engine",
-					"-linference_engine_llamacpp_backend",
-				);
-				OTHER_SWIFT_FLAGS = "$(inherited) -DLEAP_DUAL_IMPORT_ALLOW";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/Frameworks/LeapSDK.framework/Frameworks @executable_path/Frameworks/LeapModelDownloader.framework/Frameworks";
+				OTHER_LDFLAGS = "$(inherited) -ObjC -L$(BUILT_PRODUCTS_DIR)/LeapSDK.framework/Frameworks -L$(BUILT_PRODUCTS_DIR)/LeapModelDownloader.framework/Frameworks -linference_engine -linference_engine_llamacpp_backend";
 				PRODUCT_BUNDLE_IDENTIFIER = com.dimatrubnikov.NativeLiquidChat;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.9;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
+		};
+		B9B8AB3990830F185FBF4B8C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = Q4MWQ3X44V;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.dimatrubnikov.NativeLiquidChatTests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NativeLiquidChat.app/NativeLiquidChat";
+			};
+			name = Debug;
 		};
 		BB982EDC44664F7D25393BA7 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -377,6 +484,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
+		C2C4BC5079A6A5DD905766FA /* Build configuration list for PBXNativeTarget "NativeLiquidChatTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B9B8AB3990830F185FBF4B8C /* Debug */,
+				43E25C615E081FF3E5918E5C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		FB8B438D342B3CAD1621A784 /* Build configuration list for PBXNativeTarget "NativeLiquidChat" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -404,6 +520,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A775239C9FA272ABC0DD72B7 /* XCRemoteSwiftPackageReference "leap-sdk" */;
 			productName = LeapModelDownloader;
+		};
+		E4F9D45BB1DF427DA74E3E04 /* LeapSDK */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A775239C9FA272ABC0DD72B7 /* XCRemoteSwiftPackageReference "leap-sdk" */;
+			productName = LeapSDK;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

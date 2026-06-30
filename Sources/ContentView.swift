@@ -1,11 +1,12 @@
 import SwiftUI
 import PhotosUI
-import LeapModelDownloader
 
 struct ContentView: View {
     @State private var store = ChatStore()
+    @State private var models = ModelManager()
     @State private var inputText = ""
     @State private var showingSettings = false
+    @State private var showingModels = false
     @State private var systemPromptTemp = ""
     @State private var renameTemp = ""
     @State private var showingRenameAlert = false
@@ -16,7 +17,11 @@ struct ContentView: View {
     @State private var selectedItem: PhotosPickerItem? = nil
     @State private var attachedImage: UIImage? = nil
     @State private var showingCamera = false
+    @State private var showingAttachDialog = false
+    @State private var showingPhotoPicker = false
     
+    @AppStorage("appTheme") private var appThemeRaw = AppTheme.system.rawValue
+
     @FocusState private var isInputFocused: Bool
     
     var body: some View {
@@ -28,7 +33,7 @@ struct ContentView: View {
                         NavigationLink(value: session.id) {
                             HStack {
                                 Image(systemName: session.iconName) // Optimization: use iconName property to avoid nested ternary compiler slow down
-                                    .foregroundColor(.blue)
+                                    .foregroundStyle(.tint)
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(session.title)
                                         .fontWeight(.medium)
@@ -75,6 +80,14 @@ struct ContentView: View {
                         Image(systemName: "square.and.pencil")
                     }
                 }
+                ToolbarItem(placement: .topBarLeading) {
+                    Button(action: { showingModels = true }) {
+                        Image(systemName: "cube.box")
+                    }
+                }
+            }
+            .sheet(isPresented: $showingModels) {
+                ModelsView(store: store, models: models)
             }
         } detail: {
             // DETAIL VIEW: Active Chat Screen
@@ -85,73 +98,26 @@ struct ContentView: View {
                         .ignoresSafeArea()
                     
                     VStack(spacing: 0) {
-                        // Custom Navigation Bar / Model Indicator
-                        HStack {
-                            Spacer()
-                            HStack(spacing: 6) {
-                                Image(systemName: "cpu")
-                                    .foregroundColor(store.isModelLoading ? .orange : .blue)
-                                Text(session.modelName)
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                                if store.isModelLoading {
-                                    if store.downloadProgress > 0 && store.downloadProgress < 1.0 {
-                                        Text("\(Int(store.downloadProgress * 100))%")
-                                            .font(.caption2)
-                                            .foregroundColor(.orange)
-                                    } else {
-                                        ProgressView()
-                                            .scaleEffect(0.7)
-                                    }
-                                }
-                            }
-                            Spacer()
-                            
-                            Button(action: {
-                                systemPromptTemp = session.systemPrompt
-                                selectedModelTemp = session.modelName
-                                showingSettings = true
-                            }) {
-                                Image(systemName: "slider.horizontal.3")
-                                    .font(.title3)
-                                    .padding(8)
-                                    .background(.regularMaterial)
-                                    .clipShape(Circle())
-                            }
-                        }
-                        .padding()
-                        .background(.ultraThinMaterial)
-                        
                         // Messages ScrollView
                         ScrollViewReader { proxy in
                             ScrollView {
                                 VStack(spacing: 16) {
                                     if session.messages.isEmpty {
-                                        VStack(spacing: 16) {
-                                            Image(systemName: "brain.head.profile")
-                                                .font(.system(size: 64))
-                                                .foregroundColor(.blue)
-                                                .padding(.top, 60)
-                                            
-                                            Text("Start a conversation with Liquid LFM")
-                                                .font(.headline)
-                                                .foregroundColor(.secondary)
-                                            
-                                            if !session.systemPrompt.isEmpty {
-                                                Text("System: \(session.systemPrompt)")
-                                                    .font(.caption)
-                                                    .foregroundColor(.secondary)
-                                                    .italic()
-                                                    .multilineTextAlignment(.center)
-                                                    .padding(.horizontal)
-                                            }
+                                        EmptyChatView(
+                                            modelName: session.modelName,
+                                            systemPrompt: session.systemPrompt
+                                        ) { prompt in
+                                            inputText = prompt
+                                            isInputFocused = true
                                         }
+                                        .padding(.top, 40)
                                     }
                                     
                                     ForEach(session.messages) { msg in
                                         MessageBubbleView(message: msg, onPlayAudio: { data in
                                             store.playAudio(data)
                                         })
+                                        .transition(.move(edge: msg.isUser ? .trailing : .leading).combined(with: .opacity))
                                     }
                                     // Streaming message
                                     if store.isLoadingResponse && !store.currentAssistantMessage.isEmpty {
@@ -159,23 +125,28 @@ struct ContentView: View {
                                             .id("current")
                                     } else if store.isLoadingResponse {
                                         HStack {
-                                            ProgressView()
-                                                .padding()
+                                            TypingIndicator()
                                             Spacer()
                                         }
                                         .id("loading")
+                                        .transition(.opacity)
                                     }
-                                    
-                                    Color.clear.frame(height: 20).id("bottom")
+
+                                    Color.clear.frame(height: 8).id("bottom")
                                 }
+                                .animation(.spring(response: 0.35, dampingFraction: 0.85), value: session.messages.count)
+                                .animation(.easeInOut(duration: 0.2), value: store.isLoadingResponse)
                                 .padding()
                             }
                             .scrollDismissesKeyboard(.interactively)
                             .onChange(of: session.messages.count) {
-                                withAnimation { proxy.scrollTo("bottom", anchor: .bottom) }
+                                withAnimation(.easeOut(duration: 0.25)) { proxy.scrollTo("bottom", anchor: .bottom) }
                             }
                             .onChange(of: store.currentAssistantMessage) {
-                                withAnimation { proxy.scrollTo("current", anchor: .bottom) }
+                                proxy.scrollTo("bottom", anchor: .bottom)
+                            }
+                            .onChange(of: store.isLoadingResponse) {
+                                withAnimation(.easeOut(duration: 0.25)) { proxy.scrollTo("bottom", anchor: .bottom) }
                             }
                         }
                         
@@ -200,118 +171,117 @@ struct ContentView: View {
                                     selectedItem = nil
                                 }) {
                                     Image(systemName: "xmark.circle.fill")
-                                        .foregroundColor(.gray)
+                                        .foregroundStyle(.secondary)
                                 }
                             }
                             .padding()
                             .background(.regularMaterial)
                         }
                         
-                        // Glassmorphism Input Bar
-                        VStack(spacing: 0) {
-                            Divider()
-                            HStack(alignment: .bottom, spacing: 12) {
-                                
-                                // Image Upload Button (Vision model only)
-                                if session.modelName.contains("VL") {
-                                    Menu {
-                                        PhotosPicker(selection: $selectedItem, matching: .images) {
-                                            Label("Photo Library", systemImage: "photo.on.rectangle")
-                                        }
-                                        Button(action: { showingCamera = true }) {
-                                            Label("Camera", systemImage: "camera")
-                                        }
-                                    } label: {
-                                        Image(systemName: "plus.circle.fill")
-                                            .font(.system(size: 28))
-                                            .foregroundColor(.blue)
-                                    }
-                                }
-                                
-                                // Audio Recording Button (Audio model only)
-                                if session.modelName.contains("Audio") {
-                                    Button(action: {
-                                        store.toggleRecording()
-                                    }) {
-                                        Image(systemName: store.isRecording ? "stop.circle.fill" : "mic.circle.fill")
-                                            .font(.system(size: 28))
-                                            .foregroundColor(store.isRecording ? .red : .blue)
-                                    }
-                                    .contextMenu {
-                                        if store.isRecording {
-                                            Button(role: .destructive, action: { store.cancelRecording() }) {
-                                                Label("Cancel Recording", systemImage: "trash")
-                                            }
-                                        }
-                                    }
-                                }
-                                
-                                TextField("Message LFM...", text: $inputText, axis: .vertical)
-                                    .focused($isInputFocused)
-                                    .lineLimit(1...5)
-                                    .padding(12)
-                                    .background(.ultraThinMaterial)
-                                    .cornerRadius(20)
-                                    .shadow(color: .white.opacity(0.15), radius: 2, x: 0, y: -1) // Top specular highlight
-                                    .shadow(color: .black.opacity(0.15), radius: 6, x: 0, y: 4) // Drop shadow
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 20)
-                                            .stroke(LinearGradient(colors: [.white.opacity(0.6), .white.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
-                                    )
-                                
-                                if store.isLoadingResponse {
-                                    // STOP BUTTON to cancel response generation
-                                    Button(action: {
-                                        store.stopGeneration()
-                                    }) {
-                                        Image(systemName: "stop.circle.fill")
-                                            .font(.system(size: 36))
-                                            .foregroundColor(.red)
-                                    }
-                                } else {
-                                    // SEND BUTTON
-                                    Button(action: {
-                                        let text = inputText
-                                        let img = attachedImage
-                                        inputText = ""
-                                        attachedImage = nil
-                                        selectedItem = nil
-                                        isInputFocused = false
-                                        Task {
-                                            await store.sendMessage(text, attachedImage: img)
-                                        }
-                                    }) {
-                                        Image(systemName: "arrow.up.circle.fill")
-                                            .font(.system(size: 36))
-                                            .symbolEffect(.bounce, value: inputText.isEmpty)
-                                            .foregroundColor(!inputText.isEmpty || attachedImage != nil ? .blue : .secondary)
-                                            // Glass effect send button
-                                            .background(.ultraThinMaterial)
-                                            .clipShape(Circle())
-                                            .shadow(color: .black.opacity(0.15), radius: 4, x: 0, y: 2)
-                                    }
-                                    .disabled(inputText.isEmpty && attachedImage == nil)
+                    }
+                    // Input bar lives in a bottom safe-area inset: a system
+                    // "floating" layer the OS renders itself (Liquid Glass on iOS 26+).
+                    // We only describe the contents and sizes — never the look.
+                    .safeAreaInset(edge: .bottom) {
+                        HStack(alignment: .bottom, spacing: 12) {
+
+                            // Image Upload Button (Vision model only)
+                            if session.modelName.contains("VL") {
+                                Button(action: { showingAttachDialog = true }) {
+                                    Image(systemName: "plus.circle.fill")
+                                        .font(.system(size: 28))
                                 }
                             }
-                            .padding(.horizontal)
-                            .padding(.vertical, 12)
-                            // Refined iOS 27 Liquid Glass Background
-                            .background {
-                                Rectangle()
-                                    .fill(.ultraThinMaterial)
-                                    .ignoresSafeArea(edges: .bottom)
-                                    // Extra depth layer
-                                    .overlay(
-                                        Rectangle()
-                                            .fill(LinearGradient(colors: [.clear, .black.opacity(0.05)], startPoint: .top, endPoint: .bottom))
-                                    )
+
+                            // Audio Recording Button (Audio model only)
+                            if session.modelName.contains("Audio") {
+                                Button(action: {
+                                    store.toggleRecording()
+                                }) {
+                                    Image(systemName: store.isRecording ? "stop.circle.fill" : "mic.circle.fill")
+                                        .font(.system(size: 28))
+                                        .foregroundStyle(store.isRecording ? AnyShapeStyle(.red) : AnyShapeStyle(.tint))
+                                }
+                                .contextMenu {
+                                    if store.isRecording {
+                                        Button(role: .destructive, action: { store.cancelRecording() }) {
+                                            Label("Cancel Recording", systemImage: "trash")
+                                        }
+                                    }
+                                }
                             }
-                            .shadow(color: .black.opacity(0.1), radius: 20, x: 0, y: -10) // Smooth diffusion
+
+                            TextField("Message LFM...", text: $inputText, axis: .vertical)
+                                .focused($isInputFocused)
+                                .lineLimit(1...6)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 11)
+                                .background(Color(uiColor: .secondarySystemBackground),
+                                            in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 22, style: .continuous)
+                                        .strokeBorder(Color(uiColor: .separator).opacity(0.5), lineWidth: 0.5)
+                                )
+
+                            if store.isLoadingResponse {
+                                // STOP BUTTON to cancel response generation
+                                Button(action: {
+                                    store.stopGeneration()
+                                }) {
+                                    Image(systemName: "stop.circle.fill")
+                                        .font(.system(size: 32))
+                                        .foregroundStyle(.red)
+                                }
+                            } else {
+                                // SEND BUTTON
+                                Button(action: {
+                                    let text = inputText
+                                    let img = attachedImage
+                                    inputText = ""
+                                    attachedImage = nil
+                                    selectedItem = nil
+                                    isInputFocused = false
+                                    Task {
+                                        await store.sendMessage(text, attachedImage: img)
+                                    }
+                                }) {
+                                    Image(systemName: "arrow.up.circle.fill")
+                                        .font(.system(size: 32))
+                                        .symbolEffect(.bounce, value: inputText.isEmpty)
+                                }
+                                .disabled(inputText.isEmpty && attachedImage == nil)
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.vertical, 8)
+                        .background(.bar)
+                    }
+                }
+                .navigationTitle(session.modelName)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .principal) {
+                        if store.isModelLoading {
+                            HStack(spacing: 6) {
+                                ProgressView().controlSize(.small)
+                                if store.downloadProgress > 0 && store.downloadProgress < 1.0 {
+                                    Text("\(Int(store.downloadProgress * 100))%")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                    }
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button(action: {
+                            systemPromptTemp = session.systemPrompt
+                            selectedModelTemp = session.modelName
+                            showingSettings = true
+                        }) {
+                            Image(systemName: "slider.horizontal.3")
                         }
                     }
                 }
-                .navigationTitle(session.title)
-                .navigationBarTitleDisplayMode(.inline)
                 .sheet(isPresented: $showingSettings) {
                     NavigationStack {
                         Form {
@@ -320,30 +290,27 @@ struct ContentView: View {
                                     .lineLimit(4...10)
                             }
                             
-                            Section(header: Text("Model Management")) {
+                            Section(header: Text("Model"), footer: Text("The model is downloaded automatically the first time you send a message.")) {
                                 Picker("Active Model", selection: $selectedModelTemp) {
                                     Text("LFM-Instruct (Text)").tag("LFM2.5-1.2B-Instruct")
                                     Text("LFM-VL (Vision)").tag("LFM2.5-VL-1.6B")
                                     Text("LFM-Audio (Voice)").tag("LFM2.5-Audio-1.5B")
                                 }
                                 .pickerStyle(.menu)
-                                
-                                ForEach(["LFM2.5-1.2B-Instruct", "LFM2.5-VL-1.6B", "LFM2.5-Audio-1.5B"], id: \.self) { model in
-                                    HStack {
-                                        VStack(alignment: .leading, spacing: 4) {
-                                            Text(model)
-                                                .font(.body)
-                                                .fontWeight(.medium)
-                                            Text(modelDescription(for: model))
-                                                .font(.caption)
-                                                .foregroundColor(.secondary)
-                                        }
-                                        Spacer()
-                                        
-                                        modelActionView(for: model)
+
+                                Text(modelDescription(for: selectedModelTemp))
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+
+                            Section(header: Text("Appearance")) {
+                                Picker("Theme", selection: $appThemeRaw) {
+                                    ForEach(AppTheme.allCases) { theme in
+                                        Label(theme.label, systemImage: theme.iconName)
+                                            .tag(theme.rawValue)
                                     }
-                                    .padding(.vertical, 4)
                                 }
+                                .pickerStyle(.segmented)
                             }
                         }
                         .navigationTitle("Chat Settings")
@@ -365,6 +332,12 @@ struct ContentView: View {
                     }
                     .presentationDetents([.medium, .large])
                 }
+                .confirmationDialog("Attach Image", isPresented: $showingAttachDialog, titleVisibility: .visible) {
+                    Button("Photo Library") { showingPhotoPicker = true }
+                    Button("Camera") { showingCamera = true }
+                    Button("Cancel", role: .cancel) { }
+                }
+                .photosPicker(isPresented: $showingPhotoPicker, selection: $selectedItem, matching: .images)
                 .sheet(isPresented: $showingCamera) {
                     CameraPicker(isPresented: $showingCamera, selectedImage: $attachedImage)
                 }
@@ -394,66 +367,39 @@ struct ContentView: View {
         }
     }
     
-    // Helper methods for model management
     private func modelDescription(for model: String) -> String {
-            switch model {
-            case "LFM2.5-1.2B-Instruct": return "Text generation, fast local inference"
-            case "LFM2.5-VL-1.6B": return "Vision, supports image analysis"
-            case "LFM2.5-Audio-1.5B": return "Audio, supports voice input/output"
-            default: return ""
-            }
+        switch model {
+        case "LFM2.5-1.2B-Instruct": return "Text generation, fast local inference"
+        case "LFM2.5-VL-1.6B": return "Vision, supports image analysis"
+        case "LFM2.5-Audio-1.5B": return "Audio, supports voice input/output"
+        default: return ""
         }
-        
-        @ViewBuilder
-        private func modelActionView(for model: String) -> some View {
-            let status = store.modelStatuses[model] ?? .notDownloaded
-            switch status {
-            case .downloaded:
-                HStack(spacing: 12) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
-                    Button(role: .destructive, action: {
-                        Task {
-                            await store.deleteModel(model)
-                        }
-                    }) {
-                        Image(systemName: "trash")
-                            .foregroundColor(.red)
-                    }
-                    .buttonStyle(.borderless)
-                }
-            case .downloading(let progress):
-                HStack(spacing: 8) {
-                    ProgressView(value: progress)
-                        .frame(width: 60)
-                    Text("\(Int(progress * 100))%")
-                        .font(.caption2)
-                        .foregroundColor(.orange)
-                }
-            case .notDownloaded:
-                Button(action: {
-                    Task {
-                        await store.downloadModel(model)
-                    }
-                }) {
-                    Image(systemName: "arrow.down.circle")
-                        .font(.title3)
-                        .foregroundColor(.blue)
-                }
-                .buttonStyle(.borderless)
-            }
-        }
+    }
 }
 
 // MARK: - MessageBubbleView (restored and optimized to prevent compiler bottlenecks)
 struct MessageBubbleView: View {
     let message: ChatMessageData
     let onPlayAudio: (Data) -> Void
-    
+
+    /// Render assistant replies as Markdown (bold, lists, code spans, links);
+    /// keep user text verbatim.
+    private var formattedContent: AttributedString {
+        if message.isUser {
+            return AttributedString(message.content)
+        }
+        let options = AttributedString.MarkdownParsingOptions(
+            interpretedSyntax: .inlineOnlyPreservingWhitespace)
+        if let parsed = try? AttributedString(markdown: message.content, options: options) {
+            return parsed
+        }
+        return AttributedString(message.content)
+    }
+
     var body: some View {
         HStack {
-            if message.isUser { Spacer() }
-            
+            if message.isUser { Spacer(minLength: 40) }
+
             VStack(alignment: message.isUser ? .trailing : .leading, spacing: 4) {
                 // Image display if attached
                 if let imgData = message.imageData, let uiImage = UIImage(data: imgData) {
@@ -473,44 +419,51 @@ struct MessageBubbleView: View {
                         }) {
                             Image(systemName: "play.circle.fill")
                                 .font(.title2)
-                                .foregroundColor(message.isUser ? .white : .blue)
+                                .foregroundStyle(message.isUser ? AnyShapeStyle(.white) : AnyShapeStyle(.tint))
                         }
                     }
-                    
-                    Text(message.content)
+
+                    Text(formattedContent)
                         .font(.body)
-                        .foregroundColor(message.isUser ? .white : .primary)
+                        .foregroundStyle(message.isUser ? AnyShapeStyle(.white) : AnyShapeStyle(.primary))
+                        .textSelection(.enabled)
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
                 .background {
-                    // Optimization: replaced ternary operator inside background modifier with if-else view builder to avoid compiler bottleneck
                     if message.isUser {
-                        LinearGradient(colors: [.blue, .cyan], startPoint: .topLeading, endPoint: .bottomTrailing)
+                        Color.accentColor
                     } else {
-                        LinearGradient(colors: [Color(uiColor: .secondarySystemGroupedBackground), Color(uiColor: .tertiarySystemGroupedBackground)], startPoint: .top, endPoint: .bottom)
+                        Color(uiColor: .secondarySystemGroupedBackground)
                     }
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                .shadow(color: .black.opacity(0.04), radius: 3, x: 0, y: 1)
                 .contextMenu {
-                    Button(action: {
+                    Button {
                         UIPasteboard.general.string = message.content
-                    }) {
+                        UINotificationFeedbackGenerator().notificationOccurred(.success)
+                    } label: {
                         Label("Copy", systemImage: "doc.on.doc")
                     }
+                    ShareLink(item: message.content) {
+                        Label("Share", systemImage: "square.and.arrow.up")
+                    }
                 }
-                
-                // Tokens/sec Speed counter
-                if let speedVal = message.speed {
-                    Text(String(format: "%.1f tokens/sec", speedVal))
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                        .padding(.horizontal, 8)
+
+                // Speed + time footnote
+                if message.speed != nil || !message.isUser {
+                    HStack(spacing: 6) {
+                        if let speedVal = message.speed {
+                            Text(String(format: "%.1f tok/s", speedVal))
+                        }
+                    }
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                    .padding(.horizontal, 8)
                 }
             }
             
-            if !message.isUser { Spacer() }
+            if !message.isUser { Spacer(minLength: 40) }
         }
     }
 }

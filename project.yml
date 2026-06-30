@@ -18,6 +18,8 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.dimatrubnikov.NativeLiquidChat
+        DEVELOPMENT_TEAM: Q4MWQ3X44V
+        CODE_SIGN_STYLE: Automatic
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
@@ -27,11 +29,11 @@ targets:
         INFOPLIST_KEY_NSPhotoLibraryUsageDescription: "We need access to your photo library to select images for the visual model."
         ENABLE_USER_SCRIPT_SANDBOXING: NO
         SWIFT_VERSION: 5.9
-        OTHER_LDFLAGS: "$(inherited) -ObjC -L$(BUILT_PRODUCTS_DIR)/LeapModelDownloader.framework/Frameworks -linference_engine -linference_engine_llamacpp_backend"
-        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks @executable_path/Frameworks/LeapModelDownloader.framework/Frameworks"
-        OTHER_SWIFT_FLAGS: "$(inherited) -DLEAP_DUAL_IMPORT_ALLOW"
-        GCC_PREPROCESSOR_DEFINITIONS: "$(inherited) LEAP_DUAL_IMPORT_ALLOW=1"
+        OTHER_LDFLAGS: "$(inherited) -ObjC -L$(BUILT_PRODUCTS_DIR)/LeapSDK.framework/Frameworks -L$(BUILT_PRODUCTS_DIR)/LeapModelDownloader.framework/Frameworks -linference_engine -linference_engine_llamacpp_backend"
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks @executable_path/Frameworks/LeapSDK.framework/Frameworks @executable_path/Frameworks/LeapModelDownloader.framework/Frameworks"
     dependencies:
+      - package: LeapSDK
+        product: LeapSDK
       - package: LeapSDK
         product: LeapModelDownloader
     postBuildScripts:
@@ -47,6 +49,21 @@ targets:
             codesign --force --sign "$EXPANDED_CODE_SIGN_IDENTITY" --timestamp=none "$dylib"
           done
 
+  NativeLiquidChatTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.dimatrubnikov.NativeLiquidChatTests
+        DEVELOPMENT_TEAM: Q4MWQ3X44V
+        CODE_SIGN_STYLE: Automatic
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: 5.9
+    dependencies:
+      - target: NativeLiquidChat
+
 schemes:
   NativeLiquidChat:
     build:
@@ -54,3 +71,7 @@ schemes:
         NativeLiquidChat: [run, test, profile, analyze]
     run:
       config: Debug
+    test:
+      config: Debug
+      targets:
+        - NativeLiquidChatTests

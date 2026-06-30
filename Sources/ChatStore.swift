@@ -1,5 +1,5 @@
 import SwiftUI
-import LeapModelDownloader
+import LeapSDK
 import AVFoundation
 
 @Observable
@@ -13,17 +13,7 @@ class ChatStore {
     var downloadProgress: Double = 0.0
     var isLoadingResponse = false
     var executionStatus: String?
-    
-    // Model Download & Disk Management State
-    enum ModelStatus: Hashable {
-        case notDownloaded
-        case downloading(progress: Double)
-        case downloaded
-    }
-    
-    var modelStatuses: [String: ModelStatus] = [:]
-    private var downloader: ModelDownloader!
-    
+
     // Voice/Audio State
     var isRecording = false
     var recordingStatus = "Ready"
@@ -38,10 +28,7 @@ class ChatStore {
     
     var showingCamera = false
     var attachedImage: UIImage? = nil
-    
-    // Hold strong references to download tasks to prevent them from being deallocated and crashing
-    private var activeDownloads: [String: Any] = [:]
-    
+
     private let playbackManager = AudioPlaybackManager()
     private let recorder = AudioRecorder()
     
@@ -57,25 +44,6 @@ class ChatStore {
             self.currentSessionId = self.sessions.first?.id
         }
         playbackManager.prepareSession()
-        
-        // Setup local model downloader
-        let paths = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)
-        let saveDir = paths[0].appendingPathComponent("leap_models").path
-        let config = LeapDownloaderConfig(
-            saveDir: saveDir,
-            validateSha256: true,
-            disableSslValidation: false,
-            baseUrl: nil,
-            connectTimeoutMillis: 30000,
-            socketTimeoutMillis: 60000,
-            requestTimeoutMillis: 600000
-        )
-        self.downloader = ModelDownloader(config: config, sessionConfiguration: nil)
-        
-        // Initial check of model statuses on disk
-        Task {
-            await checkModelStatuses()
-        }
     }
     
     func createSession(modelName: String = "LFM2.5-1.2B-Instruct", systemPrompt: String = "") {
@@ -131,118 +99,51 @@ class ChatStore {
         ChatStorage.saveSessions(sessions)
     }
     
-    // MARK: - Model Status and Storage Management
-    
-    func checkModelStatuses() async {
-        let models = ["LFM2.5-1.2B-Instruct", "LFM2.5-VL-1.6B", "LFM2.5-Audio-1.5B"]
-        for model in models {
-            do {
-                let status = try await downloader.queryStatus(modelName: model, quantizationType: "Q4_0")
-                await MainActor.run {
-                    if status is ModelDownloadStatusDownloaded {
-                        self.modelStatuses[model] = .downloaded
-                    } else if let progressStatus = status as? ModelDownloadStatusDownloadInProgress {
-                        self.modelStatuses[model] = .downloading(progress: progressStatus.progress)
-                    } else {
-                        self.modelStatuses[model] = .notDownloaded
-                    }
-                }
-            } catch {
-                print("Error querying status for \(model): \(error.localizedDescription)")
-                await MainActor.run {
-                    self.modelStatuses[model] = .notDownloaded
-                }
-            }
-        }
-    }
-    
-    func downloadModel(_ modelName: String) async {
-        await MainActor.run {
-            self.modelStatuses[modelName] = .downloading(progress: 0.0)
-        }
-        
-        do {
-            let task = try await downloader.downloadModel(modelName: modelName, quantizationType: "Q4_0") { [weak self] progress, _ in
-                Task { @MainActor in
-                    self?.modelStatuses[modelName] = .downloading(progress: progress.doubleValue)
-                    if progress.doubleValue >= 1.0 {
-                        self?.activeDownloads.removeValue(forKey: modelName)
-                    }
-                }
-            }
-            activeDownloads[modelName] = task
-            await checkModelStatuses()
-        } catch {
-            print("Failed to download model \(modelName): \(error.localizedDescription)")
-            activeDownloads.removeValue(forKey: modelName)
-            await checkModelStatuses()
-        }
-    }
-    
-    func deleteModel(_ modelName: String) async {
-        do {
-            if loadedModelName == modelName {
-                await MainActor.run {
-                    self.modelRunner = nil
-                    self.conversation = nil
-                    self.loadedModelName = nil
-                }
-            }
-            
-            try await downloader.removeModel(modelName: modelName, quantizationType: "Q4_0")
-            await checkModelStatuses()
-        } catch {
-            print("Failed to delete model \(modelName): \(error.localizedDescription)")
-            await checkModelStatuses()
-        }
-    }
-    
+    // MARK: - Model Loading
+
+    /// Loads the requested model via the high-level `Leap.shared.load` API, which
+    /// resolves and downloads the model from the LEAP library on demand and throws
+    /// catchable Swift errors. (The low-level `ModelDownloader` path crashed the
+    /// process on an invalid URL because the error escaped from a Kotlin coroutine.)
     @MainActor
     func ensureModelLoaded(for modelName: String) async -> Bool {
         if loadedModelName == modelName && modelRunner != nil {
             return true
         }
-        
+
         isModelLoading = true
         downloadProgress = 0.0
-        
+
         // Release old model
         modelRunner = nil
         conversation = nil
         loadedModelName = nil
-        
+
         do {
-            let options = LiquidInferenceEngineManifestOptions(
-                contextSize: 1024,
-                nGpuLayers: 0
-            )
-            
-            let runner = try await downloader.loadModel(
-                modelName: modelName,
-                quantizationType: "Q4_0",
+            let options = LiquidInferenceEngineManifestOptions().with(contextSize: 2048)
+
+            let runner = try await Leap.shared.load(
+                model: modelName,
+                quantization: "Q4_0",
                 options: options,
-                generationTimeParameters: nil,
-                forceDownload: false,
-                downloadProgress: { [weak self] progress, _ in
+                progress: { [weak self] progress, _ in
                     Task { @MainActor in
-                        self?.downloadProgress = progress.doubleValue
+                        self?.downloadProgress = progress
                     }
                 }
             )
-            
+
             self.modelRunner = runner
             self.loadedModelName = modelName
             self.isModelLoading = false
-            await checkModelStatuses()
             return true
         } catch {
             isModelLoading = false
             print("Failed to load model \(modelName): \(error.localizedDescription)")
-            await checkModelStatuses()
             return false
         }
     }
-    
+
     // MARK: - Message Generation
     
     @MainActor
@@ -438,22 +339,46 @@ class ChatStore {
                 }
                 return nil
             }.joined()
-            
+
             var audioData: Data? = nil
             for content in completion.fullMessage.content {
                 if case .audio(let audioContent) = onEnum(of: content) {
                     audioData = audioContent.data.toData()
                 }
             }
-            
+
             let speed = completion.stats?.tokenPerSecond
             if let speedVal = speed {
                 currentAssistantSpeed = Double(speedVal)
             }
-            
+
+            // The streamed chunks already hold the assistant text; prefer them when
+            // the completion's full message carries no text part (e.g. some VL paths).
+            var finalText = text
+            if finalText.isEmpty { finalText = currentAssistantMessage }
+
+            let placeholder: String
+            if audioData != nil {
+                placeholder = "(Audio response)"
+            } else {
+                placeholder = "(No response — the model returned nothing.)"
+            }
+
+            #if DEBUG
+            let kinds = completion.fullMessage.content.map { c -> String in
+                switch onEnum(of: c) {
+                case .text: return "text"
+                case .image: return "image"
+                case .audio: return "audio"
+                default: return "other"
+                }
+            }
+            print("[VL/complete] content kinds: \(kinds), streamedChars: \(currentAssistantMessage.count), textChars: \(text.count)")
+            #endif
+
             appendMessage(
                 to: sessionIndex,
-                content: text.isEmpty ? "(Audio response)" : text,
+                content: finalText.isEmpty ? placeholder : finalText,
                 isUser: false,
                 audioData: audioData,
                 speed: currentAssistantSpeed
