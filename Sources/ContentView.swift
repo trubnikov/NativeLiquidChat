@@ -116,6 +116,8 @@ struct ContentView: View {
                                     ForEach(session.messages) { msg in
                                         MessageBubbleView(message: msg, onPlayAudio: { data in
                                             store.playAudio(data)
+                                        }, onSpeak: { text in
+                                            store.speak(text)
                                         })
                                         .transition(.move(edge: msg.isUser ? .trailing : .leading).combined(with: .opacity))
                                     }
@@ -273,6 +275,15 @@ struct ContentView: View {
                         }
                     }
                     ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            store.speakResponses.toggle()
+                            if !store.speakResponses { store.stopSpeaking() }
+                        } label: {
+                            Image(systemName: store.speakResponses ? "speaker.wave.2.fill" : "speaker.slash.fill")
+                        }
+                        .accessibilityLabel(store.speakResponses ? "Turn off spoken replies" : "Turn on spoken replies")
+                    }
+                    ToolbarItem(placement: .topBarTrailing) {
                         Button(action: {
                             systemPromptTemp = session.systemPrompt
                             selectedModelTemp = session.modelName
@@ -301,6 +312,20 @@ struct ContentView: View {
                                 Text(modelDescription(for: selectedModelTemp))
                                     .font(.caption)
                                     .foregroundColor(.secondary)
+                            }
+
+                            Section(header: Text("Speech"), footer: Text("Replies are read aloud on-device. Choose a voice or let it match the reply's language.")) {
+                                Toggle("Speak replies", isOn: $store.speakResponses)
+                                NavigationLink {
+                                    VoicePickerView(store: store)
+                                } label: {
+                                    HStack {
+                                        Text("Voice")
+                                        Spacer()
+                                        Text(selectedVoiceName)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
                             }
 
                             Section(header: Text("Appearance")) {
@@ -375,12 +400,30 @@ struct ContentView: View {
         default: return ""
         }
     }
+
+    /// Display name for the currently selected TTS voice (or "Automatic").
+    private var selectedVoiceName: String {
+        let id = store.selectedVoiceID
+        if id.isEmpty { return "Automatic" }
+        if let voice = store.availableVoices().first(where: { $0.identifier == id }) {
+            return voice.name
+        }
+        return "Automatic"
+    }
 }
 
 // MARK: - MessageBubbleView (restored and optimized to prevent compiler bottlenecks)
 struct MessageBubbleView: View {
     let message: ChatMessageData
     let onPlayAudio: (Data) -> Void
+    var onSpeak: ((String) -> Void)? = nil
+
+    /// Speaker button shows on assistant text replies (not the user's own
+    /// messages, and not replies that already carry their own audio).
+    private var canSpeak: Bool {
+        onSpeak != nil && !message.isUser && message.audioData == nil
+            && !message.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
 
     /// Render assistant replies as Markdown (bold, lists, code spans, links);
     /// keep user text verbatim.
@@ -448,11 +491,26 @@ struct MessageBubbleView: View {
                     ShareLink(item: message.content) {
                         Label("Share", systemImage: "square.and.arrow.up")
                     }
+                    if canSpeak {
+                        Button {
+                            onSpeak?(message.content)
+                        } label: {
+                            Label("Speak", systemImage: "speaker.wave.2")
+                        }
+                    }
                 }
 
-                // Speed + time footnote
-                if message.speed != nil || !message.isUser {
-                    HStack(spacing: 6) {
+                // Footnote: speaker button + speed
+                if canSpeak || message.speed != nil {
+                    HStack(spacing: 10) {
+                        if canSpeak {
+                            Button {
+                                onSpeak?(message.content)
+                            } label: {
+                                Image(systemName: "speaker.wave.2.fill")
+                            }
+                            .buttonStyle(.borderless)
+                        }
                         if let speedVal = message.speed {
                             Text(String(format: "%.1f tok/s", speedVal))
                         }

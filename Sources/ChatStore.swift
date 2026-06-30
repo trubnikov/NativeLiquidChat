@@ -17,6 +17,15 @@ class ChatStore {
     // Voice/Audio State
     var isRecording = false
     var recordingStatus = "Ready"
+
+    // Text-to-Speech (read assistant replies aloud, fully on-device)
+    var speakResponses: Bool {
+        didSet {
+            UserDefaults.standard.set(speakResponses, forKey: "speakResponses")
+            if !speakResponses { speech.stop() }
+        }
+    }
+    private let speech = SpeechManager()
     
     // Chat Stream State & Speed
     var currentAssistantMessage = ""
@@ -37,6 +46,7 @@ class ChatStore {
     }
     
     init() {
+        self.speakResponses = UserDefaults.standard.bool(forKey: "speakResponses")
         self.sessions = ChatStorage.loadSessions()
         if self.sessions.isEmpty {
             createSession()
@@ -289,10 +299,44 @@ class ChatStore {
     
     // MARK: - Common Stream Manager
     
+    // MARK: - Text-to-Speech controls
+
+    /// Speaks the given text aloud on-device (used by the per-message speaker button).
+    @MainActor
+    func speak(_ text: String) {
+        speech.speak(text)
+    }
+
+    /// Stops any in-progress speech.
+    @MainActor
+    func stopSpeaking() {
+        speech.stop()
+    }
+
+    /// Chosen TTS voice identifier (empty string = automatic by language).
+    var selectedVoiceID: String {
+        get { speech.selectedVoiceID }
+        set { speech.selectedVoiceID = newValue }
+    }
+
+    /// Installed voices for the settings picker.
+    func availableVoices() -> [AVSpeechSynthesisVoice] {
+        speech.availableVoices()
+    }
+
+    /// Plays a short sample of a voice so the user can audition it.
+    @MainActor
+    func previewVoice(_ identifier: String) {
+        speech.preview(voiceID: identifier)
+    }
+
     @MainActor
     private func streamResponse(for message: ChatMessage, sessionIndex: Int) {
         guard let conversation = conversation else { return }
-        
+
+        // A new answer is starting — silence any reply still being read aloud.
+        speech.stop()
+
         let stream = conversation.generateResponse(message: message)
         
         generationTask = Task { @MainActor [weak self] in
@@ -386,11 +430,16 @@ class ChatStore {
             
             currentAssistantMessage = ""
             isLoadingResponse = false
-            
+
             if let audioData {
+                // Model produced its own audio — play that, don't double up with TTS.
                 playbackManager.play(wavData: audioData)
+            } else if speakResponses {
+                // Text-only reply: read it aloud on-device.
+                let spoken = finalText.isEmpty ? "" : finalText
+                speech.speak(spoken)
             }
-            
+
             UINotificationFeedbackGenerator().notificationOccurred(.success)
         default:
             break
