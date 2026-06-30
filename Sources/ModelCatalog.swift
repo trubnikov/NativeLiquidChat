@@ -140,15 +140,10 @@ enum ModelCatalog {
             approxBytes: 1_100_000_000,
             minRAMBytes: 4 * GB
         ),
-        ModelInfo(
-            id: "LFM2.5-Audio-1.5B",
-            displayName: "LFM Audio 1.5B",
-            kind: .audio,
-            quantization: "Q4_0",
-            summary: "Voice in / voice out",
-            approxBytes: 1_000_000_000,
-            minRAMBytes: 4 * GB
-        ),
+        // LFM2-Audio removed: it duplicated the hands-free voice mode (Apple STT
+        // + text LFM + Apple TTS) but with lower quality and no visible text, and
+        // its engine rejected system prompts. The hands-free mode is the single
+        // voice path now.
     ]
 
     static func info(for modelName: String) -> ModelInfo? {

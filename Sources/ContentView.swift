@@ -152,6 +152,17 @@ struct ContentView: View {
                             }
                         }
                         
+                        // Voice conversation status banner
+                        if store.conversationMode {
+                            ConversationBanner(
+                                phase: store.conversationPhase,
+                                transcript: store.liveTranscript
+                            )
+                            .padding(.horizontal)
+                            .padding(.bottom, 6)
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                        }
+
                         // Selected Image Preview (if present)
                         if let image = attachedImage {
                             HStack {
@@ -192,24 +203,6 @@ struct ContentView: View {
                                 Button(action: { showingAttachDialog = true }) {
                                     Image(systemName: "plus.circle.fill")
                                         .font(.system(size: 28))
-                                }
-                            }
-
-                            // Audio Recording Button (Audio model only)
-                            if session.modelName.contains("Audio") {
-                                Button(action: {
-                                    store.toggleRecording()
-                                }) {
-                                    Image(systemName: store.isRecording ? "stop.circle.fill" : "mic.circle.fill")
-                                        .font(.system(size: 28))
-                                        .foregroundStyle(store.isRecording ? AnyShapeStyle(.red) : AnyShapeStyle(.tint))
-                                }
-                                .contextMenu {
-                                    if store.isRecording {
-                                        Button(role: .destructive, action: { store.cancelRecording() }) {
-                                            Label("Cancel Recording", systemImage: "trash")
-                                        }
-                                    }
                                 }
                             }
 
@@ -276,6 +269,15 @@ struct ContentView: View {
                     }
                     ToolbarItem(placement: .topBarTrailing) {
                         Button {
+                            store.toggleConversationMode()
+                        } label: {
+                            Image(systemName: store.conversationMode ? "waveform.circle.fill" : "waveform.circle")
+                                .foregroundStyle(store.conversationMode ? AnyShapeStyle(.tint) : AnyShapeStyle(.primary))
+                        }
+                        .accessibilityLabel(store.conversationMode ? "Stop voice conversation" : "Start voice conversation")
+                    }
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
                             store.speakResponses.toggle()
                             if !store.speakResponses { store.stopSpeaking() }
                         } label: {
@@ -296,16 +298,29 @@ struct ContentView: View {
                 .sheet(isPresented: $showingSettings) {
                     NavigationStack {
                         Form {
-                            Section(header: Text("System Rules")) {
+                            Section(header: Text("System Rules"), footer: Text("Presets set the system prompt. \"QCA · Ocean\" makes the model reason like the Ocean agent — terse and contradiction-seeking.")) {
+                                Picker("Preset", selection: presetSelection) {
+                                    ForEach(PromptPresets.all) { preset in
+                                        Text(preset.name).tag(preset.id)
+                                    }
+                                    if PromptPresets.matching(systemPromptTemp) == nil {
+                                        Text("Custom").tag("custom")
+                                    }
+                                }
                                 TextField("Act as a translator, coder, etc.", text: $systemPromptTemp, axis: .vertical)
                                     .lineLimit(4...10)
                             }
                             
-                            Section(header: Text("Model"), footer: Text("The model is downloaded automatically the first time you send a message.")) {
+                            Section(header: Text("Model"), footer: Text("Pick any downloaded model. The model is downloaded automatically the first time you send a message.")) {
                                 Picker("Active Model", selection: $selectedModelTemp) {
-                                    Text("LFM-Instruct (Text)").tag("LFM2.5-1.2B-Instruct")
-                                    Text("LFM-VL (Vision)").tag("LFM2.5-VL-1.6B")
-                                    Text("LFM-Audio (Voice)").tag("LFM2.5-Audio-1.5B")
+                                    ForEach(ModelCatalog.all) { model in
+                                        Text("\(model.displayName) · \(model.kind.displayName)")
+                                            .tag(model.id)
+                                    }
+                                    // Preserve any model the session uses that isn't in the catalog.
+                                    if ModelCatalog.info(for: selectedModelTemp) == nil && !selectedModelTemp.isEmpty {
+                                        Text(selectedModelTemp).tag(selectedModelTemp)
+                                    }
                                 }
                                 .pickerStyle(.menu)
 
@@ -392,13 +407,21 @@ struct ContentView: View {
         }
     }
     
+    /// Two-way binding between the preset Picker and the system-prompt text:
+    /// selecting a preset fills the text; editing the text shows "Custom".
+    private var presetSelection: Binding<String> {
+        Binding(
+            get: { PromptPresets.matching(systemPromptTemp)?.id ?? "custom" },
+            set: { id in
+                if let preset = PromptPresets.preset(withID: id) {
+                    systemPromptTemp = preset.prompt
+                }
+            }
+        )
+    }
+
     private func modelDescription(for model: String) -> String {
-        switch model {
-        case "LFM2.5-1.2B-Instruct": return "Text generation, fast local inference"
-        case "LFM2.5-VL-1.6B": return "Vision, supports image analysis"
-        case "LFM2.5-Audio-1.5B": return "Audio, supports voice input/output"
-        default: return ""
-        }
+        ModelCatalog.info(for: model)?.summary ?? ""
     }
 
     /// Display name for the currently selected TTS voice (or "Automatic").

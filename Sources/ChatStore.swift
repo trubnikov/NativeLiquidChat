@@ -26,6 +26,18 @@ class ChatStore {
         }
     }
     private let speech = SpeechManager()
+    /// True while the current reply should be spoken sentence-by-sentence as it
+    /// streams in (text replies only; audio-model replies carry their own audio).
+    private var streamingTTS = false
+
+    // Hands-free conversation mode (listen → recognize → answer → speak → repeat)
+    enum ConversationPhase {
+        case idle, listening, thinking, speaking
+    }
+    var conversationMode = false
+    var conversationPhase: ConversationPhase = .idle
+    var liveTranscript = ""
+    private let recognizer = SpeechRecognizer()
     
     // Chat Stream State & Speed
     var currentAssistantMessage = ""
@@ -48,12 +60,21 @@ class ChatStore {
     init() {
         self.speakResponses = UserDefaults.standard.bool(forKey: "speakResponses")
         self.sessions = ChatStorage.loadSessions()
+        // Migrate any sessions that still point at the removed Audio model.
+        for i in sessions.indices where sessions[i].modelName.contains("Audio") {
+            sessions[i].modelName = "LFM2.5-1.2B-Instruct"
+        }
         if self.sessions.isEmpty {
             createSession()
         } else {
             self.currentSessionId = self.sessions.first?.id
         }
         playbackManager.prepareSession()
+
+        // When a spoken reply finishes, conversation mode resumes listening.
+        speech.onFinishSpeaking = { [weak self] in
+            Task { @MainActor in self?.conversationDidFinishSpeaking() }
+        }
     }
     
     func createSession(modelName: String = "LFM2.5-1.2B-Instruct", systemPrompt: String = "") {
@@ -204,9 +225,13 @@ class ChatStore {
         currentAssistantSpeed = nil
         
         playbackManager.reset()
-        
+
+        // Speak the reply sentence-by-sentence as it streams (text/vision only).
+        streamingTTS = speakResponses && !session.modelName.contains("Audio")
+        if streamingTTS { speech.beginStreaming() }
+
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-        
+
         streamResponse(for: userMessage, sessionIndex: index)
     }
     
@@ -330,12 +355,99 @@ class ChatStore {
         speech.preview(voiceID: identifier)
     }
 
+    // MARK: - Hands-free conversation mode
+
+    /// Toggles the continuous listen→answer→speak loop.
+    @MainActor
+    func toggleConversationMode() {
+        if conversationMode {
+            stopConversation()
+        } else {
+            startConversation()
+        }
+    }
+
+    @MainActor
+    func startConversation() {
+        SpeechRecognizer.requestAuthorization { [weak self] granted in
+            guard let self else { return }
+            guard granted else {
+                self.recordingStatus = "Speech permission denied."
+                return
+            }
+            self.conversationMode = true
+            self.speakResponses = true   // the loop must speak replies back
+            self.beginListening()
+        }
+    }
+
+    @MainActor
+    func stopConversation() {
+        conversationMode = false
+        conversationPhase = .idle
+        liveTranscript = ""
+        recognizer.stop()
+        speech.stop()
+    }
+
+    /// Enters the listening phase and wires up recognition callbacks.
+    @MainActor
+    private func beginListening() {
+        guard conversationMode else { return }
+        conversationPhase = .listening
+        liveTranscript = ""
+
+        recognizer.onPartial = { [weak self] text in
+            self?.liveTranscript = text
+        }
+        recognizer.onFinished = { [weak self] text in
+            guard let self, self.conversationMode else { return }
+            let spoken = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            #if DEBUG
+            print("[Conversation] heard: '\(spoken)'")
+            #endif
+            self.liveTranscript = ""
+            if spoken.isEmpty {
+                // Heard nothing this turn — pause briefly, then listen again.
+                Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 400_000_000)
+                    self.beginListening()
+                }
+                return
+            }
+            self.conversationPhase = .thinking
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            Task { await self.sendMessage(spoken) }
+        }
+
+        do {
+            try recognizer.start()
+            #if DEBUG
+            print("[Conversation] listening…")
+            #endif
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        } catch {
+            print("[Conversation] recognizer start failed: \(error)")
+            recordingStatus = "On-device recognition unavailable for this language."
+            stopConversation()
+        }
+    }
+
+    /// Called after a reply has been spoken — resume listening for the next turn.
+    @MainActor
+    private func conversationDidFinishSpeaking() {
+        guard conversationMode else { return }
+        beginListening()
+    }
+
     @MainActor
     private func streamResponse(for message: ChatMessage, sessionIndex: Int) {
         guard let conversation = conversation else { return }
 
         // A new answer is starting — silence any reply still being read aloud.
-        speech.stop()
+        // (When streaming TTS, beginStreaming() already stopped prior speech, so
+        // don't stop again here or we'd cancel the run we just started.)
+        if !streamingTTS { speech.stop() }
 
         let stream = conversation.generateResponse(message: message)
         
@@ -371,6 +483,7 @@ class ChatStore {
         switch onEnum(of: event) {
         case .chunk(let chunk):
             currentAssistantMessage.append(chunk.text)
+            if streamingTTS { speech.appendStreaming(chunk.text) }
         case .audioSample(let audioSample):
             playbackManager.enqueue(
                 samples: audioSample.samples.toFloatArray(),
@@ -431,13 +544,26 @@ class ChatStore {
             currentAssistantMessage = ""
             isLoadingResponse = false
 
+            let spokenText = finalText.trimmingCharacters(in: .whitespacesAndNewlines)
             if let audioData {
                 // Model produced its own audio — play that, don't double up with TTS.
                 playbackManager.play(wavData: audioData)
-            } else if speakResponses {
-                // Text-only reply: read it aloud on-device.
-                let spoken = finalText.isEmpty ? "" : finalText
-                speech.speak(spoken)
+            } else if streamingTTS {
+                // Already speaking as it streamed — just flush the trailing words.
+                if conversationMode { conversationPhase = .speaking }
+                speech.finishStreaming()
+                streamingTTS = false
+                if spokenText.isEmpty && conversationMode {
+                    // Nothing was ever spoken — resume listening.
+                    conversationDidFinishSpeaking()
+                }
+            } else if speakResponses && !spokenText.isEmpty {
+                // Fallback one-shot speak (e.g. streaming was off).
+                if conversationMode { conversationPhase = .speaking }
+                speech.speak(spokenText)
+            } else if conversationMode {
+                // Nothing to speak — resume listening right away.
+                conversationDidFinishSpeaking()
             }
 
             UINotificationFeedbackGenerator().notificationOccurred(.success)
@@ -449,14 +575,18 @@ class ChatStore {
     private func setupConversationIfNeeded(for session: ChatSession, runner: any ModelRunner) {
         if conversation == nil {
             var history: [ChatMessage] = []
-            
-            var systemPrompt = session.systemPrompt
-            if systemPrompt.isEmpty {
-                systemPrompt = "You are a helpful AI assistant."
+
+            // The LFM2-Audio engine rejects a system message ("Invalid system
+            // prompt" → empty reply), so only add one for non-audio models.
+            let isAudioModel = session.modelName.contains("Audio")
+            if !isAudioModel {
+                var systemPrompt = session.systemPrompt
+                if systemPrompt.isEmpty {
+                    systemPrompt = "You are a helpful AI assistant."
+                }
+                history.append(ChatMessage(role: .system, textContent: systemPrompt))
             }
-            
-            history.append(ChatMessage(role: .system, textContent: systemPrompt))
-            
+
             for msg in session.messages {
                 history.append(ChatMessage(role: msg.isUser ? .user : .assistant, textContent: msg.content))
             }
