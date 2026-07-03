@@ -100,6 +100,18 @@ struct AppText {
         case labFocalLengthLabel
         case labDepthSourceLabel
         
+        // Lab Tabs
+        case labTabWeight
+        case labTabGPU
+        
+        // GPU Benchmark
+        case gpuBenchmarkRun
+        case gpuBenchmarkRunning
+        case gpuBenchmarkCpuTime
+        case gpuBenchmarkGpuTime
+        case gpuBenchmarkSpeedup
+        case gpuBenchmarkAccuracy
+        
         var ru: String {
             switch self {
             case .tabChat: return "Чат"
@@ -168,6 +180,14 @@ struct AppText {
             case .labCaloriesLabel: return "Калорийность"
             case .labFocalLengthLabel: return "Фокусное расстояние"
             case .labDepthSourceLabel: return "Сенсор глубины"
+            case .labTabWeight: return "Оценка веса"
+            case .labTabGPU: return "GPU Ускорение"
+            case .gpuBenchmarkRun: return "Запустить бенчмарк поиска"
+            case .gpuBenchmarkRunning: return "Вычисления на GPU..."
+            case .gpuBenchmarkCpuTime: return "Время выполнения на CPU"
+            case .gpuBenchmarkGpuTime: return "Время выполнения на GPU"
+            case .gpuBenchmarkSpeedup: return "Ускорение GPU"
+            case .gpuBenchmarkAccuracy: return "Точность совпадения"
             }
         }
         
@@ -239,6 +259,14 @@ struct AppText {
             case .labCaloriesLabel: return "Calorie Content"
             case .labFocalLengthLabel: return "Focal Length"
             case .labDepthSourceLabel: return "Depth Sensor"
+            case .labTabWeight: return "Weight Estimate"
+            case .labTabGPU: return "GPU Acceleration"
+            case .gpuBenchmarkRun: return "Run Search Benchmark"
+            case .gpuBenchmarkRunning: return "GPU computing..."
+            case .gpuBenchmarkCpuTime: return "CPU Execution Time"
+            case .gpuBenchmarkGpuTime: return "GPU Execution Time"
+            case .gpuBenchmarkSpeedup: return "GPU Speedup"
+            case .gpuBenchmarkAccuracy: return "Matching Accuracy"
             }
         }
     }
