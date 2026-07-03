@@ -20,6 +20,10 @@ struct AppText {
     }
     
     enum Key {
+        // Tab Bar
+        case tabChat
+        case tabLab
+        
         // Chat Settings
         case settingsTitle
         case systemRulesHeader
@@ -86,8 +90,20 @@ struct AppText {
         case targetNodeLabel
         case selectNode
         
+        // Lab / Weight Estimator
+        case labTitle
+        case labDistanceLabel
+        case labDimensionsLabel
+        case labVolumeLabel
+        case labWeightLabel
+        case labCaloriesLabel
+        case labFocalLengthLabel
+        case labDepthSourceLabel
+        
         var ru: String {
             switch self {
+            case .tabChat: return "Чат"
+            case .tabLab: return "Лаборатория"
             case .settingsTitle: return "Настройки чата"
             case .systemRulesHeader: return "Системные правила"
             case .systemRulesFooter: return "Пресеты задают системный промпт. \"QCA · Ocean\" заставляет модель рассуждать как агент Ocean — кратко и ища противоречия."
@@ -144,11 +160,21 @@ struct AppText {
             case .sourceNodeLabel: return "Исходный узел"
             case .targetNodeLabel: return "Целевой узел"
             case .selectNode: return "Выбрать узел"
+            case .labTitle: return "ИИ Лаборатория: Вес и Плотность"
+            case .labDistanceLabel: return "Расстояние до объекта"
+            case .labDimensionsLabel: return "Физические размеры"
+            case .labVolumeLabel: return "Оцененный объем"
+            case .labWeightLabel: return "Предполагаемый вес"
+            case .labCaloriesLabel: return "Калорийность"
+            case .labFocalLengthLabel: return "Фокусное расстояние"
+            case .labDepthSourceLabel: return "Сенсор глубины"
             }
         }
         
         var en: String {
             switch self {
+            case .tabChat: return "Chat"
+            case .tabLab: return "Lab"
             case .settingsTitle: return "Chat Settings"
             case .systemRulesHeader: return "System Rules"
             case .systemRulesFooter: return "Presets set the system prompt. \"QCA · Ocean\" makes the model reason like the Ocean agent — terse and contradiction-seeking."
@@ -205,6 +231,14 @@ struct AppText {
             case .sourceNodeLabel: return "Source Node"
             case .targetNodeLabel: return "Target Node"
             case .selectNode: return "Select node"
+            case .labTitle: return "AI Lab: Weight & Density"
+            case .labDistanceLabel: return "Object Distance"
+            case .labDimensionsLabel: return "Physical Dimensions"
+            case .labVolumeLabel: return "Estimated Volume"
+            case .labWeightLabel: return "Estimated Weight"
+            case .labCaloriesLabel: return "Calorie Content"
+            case .labFocalLengthLabel: return "Focal Length"
+            case .labDepthSourceLabel: return "Depth Sensor"
             }
         }
     }

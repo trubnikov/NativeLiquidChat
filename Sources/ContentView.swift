@@ -30,7 +30,8 @@ struct ContentView: View {
     @FocusState private var isInputFocused: Bool
     
     var body: some View {
-        NavigationSplitView {
+        TabView {
+            NavigationSplitView {
             // SIDEBAR: Chat History List
             List(selection: $store.currentSessionId) {
                 Section(header: Text("History")) {
@@ -494,7 +495,18 @@ struct ContentView: View {
                 sessionToRename = nil
             }
         }
+        .tabItem {
+            Label(AppText.get(.tabChat, lang: appLanguage), systemImage: "bubble.left.and.bubble.right")
+        }
+        
+        NavigationStack {
+            LabView()
+        }
+        .tabItem {
+            Label(AppText.get(.tabLab, lang: appLanguage), systemImage: "flask.fill")
+        }
     }
+}
     
     /// Two-way binding between the preset Picker and the system-prompt text:
     /// selecting a preset fills the text; editing the text shows "Custom".
