@@ -1,11 +1,23 @@
 import SwiftUI
 import LeapSDK
 import AVFoundation
+import Translation
 
 @Observable
 class ChatStore {
     var sessions: [ChatSession] = []
-    var currentSessionId: UUID?
+    var currentSessionId: UUID? {
+        didSet {
+            updateTranslationConfigurations()
+        }
+    }
+    
+    // Translation configurations and active sessions
+    var toEnglishConfig: TranslationSession.Configuration? = nil
+    var toNativeConfig: TranslationSession.Configuration? = nil
+    
+    var toEnglishSession: TranslationSession? = nil
+    var toNativeSession: TranslationSession? = nil
     
     // Model Loading State
     var isModelLoading = false
@@ -38,6 +50,8 @@ class ChatStore {
     var conversationPhase: ConversationPhase = .idle
     var liveTranscript = ""
     private let recognizer = SpeechRecognizer()
+    
+    
     
     // Chat Stream State & Speed
     var currentAssistantMessage = ""
@@ -75,6 +89,7 @@ class ChatStore {
         speech.onFinishSpeaking = { [weak self] in
             Task { @MainActor in self?.conversationDidFinishSpeaking() }
         }
+        updateTranslationConfigurations()
     }
     
     func createSession(modelName: String = "LFM2.5-1.2B-Instruct", systemPrompt: String = "") {
@@ -123,6 +138,45 @@ class ChatStore {
             if currentSessionId == id {
                 self.conversation = nil
             }
+        }
+    }
+
+    func updateTranslationEnabled(id: UUID, enabled: Bool) {
+        if let index = sessions.firstIndex(where: { $0.id == id }) {
+            sessions[index].translationEnabled = enabled
+            save()
+            if currentSessionId == id {
+                self.conversation = nil
+                updateTranslationConfigurations()
+            }
+        }
+    }
+    
+    func updateUserLanguageCode(id: UUID, code: String) {
+        if let index = sessions.firstIndex(where: { $0.id == id }) {
+            sessions[index].userLanguageCode = code
+            save()
+            if currentSessionId == id {
+                self.conversation = nil
+                updateTranslationConfigurations()
+            }
+        }
+    }
+
+    func updateTranslationConfigurations() {
+        if let session = currentSession, session.isTranslationEnabled {
+            let nativeCode = session.languageCode
+            toEnglishConfig = TranslationSession.Configuration(
+                source: Locale(identifier: nativeCode).language,
+                target: Locale(identifier: "en-US").language
+            )
+            toNativeConfig = TranslationSession.Configuration(
+                source: Locale(identifier: "en-US").language,
+                target: Locale(identifier: nativeCode).language
+            )
+        } else {
+            toEnglishConfig = nil
+            toNativeConfig = nil
         }
     }
     
@@ -208,8 +262,13 @@ class ChatStore {
             }
         }
         
-        if !trimmed.isEmpty {
-            contentArray.append(ChatMessageContent.text(trimmed))
+        var sendingText = trimmed
+        if session.isTranslationEnabled && !trimmed.isEmpty {
+            sendingText = await translate(trimmed, source: session.languageCode, target: "en-US")
+        }
+        
+        if !sendingText.isEmpty {
+            contentArray.append(ChatMessageContent.text(sendingText))
         }
         
         let userMessage = ChatMessage_withArray(role: .user, content: contentArray)
@@ -231,6 +290,10 @@ class ChatStore {
         if streamingTTS { speech.beginStreaming() }
 
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+
+        if conversationMode {
+            startBargeInListening()
+        }
 
         streamResponse(for: userMessage, sessionIndex: index)
     }
@@ -399,6 +462,7 @@ class ChatStore {
 
         recognizer.onPartial = { [weak self] text in
             self?.liveTranscript = text
+            self?.handleInterruption(text: text)
         }
         recognizer.onFinished = { [weak self] text in
             guard let self, self.conversationMode else { return }
@@ -421,7 +485,7 @@ class ChatStore {
         }
 
         do {
-            try recognizer.start()
+            try recognizer.start(timeoutEnabled: true)
             #if DEBUG
             print("[Conversation] listening…")
             #endif
@@ -433,11 +497,75 @@ class ChatStore {
         }
     }
 
+    /// Handles voice barge-in (interruption) when user speaks during thinking or speaking phases.
+    @MainActor
+    private func handleInterruption(text: String) {
+        guard conversationMode else { return }
+        guard conversationPhase == .thinking || conversationPhase == .speaking else { return }
+        
+        let cleaned = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !cleaned.isEmpty else { return }
+        
+        #if DEBUG
+        print("[Conversation] Barge-in! Interrupting assistant with text: '\(cleaned)'")
+        #endif
+        
+        // Stop current speaking/playing/generation immediately
+        stopSpeaking()
+        playbackManager.reset()
+        stopGeneration()
+        
+        // Transition back to active listening state
+        conversationPhase = .listening
+        liveTranscript = cleaned
+        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+    }
+
+    /// Starts speech recognition in background without idle timeout during synthesis.
+    @MainActor
+    private func startBargeInListening() {
+        guard conversationMode else { return }
+        
+        recognizer.onPartial = { [weak self] text in
+            self?.liveTranscript = text
+            self?.handleInterruption(text: text)
+        }
+        recognizer.onFinished = { [weak self] text in
+            guard let self, self.conversationMode else { return }
+            let spoken = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            self.liveTranscript = ""
+            
+            // If we are still in thinking/speaking phase (i.e. did not interrupt), ignore finish.
+            if self.conversationPhase == .thinking || self.conversationPhase == .speaking {
+                return
+            }
+            
+            if spoken.isEmpty {
+                Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 400_000_000)
+                    self.beginListening()
+                }
+                return
+            }
+            
+            self.conversationPhase = .thinking
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            Task { await self.sendMessage(spoken) }
+        }
+        
+        do {
+            try recognizer.start(timeoutEnabled: false)
+        } catch {
+            print("[Conversation] failed to start barge-in recognizer: \(error)")
+        }
+    }
+
     /// Called after a reply has been spoken — resume listening for the next turn.
     @MainActor
     private func conversationDidFinishSpeaking() {
         guard conversationMode else { return }
-        beginListening()
+        recognizer.stop() // stop barge-in recognizer
+        beginListening()  // restart with idle timeout enabled
     }
 
     @MainActor
@@ -455,7 +583,7 @@ class ChatStore {
             guard let self else { return }
             for await event in stream {
                 if Task.isCancelled { break }
-                self.handleEvent(event, sessionIndex: sessionIndex)
+                await self.handleEvent(event, sessionIndex: sessionIndex)
             }
             self.generationTask = nil
         }
@@ -479,7 +607,7 @@ class ChatStore {
     }
     
     @MainActor
-    private func handleEvent(_ event: any MessageResponse, sessionIndex: Int) {
+    private func handleEvent(_ event: any MessageResponse, sessionIndex: Int) async {
         switch onEnum(of: event) {
         case .chunk(let chunk):
             currentAssistantMessage.append(chunk.text)
@@ -513,6 +641,13 @@ class ChatStore {
             // the completion's full message carries no text part (e.g. some VL paths).
             var finalText = text
             if finalText.isEmpty { finalText = currentAssistantMessage }
+
+            let session = sessions[sessionIndex]
+            if session.isTranslationEnabled && !finalText.isEmpty {
+                executionStatus = "Translating..."
+                finalText = await translate(finalText, source: "en-US", target: session.languageCode)
+                executionStatus = nil
+            }
 
             let placeholder: String
             if audioData != nil {
@@ -572,6 +707,35 @@ class ChatStore {
         }
     }
     
+    private func extractFloatSamples(from wavData: Data) -> (samples: [Float], sampleRate: Int)? {
+        let tmpURL = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent(UUID().uuidString)
+            .appendingPathExtension("wav")
+        do {
+            try wavData.write(to: tmpURL)
+            let file = try AVAudioFile(forReading: tmpURL)
+            guard let format = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: file.fileFormat.sampleRate, channels: 1, interleaved: false) else {
+                try? FileManager.default.removeItem(at: tmpURL)
+                return nil
+            }
+            let frameCount = AVAudioFrameCount(file.length)
+            guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else {
+                try? FileManager.default.removeItem(at: tmpURL)
+                return nil
+            }
+            try file.read(into: buffer)
+            try? FileManager.default.removeItem(at: tmpURL)
+            guard let channelData = buffer.floatChannelData else { return nil }
+            let pointer = channelData[0]
+            let samples = Array(UnsafeBufferPointer(start: pointer, count: Int(buffer.frameLength)))
+            return (samples, Int(file.fileFormat.sampleRate))
+        } catch {
+            try? FileManager.default.removeItem(at: tmpURL)
+            print("[ChatStore] Error extracting float samples from wav: \(error)")
+            return nil
+        }
+    }
+    
     private func setupConversationIfNeeded(for session: ChatSession, runner: any ModelRunner) {
         if conversation == nil {
             var history: [ChatMessage] = []
@@ -588,9 +752,76 @@ class ChatStore {
             }
 
             for msg in session.messages {
-                history.append(ChatMessage(role: msg.isUser ? .user : .assistant, textContent: msg.content))
+                var contentArray: [ChatMessageContent] = []
+                
+                if msg.audioData != nil {
+                    // Audio message content
+                    if let audioData = msg.audioData, let extracted = extractFloatSamples(from: audioData) {
+                        if let audioContent = try? ChatMessageContent.fromFloatSamples(extracted.samples, sampleRate: extracted.sampleRate) {
+                            contentArray.append(audioContent)
+                        }
+                    }
+                } else if msg.imageData != nil {
+                    // Vision message content (+ text if not placeholder)
+                    if let imageData = msg.imageData, let image = UIImage(data: imageData) {
+                        if let imageContent = try? ChatMessageContent.fromUIImage(image) {
+                            contentArray.append(imageContent)
+                        }
+                    }
+                    let trimmed = msg.content.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !trimmed.isEmpty && trimmed != "[Image]" {
+                        contentArray.append(ChatMessageContent.text(trimmed))
+                    }
+                } else {
+                    // Regular text content
+                    let trimmed = msg.content.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !trimmed.isEmpty {
+                        contentArray.append(ChatMessageContent.text(trimmed))
+                    }
+                }
+                
+                if !contentArray.isEmpty {
+                    let chatMsg = ChatMessage_withArray(role: msg.isUser ? .user : .assistant, content: contentArray)
+                    history.append(chatMsg)
+                }
             }
             conversation = Conversation(modelRunner: runner, history: history)
+        }
+    }
+    
+    /// Asynchronously translates the given text using on-device TranslationSession silently.
+    @MainActor
+    func translate(_ text: String, source: String, target: String) async -> String {
+        guard source != target && !text.isEmpty else { return text }
+        
+        let isToEnglish = (target == "en-US")
+        let session = isToEnglish ? toEnglishSession : toNativeSession
+        
+        guard let session else {
+            print("[Translation] No active session registered for \(isToEnglish ? "to-English" : "to-Native").")
+            return text
+        }
+        
+        do {
+            let response = try await session.translate(text)
+            return response.targetText
+        } catch {
+            print("[Translation] Programmatic translation failed: \(error.localizedDescription)")
+            
+            // Let the user know the offline package is missing
+            let localeName = Locale.current.localizedString(forLanguageCode: source) ?? source
+            self.executionStatus = "Missing offline translation pack for \(localeName). Download in iOS Settings -> Translate."
+            
+            // Clear status after 8 seconds
+            Task {
+                try? await Task.sleep(nanoseconds: 8_000_000_000)
+                await MainActor.run { [weak self] in
+                    if self?.executionStatus?.contains("offline translation pack") == true {
+                        self?.executionStatus = nil
+                    }
+                }
+            }
+            return text
         }
     }
     

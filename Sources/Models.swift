@@ -27,6 +27,16 @@ struct ChatSession: Codable, Identifiable {
     var systemPrompt: String
     var messages: [ChatMessageData]
     let createdAt: Date
+    var translationEnabled: Bool?
+    var userLanguageCode: String?
+    
+    var isTranslationEnabled: Bool {
+        translationEnabled ?? false
+    }
+    
+    var languageCode: String {
+        userLanguageCode ?? "ru-RU"
+    }
     
     var iconName: String {
         if modelName.contains("Audio") {
@@ -38,13 +48,15 @@ struct ChatSession: Codable, Identifiable {
         }
     }
     
-    init(id: UUID = UUID(), title: String = "New Chat", modelName: String = "LFM2.5-1.2B-Instruct", systemPrompt: String = "", messages: [ChatMessageData] = [], createdAt: Date = Date()) {
+    init(id: UUID = UUID(), title: String = "New Chat", modelName: String = "LFM2.5-1.2B-Instruct", systemPrompt: String = "", messages: [ChatMessageData] = [], createdAt: Date = Date(), translationEnabled: Bool = false, userLanguageCode: String = "ru-RU") {
         self.id = id
         self.title = title
         self.modelName = modelName
         self.systemPrompt = systemPrompt
         self.messages = messages
         self.createdAt = createdAt
+        self.translationEnabled = translationEnabled
+        self.userLanguageCode = userLanguageCode
     }
 }
 

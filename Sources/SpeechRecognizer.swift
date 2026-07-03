@@ -48,7 +48,7 @@ final class SpeechRecognizer {
 
     /// Begins listening. Throws if recognition isn't available or on-device
     /// recognition isn't supported for this locale.
-    func start() throws {
+    func start(timeoutEnabled: Bool = true) throws {
         guard let recognizer, recognizer.isAvailable else {
             throw RecognizerError.notAvailable
         }
@@ -63,8 +63,8 @@ final class SpeechRecognizer {
         didFinish = false
 
         let session = AVAudioSession.sharedInstance()
-        try session.setCategory(.playAndRecord, mode: .measurement,
-                                options: [.duckOthers, .defaultToSpeaker, .allowBluetooth])
+        try session.setCategory(.playAndRecord, mode: .voiceChat,
+                                options: [.defaultToSpeaker, .allowBluetooth])
         try session.setActive(true, options: .notifyOthersOnDeactivation)
 
         let request = SFSpeechAudioBufferRecognitionRequest()
@@ -108,11 +108,14 @@ final class SpeechRecognizer {
 
         // If the user never says anything, resolve empty after a while so the
         // conversation loop doesn't hang forever.
-        DispatchQueue.main.async {
-            self.noSpeechTimer = Timer.scheduledTimer(
-                withTimeInterval: self.noSpeechTimeout, repeats: false
-            ) { [weak self] _ in
-                self?.finish()
+        if timeoutEnabled {
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                self.noSpeechTimer = Timer.scheduledTimer(
+                    withTimeInterval: self.noSpeechTimeout, repeats: false
+                ) { [weak self] _ in
+                    self?.finish()
+                }
             }
         }
     }

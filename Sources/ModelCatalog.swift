@@ -1,8 +1,8 @@
 import Foundation
 
 /// One entry in the local model library.
-struct ModelInfo: Identifiable, Hashable {
-    enum Kind: String {
+struct ModelInfo: Identifiable, Hashable, Codable {
+    enum Kind: String, Codable {
         case text
         case vision
         case audio
@@ -83,9 +83,11 @@ enum ModelFit {
 private let GB: Int64 = 1_000_000_000
 
 enum ModelCatalog {
-    /// Only slugs confirmed to resolve through the iOS LEAP SDK are listed, so
-    /// downloads never hit an unresolved manifest. Sizes are Q4_0 estimates.
-    static let all: [ModelInfo] = [
+    /// Cached list of all models loaded dynamically.
+    static var all: [ModelInfo] = loadCatalog()
+
+    /// Default hardcoded models used as a fallback and seed configuration.
+    private static let defaultModels: [ModelInfo] = [
         ModelInfo(
             id: "LFM2-350M",
             displayName: "LFM 350M",
@@ -139,12 +141,49 @@ enum ModelCatalog {
             summary: "Capable vision model · image understanding",
             approxBytes: 1_100_000_000,
             minRAMBytes: 4 * GB
-        ),
-        // LFM2-Audio removed: it duplicated the hands-free voice mode (Apple STT
-        // + text LFM + Apple TTS) but with lower quality and no visible text, and
-        // its engine rejected system prompts. The hands-free mode is the single
-        // voice path now.
+        )
     ]
+
+    /// Loads the model catalog from `Documents/model_catalog.json`.
+    /// Fallback to the default hardcoded list if file is missing or corrupt.
+    static func loadCatalog() -> [ModelInfo] {
+        let fileManager = FileManager.default
+        let paths = fileManager.urls(for: .documentDirectory, in: .userDomainMask)
+        guard let docsDir = paths.first else { return defaultModels }
+        let fileURL = docsDir.appendingPathComponent("model_catalog.json")
+
+        if fileManager.fileExists(atPath: fileURL.path) {
+            do {
+                let data = try Data(contentsOf: fileURL)
+                let decoded = try JSONDecoder().decode([ModelInfo].self, from: data)
+                return decoded
+            } catch {
+                print("[ModelCatalog] Failed to decode model catalog from Documents: \(error.localizedDescription)")
+            }
+        }
+
+        // If file doesn't exist or decoding failed, seed/save default catalog
+        saveCatalog(defaultModels)
+        return defaultModels
+    }
+
+    /// Saves the model catalog to `Documents/model_catalog.json`.
+    static func saveCatalog(_ models: [ModelInfo]) {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        guard let docsDir = paths.first else { return }
+        let fileURL = docsDir.appendingPathComponent("model_catalog.json")
+        do {
+            let data = try JSONEncoder().encode(models)
+            try data.write(to: fileURL, options: [.atomic, .completeFileProtection])
+        } catch {
+            print("[ModelCatalog] Failed to save model catalog: \(error.localizedDescription)")
+        }
+    }
+
+    /// Reloads the model catalog from disk.
+    static func reload() {
+        all = loadCatalog()
+    }
 
     static func info(for modelName: String) -> ModelInfo? {
         all.first { $0.id == modelName }

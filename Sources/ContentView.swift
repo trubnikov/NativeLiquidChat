@@ -1,5 +1,6 @@
 import SwiftUI
 import PhotosUI
+import Translation
 
 struct ContentView: View {
     @State private var store = ChatStore()
@@ -12,6 +13,8 @@ struct ContentView: View {
     @State private var showingRenameAlert = false
     @State private var sessionToRename: UUID?
     @State private var selectedModelTemp = ""
+    @State private var translationEnabledTemp = false
+    @State private var userLanguageCodeTemp = "ru"
     
     // Multimedia states
     @State private var selectedItem: PhotosPickerItem? = nil
@@ -289,6 +292,8 @@ struct ContentView: View {
                         Button(action: {
                             systemPromptTemp = session.systemPrompt
                             selectedModelTemp = session.modelName
+                            translationEnabledTemp = session.isTranslationEnabled
+                            userLanguageCodeTemp = session.languageCode
                             showingSettings = true
                         }) {
                             Image(systemName: "slider.horizontal.3")
@@ -343,6 +348,22 @@ struct ContentView: View {
                                 }
                             }
 
+                             Section(header: Text("Translation"), footer: Text("Translate your native language to English for optimal performance on local models. Translates replies back to your native language.")) {
+                                Toggle("Translate to English", isOn: $translationEnabledTemp)
+                                if translationEnabledTemp {
+                                    Picker("My Language", selection: $userLanguageCodeTemp) {
+                                        Text("Russian").tag("ru-RU")
+                                        Text("Spanish").tag("es-ES")
+                                        Text("French").tag("fr-FR")
+                                        Text("German").tag("de-DE")
+                                        Text("Italian").tag("it-IT")
+                                        Text("Chinese").tag("zh-CN")
+                                        Text("Japanese").tag("ja-JP")
+                                        Text("Korean").tag("ko-KR")
+                                    }
+                                }
+                            }
+
                             Section(header: Text("Appearance")) {
                                 Picker("Theme", selection: $appThemeRaw) {
                                     ForEach(AppTheme.allCases) { theme in
@@ -365,6 +386,8 @@ struct ContentView: View {
                                 Button("Save") {
                                     store.updateSystemPrompt(id: session.id, systemPrompt: systemPromptTemp)
                                     store.updateModel(id: session.id, modelName: selectedModelTemp)
+                                    store.updateTranslationEnabled(id: session.id, enabled: translationEnabledTemp)
+                                    store.updateUserLanguageCode(id: session.id, code: userLanguageCodeTemp)
                                     showingSettings = false
                                 }
                             }
@@ -394,6 +417,22 @@ struct ContentView: View {
                     .foregroundColor(.secondary)
             }
         }
+        
+        .translationTask(store.toEnglishConfig) { session in
+            store.toEnglishSession = session
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+            }
+            store.toEnglishSession = nil
+        }
+        .translationTask(store.toNativeConfig) { session in
+            store.toNativeSession = session
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+            }
+            store.toNativeSession = nil
+        }
+        
         // Rename Alert
         .alert("Rename Chat", isPresented: $showingRenameAlert) {
             TextField("New Title", text: $renameTemp)

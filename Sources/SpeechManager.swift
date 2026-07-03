@@ -196,8 +196,8 @@ final class SpeechManager: NSObject {
         guard !sessionConfigured else { return }
         do {
             let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.playback, mode: .spokenAudio,
-                                    options: [.duckOthers, .defaultToSpeaker])
+            try session.setCategory(.playAndRecord, mode: .voiceChat,
+                                    options: [.defaultToSpeaker, .allowBluetooth])
             try session.setActive(true)
             sessionConfigured = true
         } catch {
