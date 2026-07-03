@@ -260,7 +260,24 @@ class ChatStore {
             let classificationsStr = analysis.classifications.joined(separator: ", ")
             let detectedText = analysis.recognizedText.trimmingCharacters(in: .whitespacesAndNewlines)
             
-            var reality = "Objects detected: \(classificationsStr)"
+            // Parse classifications into [String: Double] to run cosine similarity vector matching
+            var classificationsMap: [String: Double] = [:]
+            for classification in analysis.classifications {
+                let components = classification.components(separatedBy: " (")
+                if components.count == 2,
+                   let confidenceStr = components[1].components(separatedBy: "%)").first,
+                   let confidenceVal = Double(confidenceStr) {
+                    classificationsMap[components[0]] = confidenceVal / 100.0
+                }
+            }
+            
+            let customObjectRecognized = TrainedObjectsManager.shared.findMatch(for: classificationsMap)
+            
+            var reality = ""
+            if let customMatch = customObjectRecognized {
+                reality += "User-trained object recognized: \"\(customMatch)\"\n"
+            }
+            reality += "Objects detected: \(classificationsStr)"
             if !detectedText.isEmpty {
                 reality += "\nRecognized text: \"\(detectedText)\""
             }
@@ -269,14 +286,26 @@ class ChatStore {
             // Instantly get cognitive hypothesis and persona locally (avoids KV cache pollution & delay)
             let state = analysis.cognitiveState
             let hypothesis = state.hypothesis
-            let persona = state.persona
+            var persona = state.persona
+            
+            if let customMatch = customObjectRecognized {
+                persona += "\nNote: User-trained object \"\(customMatch)\" is present in this image. Refer to it as \"\(customMatch)\"."
+            }
             
             dynamicSystemPrompt = persona
             
-            self.currentThinkingLog = """
+            var thinkingLogStr = """
             👁️ **Apple Vision Perceptions:**
             - Classifications: \(classificationsStr)
             - Text: \(detectedText.isEmpty ? "None detected" : "\"\(detectedText)\"")
+            """
+            
+            if let customMatch = customObjectRecognized {
+                thinkingLogStr += "\n- 🌟 Trained Object: \"\(customMatch)\""
+            }
+            
+            thinkingLogStr += """
+            
             
             🧠 **Cognitive Hypothesis:**
             "\(hypothesis)"
@@ -284,6 +313,8 @@ class ChatStore {
             🎭 **Adapted Persona:**
             "\(persona)"
             """
+            
+            self.currentThinkingLog = thinkingLogStr
             
             // Force recreation of conversation history with our dynamic system prompt
             self.conversation = nil

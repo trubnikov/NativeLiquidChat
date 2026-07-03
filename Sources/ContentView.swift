@@ -5,6 +5,7 @@ import Translation
 struct ContentView: View {
     @State private var store = ChatStore()
     @State private var models = ModelManager()
+    @ObservedObject private var trainedObjectsManager = TrainedObjectsManager.shared
     @State private var inputText = ""
     @State private var showingSettings = false
     @State private var showingModels = false
@@ -379,6 +380,30 @@ struct ContentView: View {
                                     }
                                 }
                                 .pickerStyle(.segmented)
+                            }
+                            
+                            Section(header: Text("Память объектов"), footer: Text("Список предметов, которым вы научили агента. Проведите пальцем влево для удаления.")) {
+                                if trainedObjectsManager.trainedObjects.isEmpty {
+                                    Text("Нет выученных объектов")
+                                        .foregroundColor(.secondary)
+                                } else {
+                                    ForEach(trainedObjectsManager.trainedObjects) { obj in
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(obj.customLabel)
+                                                .font(.body)
+                                                .fontWeight(.medium)
+                                            Text(obj.timestamp, style: .date)
+                                                .font(.caption2)
+                                                .foregroundColor(.secondary)
+                                        }
+                                    }
+                                    .onDelete { indexSet in
+                                        for index in indexSet {
+                                            let obj = trainedObjectsManager.trainedObjects[index]
+                                            trainedObjectsManager.forget(id: obj.id)
+                                        }
+                                    }
+                                }
                             }
                         }
                         .navigationTitle("Chat Settings")
