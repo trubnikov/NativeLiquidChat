@@ -1,0 +1,327 @@
+import Foundation
+import NaturalLanguage
+import Accelerate
+
+enum NodeType: String, Codable {
+    case object    // Physical object trained via camera
+    case concept   // Abstract concept/category (e.g. "Acid", "Caffeine")
+    case document  // RAG document chunk/fact
+}
+
+struct GraphNode: Codable, Identifiable, Hashable {
+    let id: UUID
+    let label: String
+    let type: NodeType
+    var properties: [String: String]      // "text" for chunks, "title" for docs
+    var embedding: [Float]?               // Text vector embedding (from NLEmbedding)
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    static func == (lhs: GraphNode, rhs: GraphNode) -> Bool {
+        lhs.id == rhs.id
+    }
+}
+
+struct GraphEdge: Codable, Identifiable, Equatable {
+    let id: UUID
+    let sourceId: UUID
+    let targetId: UUID
+    let relationType: String // e.g. "contains", "neutralizes", "interacts_with"
+    let weight: Double       // Similarity or connection strength
+}
+
+class KnowledgeGraphManager: ObservableObject {
+    static let shared = KnowledgeGraphManager()
+    
+    @Published var nodes: [GraphNode] = []
+    @Published var edges: [GraphEdge] = []
+    
+    private let fileURL: URL = {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        return paths[0].appendingPathComponent("knowledge_graph.json")
+    }()
+    
+    // Core ML native embedding models
+    private let ruEmbedding = NLEmbedding.sentenceEmbedding(for: .russian)
+    private let enEmbedding = NLEmbedding.sentenceEmbedding(for: .english)
+    
+    private init() {
+        loadGraph()
+        seedDefaultGraphIfNeeded()
+    }
+    
+    // MARK: - Persistence
+    
+    func loadGraph() {
+        guard FileManager.default.fileExists(atPath: fileURL.path) else {
+            self.nodes = []
+            self.edges = []
+            return
+        }
+        do {
+            let data = try Data(contentsOf: fileURL)
+            let decoded = try JSONDecoder().decode(GraphContainer.self, from: data)
+            self.nodes = decoded.nodes
+            self.edges = decoded.edges
+        } catch {
+            print("Failed to load knowledge graph: \(error)")
+        }
+    }
+    
+    func saveGraph() {
+        do {
+            let container = GraphContainer(nodes: nodes, edges: edges)
+            let data = try JSONEncoder().encode(container)
+            try data.write(to: fileURL, options: .atomic)
+        } catch {
+            print("Failed to save knowledge graph: \(error)")
+        }
+    }
+    
+    // MARK: - Embeddings & Vector Search
+    
+    func getEmbedding(for text: String) -> [Float]? {
+        // Detect language or try Russian first, fallback to English
+        let embeddingModel = ruEmbedding ?? enEmbedding
+        guard let embedding = embeddingModel else { return nil }
+        
+        if let doubleVector = embedding.vector(for: text) {
+            return doubleVector.map { Float($0) }
+        }
+        
+        // Fallback to the other language model if the primary failed or wasn't available
+        if let altEmbedding = enEmbedding, altEmbedding !== embedding {
+            if let doubleVector = altEmbedding.vector(for: text) {
+                return doubleVector.map { Float($0) }
+            }
+        }
+        
+        return nil
+    }
+    
+    func cosineSimilarity(_ a: [Float], _ b: [Float]) -> Float {
+        guard a.count == b.count, !a.isEmpty else { return 0.0 }
+        
+        var dotProduct: Float = 0.0
+        var normA: Float = 0.0
+        var normB: Float = 0.0
+        
+        vDSP_dotpr(a, 1, b, 1, &dotProduct, vDSP_Length(a.count))
+        vDSP_svesq(a, 1, &normA, vDSP_Length(a.count))
+        vDSP_svesq(b, 1, &normB, vDSP_Length(b.count))
+        
+        let denominator = sqrt(normA) * sqrt(normB)
+        return denominator > 0 ? dotProduct / denominator : 0.0
+    }
+    
+    // MARK: - Document Ingestion (RAG)
+    
+    func chunkText(_ text: String, maxWords: Int = 80, overlap: Int = 15) -> [String] {
+        let words = text.components(separatedBy: .whitespacesAndNewlines).filter { !$0.isEmpty }
+        guard !words.isEmpty else { return [] }
+        
+        var chunks: [String] = []
+        var i = 0
+        while i < words.count {
+            let end = min(i + maxWords, words.count)
+            let chunk = words[i..<end].joined(separator: " ")
+            chunks.append(chunk)
+            if end == words.count { break }
+            i += maxWords - overlap
+        }
+        return chunks
+    }
+    
+    func importDocument(title: String, content: String) {
+        let docNode = GraphNode(
+            id: UUID(),
+            label: title,
+            type: .concept,
+            properties: ["title": title],
+            embedding: getEmbedding(for: title)
+        )
+        
+        DispatchQueue.main.async {
+            self.nodes.append(docNode)
+            
+            let chunks = self.chunkText(content)
+            for (idx, chunk) in chunks.enumerated() {
+                let chunkNode = GraphNode(
+                    id: UUID(),
+                    label: "\(title) [Chunk \(idx+1)]",
+                    type: .document,
+                    properties: ["text": chunk, "parent": title],
+                    embedding: self.getEmbedding(for: chunk)
+                )
+                self.nodes.append(chunkNode)
+                
+                // Link chunk to the parent document concept node
+                let edge = GraphEdge(
+                    id: UUID(),
+                    sourceId: docNode.id,
+                    targetId: chunkNode.id,
+                    relationType: "has_chunk",
+                    weight: 1.0
+                )
+                self.edges.append(edge)
+            }
+            self.saveGraph()
+        }
+    }
+    
+    func searchRAG(query: String, limit: Int = 3) -> [(chunk: String, similarity: Float, parentDoc: String)] {
+        guard let queryVector = getEmbedding(for: query) else { return [] }
+        
+        var results: [(chunk: String, similarity: Float, parentDoc: String)] = []
+        
+        // Loop over document chunk nodes
+        for node in nodes where node.type == .document {
+            guard let nodeVector = node.embedding,
+                  let chunkText = node.properties["text"] else { continue }
+            
+            let similarity = cosineSimilarity(queryVector, nodeVector)
+            if similarity > 0.65 { // RAG confidence threshold
+                let parent = node.properties["parent"] ?? "Unknown Document"
+                results.append((chunkText, similarity, parent))
+            }
+        }
+        
+        return results.sorted(by: { $0.similarity > $1.similarity }).prefix(limit).map { $0 }
+    }
+    
+    // MARK: - Graph Traversal (1-2-3-4-5 Connection Chain)
+    
+    func traverseGraph(startingFrom nodeLabel: String, maxDepth: Int = 2) -> (activatedConcepts: [String], associatedFacts: [String], pathDescription: String) {
+        // Find matching starting node
+        guard let startNode = nodes.first(where: { $0.label.lowercased() == nodeLabel.lowercased() }) else {
+            return ([], [], "")
+        }
+        
+        var visited = Set<UUID>([startNode.id])
+        var queue: [(node: GraphNode, path: [String], depth: Int)] = [(startNode, ["[\(startNode.label)]"], 0)]
+        
+        var activatedConcepts: [String] = []
+        var associatedFacts: [String] = []
+        var pathDescriptions: [String] = []
+        
+        while !queue.isEmpty {
+            let current = queue.removeFirst()
+            let currentNode = current.node
+            let currentPath = current.path
+            let currentDepth = current.depth
+            
+            if currentDepth > 0 {
+                activatedConcepts.append(currentNode.label)
+                
+                // If this is a document node or concept with text facts, fetch them
+                if currentNode.type == .document, let text = currentNode.properties["text"] {
+                    associatedFacts.append(text)
+                } else if let customFact = currentNode.properties["fact"] {
+                    associatedFacts.append(customFact)
+                }
+                
+                pathDescriptions.append(currentPath.joined(separator: " -> "))
+            }
+            
+            if currentDepth < maxDepth {
+                // Find all outgoing and incoming connections
+                let neighbors = edges.filter { $0.sourceId == currentNode.id || $0.targetId == currentNode.id }
+                
+                for edge in neighbors {
+                    let neighborId = (edge.sourceId == currentNode.id) ? edge.targetId : edge.sourceId
+                    guard !visited.contains(neighborId) else { continue }
+                    
+                    if let neighborNode = nodes.first(where: { $0.id == neighborId }) {
+                        visited.insert(neighborId)
+                        let relationSymbol = (edge.sourceId == currentNode.id) ? "--(\(edge.relationType))-->" : "<--(\(edge.relationType))--"
+                        let nextPath = currentPath + [relationSymbol, "[\(neighborNode.label)]"]
+                        queue.append((neighborNode, nextPath, currentDepth + 1))
+                    }
+                }
+            }
+        }
+        
+        return (
+            Array(Set(activatedConcepts)),
+            Array(Set(associatedFacts)),
+            pathDescriptions.joined(separator: "\n")
+        )
+    }
+    
+    // MARK: - Seed Default Graph Data
+    
+    private func seedDefaultGraphIfNeeded() {
+        guard nodes.isEmpty else { return }
+        
+        // Let's seed a beautiful sample relationship: Orange Juice -> Citric Acid -> Aspirin interaction!
+        let orangeJuice = GraphNode(id: UUID(), label: "Апельсиновый сок", type: .concept, properties: ["fact": "Апельсиновый сок содержит высокий уровень лимонной кислоты."], embedding: getEmbedding(for: "Апельсиновый сок"))
+        let citricAcid = GraphNode(id: UUID(), label: "Лимонная кислота", type: .concept, properties: ["fact": "Лимонная кислота увеличивает кислотность желудка."], embedding: getEmbedding(for: "Лимонная кислота"))
+        let aspirin = GraphNode(id: UUID(), label: "Аспирин", type: .concept, properties: ["fact": "Аспирин раздражает слизистую оболочку желудка."], embedding: getEmbedding(for: "Аспирин"))
+        
+        nodes = [orangeJuice, citricAcid, aspirin]
+        
+        edges = [
+            GraphEdge(id: UUID(), sourceId: orangeJuice.id, targetId: citricAcid.id, relationType: "содержит", weight: 1.0),
+            GraphEdge(id: UUID(), sourceId: citricAcid.id, targetId: aspirin.id, relationType: "усиливает раздражение", weight: 0.8)
+        ]
+        
+        // Add a document chunk about Aspirin interaction
+        importDocument(
+            title: "Инструкция Аспирина",
+            content: "Ацетилсалициловая кислота (Аспирин). Противопоказания: не рекомендуется принимать одновременно с кислыми соками, лимонной кислотой или горячим чаем. Танины чая нейтрализуют препарат, а кислоты (лимонная кислота соков) усиливают токсическое влияние на желудок и могут вызывать изжогу."
+        )
+    }
+    
+    // MARK: - Node/Edge Modifications
+    
+    func addNode(label: String, type: NodeType, properties: [String: String] = [:]) {
+        let node = GraphNode(
+            id: UUID(),
+            label: label,
+            type: type,
+            properties: properties,
+            embedding: getEmbedding(for: label)
+        )
+        DispatchQueue.main.async {
+            self.nodes.append(node)
+            self.saveGraph()
+        }
+    }
+    
+    func addEdge(sourceId: UUID, targetId: UUID, relationType: String, weight: Double = 1.0) {
+        let edge = GraphEdge(
+            id: UUID(),
+            sourceId: sourceId,
+            targetId: targetId,
+            relationType: relationType,
+            weight: weight
+        )
+        DispatchQueue.main.async {
+            self.edges.append(edge)
+            self.saveGraph()
+        }
+    }
+    
+    func deleteNode(id: UUID) {
+        DispatchQueue.main.async {
+            self.nodes.removeAll(where: { $0.id == id })
+            self.edges.removeAll(where: { $0.sourceId == id || $0.targetId == id })
+            self.saveGraph()
+        }
+    }
+    
+    func deleteEdge(id: UUID) {
+        DispatchQueue.main.async {
+            self.edges.removeAll(where: { $0.id == id })
+            self.saveGraph()
+        }
+    }
+}
+
+// Container for JSON encoding/decoding
+struct GraphContainer: Codable {
+    let nodes: [GraphNode]
+    let edges: [GraphEdge]
+}

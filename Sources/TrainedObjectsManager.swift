@@ -37,9 +37,20 @@ class TrainedObjectsManager: ObservableObject {
         let newObj = TrainedObject(customLabel: customLabel, featureVector: classifications)
         trainedObjects.append(newObj)
         save()
+        
+        // Register in Knowledge Graph
+        if !KnowledgeGraphManager.shared.nodes.contains(where: { $0.label.lowercased() == customLabel.lowercased() }) {
+            KnowledgeGraphManager.shared.addNode(label: customLabel, type: .object)
+        }
     }
     
     func forget(id: UUID) {
+        if let obj = trainedObjects.first(where: { $0.id == id }) {
+            // Also clean up from Knowledge Graph
+            if let graphNode = KnowledgeGraphManager.shared.nodes.first(where: { $0.label.lowercased() == obj.customLabel.lowercased() }) {
+                KnowledgeGraphManager.shared.deleteNode(id: graphNode.id)
+            }
+        }
         trainedObjects.removeAll { $0.id == id }
         save()
     }

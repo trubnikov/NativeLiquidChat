@@ -252,6 +252,11 @@ class ChatStore {
         var perceivedRealityText: String? = nil
         var dynamicSystemPrompt: String? = nil
         
+        var thinkingLogStr = ""
+        var graphPathDescription = ""
+        var graphFacts: [String] = []
+        var customObjectRecognized: String? = nil
+        
         if let image = attachedImage {
             self.isLoadingResponse = true
             self.executionStatus = "Perceiving image via Apple Vision..."
@@ -271,11 +276,16 @@ class ChatStore {
                 }
             }
             
-            let customObjectRecognized = TrainedObjectsManager.shared.findMatch(for: classificationsMap)
+            customObjectRecognized = TrainedObjectsManager.shared.findMatch(for: classificationsMap)
             
             var reality = ""
             if let customMatch = customObjectRecognized {
                 reality += "User-trained object recognized: \"\(customMatch)\"\n"
+                
+                // Graph Traversal Chain
+                let traversal = KnowledgeGraphManager.shared.traverseGraph(startingFrom: customMatch)
+                graphPathDescription = traversal.pathDescription
+                graphFacts = traversal.associatedFacts
             }
             reality += "Objects detected: \(classificationsStr)"
             if !detectedText.isEmpty {
@@ -294,7 +304,7 @@ class ChatStore {
             
             dynamicSystemPrompt = persona
             
-            var thinkingLogStr = """
+            thinkingLogStr += """
             👁️ **Apple Vision Perceptions:**
             - Classifications: \(classificationsStr)
             - Text: \(detectedText.isEmpty ? "None detected" : "\"\(detectedText)\"")
@@ -314,10 +324,52 @@ class ChatStore {
             "\(persona)"
             """
             
-            self.currentThinkingLog = thinkingLogStr
-            
             // Force recreation of conversation history with our dynamic system prompt
             self.conversation = nil
+        }
+        
+        // Run Text RAG search
+        let textRagResults = KnowledgeGraphManager.shared.searchRAG(query: trimmed)
+        
+        var ragContext = ""
+        if !graphFacts.isEmpty {
+            ragContext += "\nФакты из графа знаний о замеченных объектах:\n" + graphFacts.map { "- \($0)" }.joined(separator: "\n")
+        }
+        if !textRagResults.isEmpty {
+            ragContext += "\nРелевантные факты из документов RAG:\n" + textRagResults.map { "- \($0.chunk) (\($0.parentDoc))" }.joined(separator: "\n")
+        }
+        
+        if !ragContext.isEmpty {
+            let instructions = """
+            
+            [БАЗА ЗНАНИЙ (RAG)]
+            Используй следующие проверенные факты для ответа пользователю. Строй свои ответы строго на основе этой информации. Если факты не содержат ответа, скажи, что не знаешь, и не выдумывай лишнего:
+            \(ragContext)
+            """
+            dynamicSystemPrompt = (dynamicSystemPrompt ?? "") + instructions
+            
+            if !thinkingLogStr.isEmpty {
+                thinkingLogStr += "\n\n"
+            }
+            
+            if !graphPathDescription.isEmpty {
+                thinkingLogStr += """
+                🔗 **Семантические связи графа:**
+                \(graphPathDescription)
+                
+                """
+            }
+            
+            if !textRagResults.isEmpty {
+                thinkingLogStr += "📚 **Поиск в RAG (Энциклопедия):**\n"
+                for res in textRagResults {
+                    thinkingLogStr += String(format: "- [%@ (соответствие: %.0f%%)] \"%@\"\n", res.parentDoc, res.similarity * 100.0, res.chunk)
+                }
+            }
+        }
+        
+        if !thinkingLogStr.isEmpty {
+            self.currentThinkingLog = thinkingLogStr
         }
         
         var contentArray: [ChatMessageContent] = []

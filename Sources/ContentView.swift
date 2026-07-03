@@ -389,6 +389,14 @@ struct ContentView: View {
                                 .pickerStyle(.segmented)
                             }
                             
+                            Section(header: Text(appLanguage == "ru" ? "База знаний RAG" : "RAG Knowledge Base")) {
+                                NavigationLink {
+                                    KnowledgeGraphView()
+                                } label: {
+                                    Label(appLanguage == "ru" ? "Управление графом" : "Manage Knowledge Graph", systemImage: "point.3.filled.connected.trianglepath.dotted")
+                                }
+                            }
+                            
                             Section(header: Text(appLanguage == "ru" ? "Память объектов" : "Object Memory"), footer: Text(appLanguage == "ru" ? "Список предметов, которым вы научили агента. Проведите пальцем влево для удаления." : "List of items you taught the agent. Swipe left to delete.")) {
                                 if trainedObjectsManager.trainedObjects.isEmpty {
                                     Text(appLanguage == "ru" ? "Нет выученных объектов" : "No trained objects")

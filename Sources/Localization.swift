@@ -68,6 +68,24 @@ struct AppText {
         case dialogPlaceholder
         case buttonRemember
         
+        // RAG / Knowledge Graph
+        case ragTitle
+        case ragHeader
+        case ragFooter
+        case addDocumentButton
+        case documentTitlePlaceholder
+        case documentContentPlaceholder
+        case addRelationButton
+        case relationTypePlaceholder
+        case linkTitle
+        case linkSubtitle
+        case nodesSection
+        case edgesSection
+        case noData
+        case sourceNodeLabel
+        case targetNodeLabel
+        case selectNode
+        
         var ru: String {
             switch self {
             case .settingsTitle: return "Настройки чата"
@@ -110,6 +128,22 @@ struct AppText {
             case .dialogSubtitle: return "Введите точное имя для этого объекта:"
             case .dialogPlaceholder: return "Например: Кресло Босса"
             case .buttonRemember: return "Запомнить"
+            case .ragTitle: return "База знаний RAG"
+            case .ragHeader: return "Управление графом знаний"
+            case .ragFooter: return "Здесь вы можете загружать текстовые файлы/инструкции и связывать распознанные объекты с концептами."
+            case .addDocumentButton: return "Добавить документ"
+            case .documentTitlePlaceholder: return "Название документа"
+            case .documentContentPlaceholder: return "Содержимое документа..."
+            case .addRelationButton: return "Создать связь"
+            case .relationTypePlaceholder: return "Тип связи (например: содержит)"
+            case .linkTitle: return "Связать объекты графа"
+            case .linkSubtitle: return "Выберите исходный и целевой узлы и укажите тип связи:"
+            case .nodesSection: return "Узлы (Документы и Объекты)"
+            case .edgesSection: return "Связи между понятиями"
+            case .noData: return "Нет данных"
+            case .sourceNodeLabel: return "Исходный узел"
+            case .targetNodeLabel: return "Целевой узел"
+            case .selectNode: return "Выбрать узел"
             }
         }
         
@@ -155,6 +189,22 @@ struct AppText {
             case .dialogSubtitle: return "Enter the exact name for this object:"
             case .dialogPlaceholder: return "Example: Boss Chair"
             case .buttonRemember: return "Remember"
+            case .ragTitle: return "RAG Knowledge Base"
+            case .ragHeader: return "Knowledge Graph Management"
+            case .ragFooter: return "Here you can load text documents/manuals and connect recognized objects to concepts."
+            case .addDocumentButton: return "Add Document"
+            case .documentTitlePlaceholder: return "Document Title"
+            case .documentContentPlaceholder: return "Document content..."
+            case .addRelationButton: return "Create Relation"
+            case .relationTypePlaceholder: return "Relation type (e.g. contains)"
+            case .linkTitle: return "Connect Graph Nodes"
+            case .linkSubtitle: return "Select source and target nodes and set the relation type:"
+            case .nodesSection: return "Nodes (Documents & Objects)"
+            case .edgesSection: return "Semantic Relations"
+            case .noData: return "No data"
+            case .sourceNodeLabel: return "Source Node"
+            case .targetNodeLabel: return "Target Node"
+            case .selectNode: return "Select node"
             }
         }
     }
