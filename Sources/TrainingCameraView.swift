@@ -7,6 +7,7 @@ struct TrainingCameraView: View {
     @StateObject private var model = CameraViewModel()
     @State private var showingCustomNameInput = false
     @State private var customNameText = ""
+    @AppStorage("appLanguage") private var appLanguage = AppLanguage.russian.rawValue
     
     var body: some View {
         ZStack {
@@ -21,10 +22,10 @@ struct TrainingCameraView: View {
                     Image(systemName: "camera.fill")
                         .font(.largeTitle)
                         .foregroundColor(.gray)
-                    Text("Камере требуется разрешение")
+                    Text(AppText.get(.cameraPermissionRequired, lang: appLanguage))
                         .font(.headline)
                         .foregroundColor(.white)
-                    Button("Разрешить доступ в Настройках") {
+                    Button(AppText.get(.buttonSettings, lang: appLanguage)) {
                         if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
                             UIApplication.shared.open(settingsURL)
                         }
@@ -75,7 +76,7 @@ struct TrainingCameraView: View {
                         HStack(spacing: 8) {
                             ProgressView()
                                 .tint(.white)
-                            Text("Сканирую объект...")
+                            Text(AppText.get(.cameraScanning, lang: appLanguage))
                                 .font(.subheadline)
                                 .foregroundColor(.white.opacity(0.8))
                         }
@@ -85,7 +86,7 @@ struct TrainingCameraView: View {
                             HStack(spacing: 6) {
                                 Image(systemName: "sparkles")
                                     .foregroundColor(.amber)
-                                Text("ВЫУЧЕННЫЙ ОБЪЕКТ")
+                                Text(AppText.get(.cameraTrainedHeader, lang: appLanguage))
                                     .font(.caption2)
                                     .fontWeight(.bold)
                                     .foregroundColor(.amber)
@@ -97,14 +98,14 @@ struct TrainingCameraView: View {
                                 .foregroundColor(.white)
                                 .multilineTextAlignment(.center)
                             
-                            Text("Агент узнал этот объект по сигнатуре!")
+                            Text(AppText.get(.cameraTrainedSubtitle, lang: appLanguage))
                                 .font(.caption)
                                 .foregroundColor(.white.opacity(0.7))
                         }
                     } else if let dominantLabel = model.dominantLabel {
                         // New standard object detected
                         VStack(spacing: 12) {
-                            Text("Кажется, это:")
+                            Text(AppText.get(.cameraDominantPrompt, lang: appLanguage))
                                 .font(.caption)
                                 .foregroundColor(.white.opacity(0.7))
                             
@@ -114,7 +115,7 @@ struct TrainingCameraView: View {
                                 .foregroundColor(.white)
                                 .multilineTextAlignment(.center)
                             
-                            Text("Я прав?")
+                            Text(AppText.get(.cameraRightPrompt, lang: appLanguage))
                                 .font(.footnote)
                                 .foregroundColor(.white.opacity(0.8))
                             
@@ -126,7 +127,7 @@ struct TrainingCameraView: View {
                                 }) {
                                     HStack(spacing: 6) {
                                         Image(systemName: "checkmark.circle.fill")
-                                        Text("Да, верно")
+                                        Text(AppText.get(.buttonYes, lang: appLanguage))
                                     }
                                     .fontWeight(.semibold)
                                     .foregroundColor(.white)
@@ -143,7 +144,7 @@ struct TrainingCameraView: View {
                                 }) {
                                     HStack(spacing: 6) {
                                         Image(systemName: "xmark.circle.fill")
-                                        Text("Нет, другое")
+                                        Text(AppText.get(.buttonNo, lang: appLanguage))
                                     }
                                     .fontWeight(.semibold)
                                     .foregroundColor(.white)
@@ -155,7 +156,7 @@ struct TrainingCameraView: View {
                             }
                         }
                     } else {
-                        Text("Наведите камеру на объект в рамке")
+                        Text(AppText.get(.cameraPlaceholder, lang: appLanguage))
                             .font(.subheadline)
                             .foregroundColor(.white.opacity(0.8))
                     }
@@ -163,7 +164,7 @@ struct TrainingCameraView: View {
                     if model.analysisTimeMs > 0 {
                         Divider()
                             .background(Color.white.opacity(0.15))
-                        Text(String(format: "Скорость: %.1f мс (Vision + Similarity)", model.analysisTimeMs))
+                        Text(AppText.get(.cameraSpeedFormat(model.analysisTimeMs), lang: appLanguage))
                             .font(.system(size: 10, weight: .semibold, design: .monospaced))
                             .foregroundColor(.white.opacity(0.5))
                     }
@@ -191,26 +192,26 @@ struct TrainingCameraView: View {
                     }
                 
                 VStack(spacing: 16) {
-                    Text("Чему научить агента?")
+                    Text(AppText.get(.dialogTitle, lang: appLanguage))
                         .font(.headline)
                         .foregroundColor(.primary)
                     
-                    Text("Введите точное имя для этого объекта:")
+                    Text(AppText.get(.dialogSubtitle, lang: appLanguage))
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
-                    TextField("Например: Кресло Босса", text: $customNameText)
+                    TextField(AppText.get(.dialogPlaceholder, lang: appLanguage), text: $customNameText)
                         .textFieldStyle(.roundedBorder)
                         .autocorrectionDisabled()
                         .padding(.horizontal)
                     
                     HStack(spacing: 12) {
-                        Button("Отмена") {
+                        Button(AppText.get(.buttonCancel, lang: appLanguage)) {
                             showingCustomNameInput = false
                         }
                         .foregroundColor(.secondary)
                         
-                        Button("Запомнить") {
+                        Button(AppText.get(.buttonRemember, lang: appLanguage)) {
                             let name = customNameText.trimmingCharacters(in: .whitespacesAndNewlines)
                             if !name.isEmpty {
                                 model.trainCurrentObject(as: name)

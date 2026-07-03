@@ -24,7 +24,7 @@ struct ContentView: View {
     @State private var showingAttachDialog = false
     @State private var showingPhotoPicker = false
     @State private var showingTrainingCamera = false
-    
+    @AppStorage("appLanguage") private var appLanguage = AppLanguage.russian.rawValue
     @AppStorage("appTheme") private var appThemeRaw = AppTheme.system.rawValue
 
     @FocusState private var isInputFocused: Bool
@@ -311,26 +311,25 @@ struct ContentView: View {
                 .sheet(isPresented: $showingSettings) {
                     NavigationStack {
                         Form {
-                            Section(header: Text("System Rules"), footer: Text("Presets set the system prompt. \"QCA · Ocean\" makes the model reason like the Ocean agent — terse and contradiction-seeking.")) {
-                                Picker("Preset", selection: presetSelection) {
+                            Section(header: Text(appLanguage == "ru" ? "Системные правила" : "System Rules"), footer: Text(appLanguage == "ru" ? "Пресеты задают системный промпт. \"QCA · Ocean\" заставляет модель рассуждать как агент Ocean — кратко и ища противоречия." : "Presets set the system prompt. \"QCA · Ocean\" makes the model reason like the Ocean agent — terse and contradiction-seeking.")) {
+                                Picker(appLanguage == "ru" ? "Пресет" : "Preset", selection: presetSelection) {
                                     ForEach(PromptPresets.all) { preset in
                                         Text(preset.name).tag(preset.id)
                                     }
                                     if PromptPresets.matching(systemPromptTemp) == nil {
-                                        Text("Custom").tag("custom")
+                                        Text(appLanguage == "ru" ? "Свой" : "Custom").tag("custom")
                                     }
                                 }
-                                TextField("Act as a translator, coder, etc.", text: $systemPromptTemp, axis: .vertical)
+                                TextField(appLanguage == "ru" ? "Роль: переводчик, программист и т.д." : "Act as a translator, coder, etc.", text: $systemPromptTemp, axis: .vertical)
                                     .lineLimit(4...10)
                             }
                             
-                            Section(header: Text("Model"), footer: Text("Pick any downloaded model. The model is downloaded automatically the first time you send a message.")) {
-                                Picker("Active Model", selection: $selectedModelTemp) {
+                            Section(header: Text(appLanguage == "ru" ? "Модель" : "Model"), footer: Text(appLanguage == "ru" ? "Выберите любую загруженную модель. Модель скачивается автоматически при первой отправке сообщения." : "Pick any downloaded model. The model is downloaded automatically the first time you send a message.")) {
+                                Picker(appLanguage == "ru" ? "Активная модель" : "Active Model", selection: $selectedModelTemp) {
                                     ForEach(ModelCatalog.all) { model in
                                         Text("\(model.displayName) · \(model.kind.displayName)")
                                             .tag(model.id)
                                     }
-                                    // Preserve any model the session uses that isn't in the catalog.
                                     if ModelCatalog.info(for: selectedModelTemp) == nil && !selectedModelTemp.isEmpty {
                                         Text(selectedModelTemp).tag(selectedModelTemp)
                                     }
@@ -342,13 +341,13 @@ struct ContentView: View {
                                     .foregroundColor(.secondary)
                             }
 
-                            Section(header: Text("Speech"), footer: Text("Replies are read aloud on-device. Choose a voice or let it match the reply's language.")) {
-                                Toggle("Speak replies", isOn: $store.speakResponses)
+                            Section(header: Text(appLanguage == "ru" ? "Озвучка" : "Speech"), footer: Text(appLanguage == "ru" ? "Ответы зачитываются вслух на устройстве. Выберите голос или предоставьте системе автоматически определять язык." : "Replies are read aloud on-device. Choose a voice or let it match the reply's language.")) {
+                                Toggle(appLanguage == "ru" ? "Озвучивать ответы" : "Speak replies", isOn: $store.speakResponses)
                                 NavigationLink {
                                     VoicePickerView(store: store)
                                 } label: {
                                     HStack {
-                                        Text("Voice")
+                                        Text(appLanguage == "ru" ? "Голос" : "Voice")
                                         Spacer()
                                         Text(selectedVoiceName)
                                             .foregroundStyle(.secondary)
@@ -356,10 +355,10 @@ struct ContentView: View {
                                 }
                             }
 
-                             Section(header: Text("Translation"), footer: Text("Translate your native language to English for optimal performance on local models. Translates replies back to your native language.")) {
-                                Toggle("Translate to English", isOn: $translationEnabledTemp)
+                             Section(header: Text(appLanguage == "ru" ? "Перевод" : "Translation"), footer: Text(appLanguage == "ru" ? "Переводить ваш родной язык на английский для оптимальной работы локальных моделей. Ответы переводятся обратно на ваш язык." : "Translate your native language to English for optimal performance on local models. Translates replies back to your native language.")) {
+                                Toggle(appLanguage == "ru" ? "Переводить на английский" : "Translate to English", isOn: $translationEnabledTemp)
                                 if translationEnabledTemp {
-                                    Picker("My Language", selection: $userLanguageCodeTemp) {
+                                    Picker(appLanguage == "ru" ? "Мой язык" : "My Language", selection: $userLanguageCodeTemp) {
                                         Text("Russian").tag("ru-RU")
                                         Text("Spanish").tag("es-ES")
                                         Text("French").tag("fr-FR")
@@ -372,8 +371,16 @@ struct ContentView: View {
                                 }
                             }
 
-                            Section(header: Text("Appearance")) {
-                                Picker("Theme", selection: $appThemeRaw) {
+                            Section(header: Text(appLanguage == "ru" ? "Язык приложения" : "App Language")) {
+                                Picker("App Language", selection: $appLanguage) {
+                                    Text("Русский").tag("ru")
+                                    Text("English").tag("en")
+                                }
+                                .pickerStyle(.segmented)
+                            }
+
+                            Section(header: Text(appLanguage == "ru" ? "Внешний вид" : "Appearance")) {
+                                Picker(appLanguage == "ru" ? "Тема" : "Theme", selection: $appThemeRaw) {
                                     ForEach(AppTheme.allCases) { theme in
                                         Label(theme.label, systemImage: theme.iconName)
                                             .tag(theme.rawValue)
@@ -382,9 +389,9 @@ struct ContentView: View {
                                 .pickerStyle(.segmented)
                             }
                             
-                            Section(header: Text("Память объектов"), footer: Text("Список предметов, которым вы научили агента. Проведите пальцем влево для удаления.")) {
+                            Section(header: Text(appLanguage == "ru" ? "Память объектов" : "Object Memory"), footer: Text(appLanguage == "ru" ? "Список предметов, которым вы научили агента. Проведите пальцем влево для удаления." : "List of items you taught the agent. Swipe left to delete.")) {
                                 if trainedObjectsManager.trainedObjects.isEmpty {
-                                    Text("Нет выученных объектов")
+                                    Text(appLanguage == "ru" ? "Нет выученных объектов" : "No trained objects")
                                         .foregroundColor(.secondary)
                                 } else {
                                     ForEach(trainedObjectsManager.trainedObjects) { obj in
@@ -406,16 +413,16 @@ struct ContentView: View {
                                 }
                             }
                         }
-                        .navigationTitle("Chat Settings")
+                        .navigationTitle(appLanguage == "ru" ? "Настройки чата" : "Chat Settings")
                         .navigationBarTitleDisplayMode(.inline)
                         .toolbar {
                             ToolbarItem(placement: .cancellationAction) {
-                                Button("Cancel") {
+                                Button(appLanguage == "ru" ? "Отмена" : "Cancel") {
                                     showingSettings = false
                                 }
                             }
                             ToolbarItem(placement: .confirmationAction) {
-                                Button("Save") {
+                                Button(appLanguage == "ru" ? "Сохранить" : "Save") {
                                     store.updateSystemPrompt(id: session.id, systemPrompt: systemPromptTemp)
                                     store.updateModel(id: session.id, modelName: selectedModelTemp)
                                     store.updateTranslationEnabled(id: session.id, enabled: translationEnabledTemp)
@@ -633,14 +640,26 @@ struct MessageBubbleView: View {
 struct ThinkingLogView: View {
     let log: String
     @State private var isExpanded = false
+    @AppStorage("appLanguage") private var appLanguage = AppLanguage.russian.rawValue
     
     private var formattedLog: AttributedString {
+        var translatedLog = log
+        if appLanguage == AppLanguage.russian.rawValue {
+            translatedLog = translatedLog
+                .replacingOccurrences(of: "👁️ **Apple Vision Perceptions:**", with: "👁️ **Восприятие Apple Vision:**")
+                .replacingOccurrences(of: "- Classifications:", with: "- Классификации:")
+                .replacingOccurrences(of: "- Text:", with: "- Считанный текст:")
+                .replacingOccurrences(of: "- 🌟 Trained Object:", with: "- 🌟 Выученный объект:")
+                .replacingOccurrences(of: "🧠 **Cognitive Hypothesis:**", with: "🧠 **Когнитивная гипотеза:**")
+                .replacingOccurrences(of: "🎭 **Adapted Persona:**", with: "🎭 **Адаптированная роль:**")
+        }
+        
         let options = AttributedString.MarkdownParsingOptions(
             interpretedSyntax: .inlineOnlyPreservingWhitespace)
-        if let parsed = try? AttributedString(markdown: log, options: options) {
+        if let parsed = try? AttributedString(markdown: translatedLog, options: options) {
             return parsed
         }
-        return AttributedString(log)
+        return AttributedString(translatedLog)
     }
     
     var body: some View {
@@ -653,7 +672,7 @@ struct ThinkingLogView: View {
                 HStack(spacing: 6) {
                     Image(systemName: "brain.head.profile")
                         .font(.footnote)
-                    Text("Cognitive Thinking Log")
+                    Text(AppText.get(.thinkingLogTitle, lang: appLanguage))
                         .font(.footnote)
                         .fontWeight(.medium)
                     Spacer()
