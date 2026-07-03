@@ -11,13 +11,16 @@
 		0D25B4D5F6465965507D9D6B /* ConversationBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A772B8164598C45FFC9648D9 /* ConversationBanner.swift */; };
 		16E846ABE7C39A6E39189EFA /* ChatStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 993DCDDF88FEF91ABE327C1C /* ChatStore.swift */; };
 		1A2034768DD4FC1520D08CA4 /* ModelManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84EE3E9A6056629418916A27 /* ModelManager.swift */; };
+		1DBCCAC18BD92B28AA782135 /* TrainingCameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DA3AEC2CE6EF8DB65F060EC /* TrainingCameraView.swift */; };
 		1FC480EDCD9B7D66AA14C661 /* LeapSDK in Frameworks */ = {isa = PBXBuildFile; productRef = E4F9D45BB1DF427DA74E3E04 /* LeapSDK */; };
 		220B6A9AC9AAF85EF9DF0380 /* AudioPlaybackManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C7B76C167EF4958D8DA35E4 /* AudioPlaybackManager.swift */; };
 		2BBE4F0350365549606C1489 /* ModelsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F558E3F536D0C9ADD38DACE4 /* ModelsView.swift */; };
 		3ABA2372CCFE7E9023AA5BCE /* PromptPresets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51E505EB05F9EACE06A3D3C2 /* PromptPresets.swift */; };
 		3E78A3C67F010FF680B388DA /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCEEC0E25493168C1338526B /* ContentView.swift */; };
 		4635020FF16600947B13802C /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D3B65F4DD881E141C02829 /* AudioRecorder.swift */; };
+		54F4BD76F0C8D6175834C0A2 /* TrainedObjectsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30C029C947BAE14106EC57F2 /* TrainedObjectsManager.swift */; };
 		592FFF59463121490B0DF591 /* SpeechManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAAF72BCDA89DF409CEAFB37 /* SpeechManager.swift */; };
+		5B69FF61701D2BF9A8C08879 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F535D1F03887D1312483C8ED /* Assets.xcassets */; };
 		5C377BCD0622DA020E8FE94E /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20F15652552BF8AC888C972 /* Models.swift */; };
 		603DD5CC91E625C7C2065B2E /* CameraPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DD73FEC565B6E5E0DB36EE4 /* CameraPicker.swift */; };
 		6C5CC08B0433FA961FADE3E7 /* EmptyChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15A2F55129813D3BE7737388 /* EmptyChatView.swift */; };
@@ -29,6 +32,7 @@
 		BEC00D3464B79E2650BC7152 /* LeapModelDownloader in Frameworks */ = {isa = PBXBuildFile; productRef = DCF3CAF6641D234A4BF0225F /* LeapModelDownloader */; };
 		D3083BE98A2F2BDA4005DB80 /* ChatStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19A56CD75751D17343CEC018 /* ChatStoreTests.swift */; };
 		DEF3041FF678D6DF30508A01 /* VoicePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3066218725958F09A3B263 /* VoicePickerView.swift */; };
+		F1A8D64143E81279725103EC /* VisionProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C895E9A62763237D24867D3 /* VisionProcessor.swift */; };
 		FC6FF8FF1C761DA4E1C63FA0 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC36999EC0C748E6C0D2CD5C /* AppTheme.swift */; };
 /* End PBXBuildFile section */
 
@@ -50,10 +54,13 @@
 		19A56CD75751D17343CEC018 /* ChatStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatStoreTests.swift; sourceTree = "<group>"; };
 		1DD73FEC565B6E5E0DB36EE4 /* CameraPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPicker.swift; sourceTree = "<group>"; };
 		1E3066218725958F09A3B263 /* VoicePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoicePickerView.swift; sourceTree = "<group>"; };
+		30C029C947BAE14106EC57F2 /* TrainedObjectsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainedObjectsManager.swift; sourceTree = "<group>"; };
+		4DA3AEC2CE6EF8DB65F060EC /* TrainingCameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingCameraView.swift; sourceTree = "<group>"; };
 		51E505EB05F9EACE06A3D3C2 /* PromptPresets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptPresets.swift; sourceTree = "<group>"; };
 		69FC04211C6B05B6079D97C8 /* TypingIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingIndicator.swift; sourceTree = "<group>"; };
 		84EE3E9A6056629418916A27 /* ModelManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelManager.swift; sourceTree = "<group>"; };
 		890C24E5039C187ED13994BA /* NativeLiquidChatApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeLiquidChatApp.swift; sourceTree = "<group>"; };
+		8C895E9A62763237D24867D3 /* VisionProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionProcessor.swift; sourceTree = "<group>"; };
 		993DCDDF88FEF91ABE327C1C /* ChatStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatStore.swift; sourceTree = "<group>"; };
 		A772B8164598C45FFC9648D9 /* ConversationBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationBanner.swift; sourceTree = "<group>"; };
 		BC36999EC0C748E6C0D2CD5C /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
@@ -64,6 +71,7 @@
 		E9D3B65F4DD881E141C02829 /* AudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorder.swift; sourceTree = "<group>"; };
 		EB3322B586046C7B93B42359 /* ModelCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelCatalog.swift; sourceTree = "<group>"; };
 		EF9196F8EE93E4FE9A194001 /* SpeechRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechRecognizer.swift; sourceTree = "<group>"; };
+		F535D1F03887D1312483C8ED /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F558E3F536D0C9ADD38DACE4 /* ModelsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelsView.swift; sourceTree = "<group>"; };
 		FAAF72BCDA89DF409CEAFB37 /* SpeechManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -94,6 +102,7 @@
 			isa = PBXGroup;
 			children = (
 				BC36999EC0C748E6C0D2CD5C /* AppTheme.swift */,
+				F535D1F03887D1312483C8ED /* Assets.xcassets */,
 				0C7B76C167EF4958D8DA35E4 /* AudioPlaybackManager.swift */,
 				E9D3B65F4DD881E141C02829 /* AudioRecorder.swift */,
 				1DD73FEC565B6E5E0DB36EE4 /* CameraPicker.swift */,
@@ -109,7 +118,10 @@
 				51E505EB05F9EACE06A3D3C2 /* PromptPresets.swift */,
 				FAAF72BCDA89DF409CEAFB37 /* SpeechManager.swift */,
 				EF9196F8EE93E4FE9A194001 /* SpeechRecognizer.swift */,
+				30C029C947BAE14106EC57F2 /* TrainedObjectsManager.swift */,
+				4DA3AEC2CE6EF8DB65F060EC /* TrainingCameraView.swift */,
 				69FC04211C6B05B6079D97C8 /* TypingIndicator.swift */,
+				8C895E9A62763237D24867D3 /* VisionProcessor.swift */,
 				1E3066218725958F09A3B263 /* VoicePickerView.swift */,
 			);
 			path = Sources;
@@ -142,6 +154,7 @@
 			buildConfigurationList = FB8B438D342B3CAD1621A784 /* Build configuration list for PBXNativeTarget "NativeLiquidChat" */;
 			buildPhases = (
 				BE248C754EF8B63F2D79E6B0 /* Sources */,
+				B1F3D3683D6601EAD81E3B41 /* Resources */,
 				2DF4D88C64054725BEB66728 /* Frameworks */,
 				BEEE4A815686137B7E2950CA /* Sign nested LeapSDK dylibs */,
 			);
@@ -218,6 +231,17 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		B1F3D3683D6601EAD81E3B41 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5B69FF61701D2BF9A8C08879 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXShellScriptBuildPhase section */
 		BEEE4A815686137B7E2950CA /* Sign nested LeapSDK dylibs */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -261,7 +285,10 @@
 				3ABA2372CCFE7E9023AA5BCE /* PromptPresets.swift in Sources */,
 				592FFF59463121490B0DF591 /* SpeechManager.swift in Sources */,
 				B85690B35EC2BFC602DD2081 /* SpeechRecognizer.swift in Sources */,
+				54F4BD76F0C8D6175834C0A2 /* TrainedObjectsManager.swift in Sources */,
+				1DBCCAC18BD92B28AA782135 /* TrainingCameraView.swift in Sources */,
 				75BA73F1E5F330BF7154121D /* TypingIndicator.swift in Sources */,
+				F1A8D64143E81279725103EC /* VisionProcessor.swift in Sources */,
 				DEF3041FF678D6DF30508A01 /* VoicePickerView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -295,6 +322,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Q4MWQ3X44V;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited) LEAP_DUAL_IMPORT_ALLOW=1";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "We need access to your camera to capture images for the visual model.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need access to your microphone to capture audio prompts.";
@@ -304,6 +332,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/Frameworks/LeapSDK.framework/Frameworks @executable_path/Frameworks/LeapModelDownloader.framework/Frameworks";
 				OTHER_LDFLAGS = "$(inherited) -ObjC -L$(BUILT_PRODUCTS_DIR)/LeapSDK.framework/Frameworks -L$(BUILT_PRODUCTS_DIR)/LeapModelDownloader.framework/Frameworks -linference_engine -linference_engine_llamacpp_backend";
+				OTHER_SWIFT_FLAGS = "$(inherited) -DLEAP_DUAL_IMPORT_ALLOW";
 				PRODUCT_BUNDLE_IDENTIFIER = com.dimatrubnikov.NativeLiquidChat;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.9;
@@ -376,7 +405,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -395,6 +424,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Q4MWQ3X44V;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited) LEAP_DUAL_IMPORT_ALLOW=1";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "We need access to your camera to capture images for the visual model.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need access to your microphone to capture audio prompts.";
@@ -404,6 +434,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/Frameworks/LeapSDK.framework/Frameworks @executable_path/Frameworks/LeapModelDownloader.framework/Frameworks";
 				OTHER_LDFLAGS = "$(inherited) -ObjC -L$(BUILT_PRODUCTS_DIR)/LeapSDK.framework/Frameworks -L$(BUILT_PRODUCTS_DIR)/LeapModelDownloader.framework/Frameworks -linference_engine -linference_engine_llamacpp_backend";
+				OTHER_SWIFT_FLAGS = "$(inherited) -DLEAP_DUAL_IMPORT_ALLOW";
 				PRODUCT_BUNDLE_IDENTIFIER = com.dimatrubnikov.NativeLiquidChat;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.9;
@@ -482,7 +513,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;

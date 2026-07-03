@@ -22,6 +22,7 @@ struct ContentView: View {
     @State private var showingCamera = false
     @State private var showingAttachDialog = false
     @State private var showingPhotoPicker = false
+    @State private var showingTrainingCamera = false
     
     @AppStorage("appTheme") private var appThemeRaw = AppTheme.system.rawValue
 
@@ -201,12 +202,10 @@ struct ContentView: View {
                     .safeAreaInset(edge: .bottom) {
                         HStack(alignment: .bottom, spacing: 12) {
 
-                            // Image Upload Button (Vision model only)
-                            if session.modelName.contains("VL") {
-                                Button(action: { showingAttachDialog = true }) {
-                                    Image(systemName: "plus.circle.fill")
-                                        .font(.system(size: 28))
-                                }
+                            // Image Upload Button
+                            Button(action: { showingAttachDialog = true }) {
+                                Image(systemName: "plus.circle.fill")
+                                    .font(.system(size: 28))
                             }
 
                             TextField("Message LFM...", text: $inputText, axis: .vertical)
@@ -287,6 +286,14 @@ struct ContentView: View {
                             Image(systemName: store.speakResponses ? "speaker.wave.2.fill" : "speaker.slash.fill")
                         }
                         .accessibilityLabel(store.speakResponses ? "Turn off spoken replies" : "Turn on spoken replies")
+                    }
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            showingTrainingCamera = true
+                        } label: {
+                            Image(systemName: "camera.badge.ellipsis")
+                        }
+                        .accessibilityLabel("Режим обучения")
                     }
                     ToolbarItem(placement: .topBarTrailing) {
                         Button(action: {
@@ -404,6 +411,9 @@ struct ContentView: View {
                 .sheet(isPresented: $showingCamera) {
                     CameraPicker(isPresented: $showingCamera, selectedImage: $attachedImage)
                 }
+                .fullScreenCover(isPresented: $showingTrainingCamera) {
+                    TrainingCameraView()
+                }
                 .onChange(of: selectedItem) { _, newItem in
                     Task {
                         if let data = try? await newItem?.loadTransferable(type: Data.self),
@@ -490,15 +500,16 @@ struct MessageBubbleView: View {
     /// Render assistant replies as Markdown (bold, lists, code spans, links);
     /// keep user text verbatim.
     private var formattedContent: AttributedString {
+        let textToShow = message.displayContent ?? message.content
         if message.isUser {
-            return AttributedString(message.content)
+            return AttributedString(textToShow)
         }
         let options = AttributedString.MarkdownParsingOptions(
             interpretedSyntax: .inlineOnlyPreservingWhitespace)
-        if let parsed = try? AttributedString(markdown: message.content, options: options) {
+        if let parsed = try? AttributedString(markdown: textToShow, options: options) {
             return parsed
         }
-        return AttributedString(message.content)
+        return AttributedString(textToShow)
     }
 
     var body: some View {
@@ -561,6 +572,12 @@ struct MessageBubbleView: View {
                         }
                     }
                 }
+                
+                if let thinkingLog = message.thinkingLog, !thinkingLog.isEmpty {
+                    ThinkingLogView(log: thinkingLog)
+                        .padding(.top, 2)
+                        .padding(.bottom, 2)
+                }
 
                 // Footnote: speaker button + speed
                 if canSpeak || message.speed != nil {
@@ -585,5 +602,60 @@ struct MessageBubbleView: View {
             
             if !message.isUser { Spacer(minLength: 40) }
         }
+    }
+}
+
+struct ThinkingLogView: View {
+    let log: String
+    @State private var isExpanded = false
+    
+    private var formattedLog: AttributedString {
+        let options = AttributedString.MarkdownParsingOptions(
+            interpretedSyntax: .inlineOnlyPreservingWhitespace)
+        if let parsed = try? AttributedString(markdown: log, options: options) {
+            return parsed
+        }
+        return AttributedString(log)
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Button(action: {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                    isExpanded.toggle()
+                }
+            }) {
+                HStack(spacing: 6) {
+                    Image(systemName: "brain.head.profile")
+                        .font(.footnote)
+                    Text("Cognitive Thinking Log")
+                        .font(.footnote)
+                        .fontWeight(.medium)
+                    Spacer()
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.caption2)
+                }
+                .foregroundColor(.secondary)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(Color(uiColor: .systemGroupedBackground))
+                .cornerRadius(8)
+            }
+            
+            if isExpanded {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(formattedLog)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .textSelection(.enabled)
+                        .lineSpacing(4)
+                }
+                .padding(12)
+                .background(Color(uiColor: .secondarySystemBackground))
+                .cornerRadius(8)
+                .transition(.opacity.combined(with: .scale(scale: 0.95, anchor: .top)))
+            }
+        }
+        .frame(maxWidth: 300)
     }
 }

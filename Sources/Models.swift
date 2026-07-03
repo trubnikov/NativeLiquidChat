@@ -8,8 +8,10 @@ struct ChatMessageData: Codable, Identifiable {
     var imageData: Data?
     var audioData: Data?
     var speed: Double? // tokens/sec speed if generated
+    var thinkingLog: String?
+    var displayContent: String?
     
-    init(id: UUID = UUID(), content: String, isUser: Bool, timestamp: Date = Date(), imageData: Data? = nil, audioData: Data? = nil, speed: Double? = nil) {
+    init(id: UUID = UUID(), content: String, isUser: Bool, timestamp: Date = Date(), imageData: Data? = nil, audioData: Data? = nil, speed: Double? = nil, thinkingLog: String? = nil, displayContent: String? = nil) {
         self.id = id
         self.content = content
         self.isUser = isUser
@@ -17,6 +19,8 @@ struct ChatMessageData: Codable, Identifiable {
         self.imageData = imageData
         self.audioData = audioData
         self.speed = speed
+        self.thinkingLog = thinkingLog
+        self.displayContent = displayContent
     }
 }
 

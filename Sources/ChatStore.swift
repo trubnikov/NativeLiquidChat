@@ -25,6 +25,7 @@ class ChatStore {
     var downloadProgress: Double = 0.0
     var isLoadingResponse = false
     var executionStatus: String?
+    var currentThinkingLog: String? = nil
 
     // Voice/Audio State
     var isRecording = false
@@ -247,18 +248,61 @@ class ChatStore {
             return
         }
         
+        let isVisionModel = session.modelName.contains("VL")
+        var perceivedRealityText: String? = nil
+        var dynamicSystemPrompt: String? = nil
+        
+        if let image = attachedImage {
+            self.isLoadingResponse = true
+            self.executionStatus = "Perceiving image via Apple Vision..."
+            
+            let analysis = await VisionProcessor.analyzeImage(image)
+            let classificationsStr = analysis.classifications.joined(separator: ", ")
+            let detectedText = analysis.recognizedText.trimmingCharacters(in: .whitespacesAndNewlines)
+            
+            var reality = "Objects detected: \(classificationsStr)"
+            if !detectedText.isEmpty {
+                reality += "\nRecognized text: \"\(detectedText)\""
+            }
+            perceivedRealityText = reality
+            
+            // Instantly get cognitive hypothesis and persona locally (avoids KV cache pollution & delay)
+            let state = analysis.cognitiveState
+            let hypothesis = state.hypothesis
+            let persona = state.persona
+            
+            dynamicSystemPrompt = persona
+            
+            self.currentThinkingLog = """
+            👁️ **Apple Vision Perceptions:**
+            - Classifications: \(classificationsStr)
+            - Text: \(detectedText.isEmpty ? "None detected" : "\"\(detectedText)\"")
+            
+            🧠 **Cognitive Hypothesis:**
+            "\(hypothesis)"
+            
+            🎭 **Adapted Persona:**
+            "\(persona)"
+            """
+            
+            // Force recreation of conversation history with our dynamic system prompt
+            self.conversation = nil
+        }
+        
         var contentArray: [ChatMessageContent] = []
         var imageData: Data? = nil
         
         if let image = attachedImage {
-            do {
-                let imageContent = try ChatMessageContent.fromUIImage(image)
-                contentArray.append(imageContent)
-                imageData = image.jpegData(compressionQuality: 0.8)
-            } catch {
-                print("Error converting image: \(error.localizedDescription)")
-                appendMessage(to: index, content: "Failed to attach image: \(error.localizedDescription)", isUser: false)
-                return
+            imageData = image.jpegData(compressionQuality: 0.8)
+            if isVisionModel {
+                do {
+                    let imageContent = try ChatMessageContent.fromUIImage(image)
+                    contentArray.append(imageContent)
+                } catch {
+                    print("Error converting image: \(error.localizedDescription)")
+                    appendMessage(to: index, content: "Failed to attach image: \(error.localizedDescription)", isUser: false)
+                    return
+                }
             }
         }
         
@@ -267,16 +311,27 @@ class ChatStore {
             sendingText = await translate(trimmed, source: session.languageCode, target: "en-US")
         }
         
+        // Default text prompt if empty user query with image
+        if sendingText.isEmpty && attachedImage != nil {
+            sendingText = "Describe this image."
+        }
+        
+        // Inject perceived image description if model is pure text
+        if !isVisionModel, let perceived = perceivedRealityText {
+            let promptBase = sendingText.isEmpty ? "Describe what is happening in this scene." : sendingText
+            sendingText = "[Sensory Input - Perceived Scene Description:\n\(perceived)]\n\nUser request: \(promptBase)"
+        }
+        
         if !sendingText.isEmpty {
             contentArray.append(ChatMessageContent.text(sendingText))
         }
         
         let userMessage = ChatMessage_withArray(role: .user, content: contentArray)
         
-        setupConversationIfNeeded(for: session, runner: runner)
+        setupConversationIfNeeded(for: session, runner: runner, customSystemPrompt: dynamicSystemPrompt)
         
         let displayPrompt = trimmed.isEmpty ? "[Image]" : trimmed
-        appendMessage(to: index, content: displayPrompt, isUser: true, imageData: imageData)
+        appendMessage(to: index, content: sendingText, isUser: true, imageData: imageData, displayContent: displayPrompt)
         
         isLoadingResponse = true
         executionStatus = nil
@@ -673,9 +728,11 @@ class ChatStore {
                 content: finalText.isEmpty ? placeholder : finalText,
                 isUser: false,
                 audioData: audioData,
-                speed: currentAssistantSpeed
+                speed: currentAssistantSpeed,
+                thinkingLog: currentThinkingLog
             )
             
+            currentThinkingLog = nil
             currentAssistantMessage = ""
             isLoadingResponse = false
 
@@ -736,7 +793,7 @@ class ChatStore {
         }
     }
     
-    private func setupConversationIfNeeded(for session: ChatSession, runner: any ModelRunner) {
+    private func setupConversationIfNeeded(for session: ChatSession, runner: any ModelRunner, customSystemPrompt: String? = nil) {
         if conversation == nil {
             var history: [ChatMessage] = []
 
@@ -744,7 +801,7 @@ class ChatStore {
             // prompt" → empty reply), so only add one for non-audio models.
             let isAudioModel = session.modelName.contains("Audio")
             if !isAudioModel {
-                var systemPrompt = session.systemPrompt
+                var systemPrompt = customSystemPrompt ?? session.systemPrompt
                 if systemPrompt.isEmpty {
                     systemPrompt = "You are a helpful AI assistant."
                 }
@@ -763,7 +820,8 @@ class ChatStore {
                     }
                 } else if msg.imageData != nil {
                     // Vision message content (+ text if not placeholder)
-                    if let imageData = msg.imageData, let image = UIImage(data: imageData) {
+                    let isVisionModel = session.modelName.contains("VL")
+                    if isVisionModel, let imageData = msg.imageData, let image = UIImage(data: imageData) {
                         if let imageContent = try? ChatMessageContent.fromUIImage(image) {
                             contentArray.append(imageContent)
                         }
@@ -825,13 +883,15 @@ class ChatStore {
         }
     }
     
-    private func appendMessage(to index: Int, content: String, isUser: Bool, imageData: Data? = nil, audioData: Data? = nil, speed: Double? = nil) {
+    private func appendMessage(to index: Int, content: String, isUser: Bool, imageData: Data? = nil, audioData: Data? = nil, speed: Double? = nil, thinkingLog: String? = nil, displayContent: String? = nil) {
         let newMessage = ChatMessageData(
             content: content,
             isUser: isUser,
             imageData: imageData,
             audioData: audioData,
-            speed: speed
+            speed: speed,
+            thinkingLog: thinkingLog,
+            displayContent: displayContent
         )
         sessions[index].messages.append(newMessage)
         save()
