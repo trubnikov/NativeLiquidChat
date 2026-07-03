@@ -193,7 +193,7 @@ class LabCameraViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSa
     private let sessionQueue = DispatchQueue(label: "lab_camera_queue")
     
     private var sequenceHandler = VNSequenceRequestHandler()
-    private var detectionRequest: VNCoreMLRequest?
+    private var detectionRequest: VNClassifyImageRequest?
     
     // Density & Calorie Constants
     private let densities: [String: (density: Double, caloriesPer100g: Double)] = [
@@ -294,20 +294,12 @@ class LabCameraViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSa
     }
     
     private func setupVision() {
-        // Load on-device MobileNetV2 or similar classifier
-        guard let modelURL = Bundle.main.url(forResource: "MobileNetV2", withExtension: "mlmodelc"),
-              let coreMLModel = try? MLModel(contentsOf: modelURL),
-              let visionModel = try? VNCoreMLModel(for: coreMLModel) else {
-            print("Failed to load MobileNetV2 CoreML model.")
-            return
-        }
-        
-        let request = VNCoreMLRequest(model: visionModel) { [weak self] request, error in
+        let request = VNClassifyImageRequest { [weak self] request, error in
             guard let self = self,
                   let results = request.results as? [VNClassificationObservation],
                   let topResult = results.first(where: {
                       let label = $0.identifier.lowercased()
-                      return label.contains("apple") || label.contains("banana") || label.contains("orange") || label.contains("lemon") || label.contains("cup")
+                      return label.contains("apple") || label.contains("banana") || label.contains("orange") || label.contains("lemon") || label.contains("cup") || label.contains("mug") || label.contains("bowl")
                   }) else {
                 DispatchQueue.main.async {
                     self?.detectedLabel = nil
@@ -354,7 +346,8 @@ class LabCameraViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSa
         }
         
         if let request = detectionRequest {
-            try? sequenceHandler.perform([request], on: pixelBuffer)
+            let requestHandler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .up, options: [:])
+            try? requestHandler.perform([request])
         }
     }
     
