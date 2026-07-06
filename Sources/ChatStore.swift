@@ -331,39 +331,53 @@ class ChatStore {
         // Run Text RAG search
         let textRagResults = KnowledgeGraphManager.shared.searchRAG(query: trimmed)
         
+        let isRu = (UserDefaults.standard.string(forKey: "appLanguage") ?? AppLanguage.russian.rawValue) == AppLanguage.russian.rawValue
+
         var ragContext = ""
         if !graphFacts.isEmpty {
-            ragContext += "\nФакты из графа знаний о замеченных объектах:\n" + graphFacts.map { "- \($0)" }.joined(separator: "\n")
+            let header = isRu ? "Факты из графа знаний о замеченных объектах:"
+                              : "Knowledge-graph facts about the detected objects:"
+            ragContext += "\n" + header + "\n" + graphFacts.map { "- \($0)" }.joined(separator: "\n")
         }
         if !textRagResults.isEmpty {
-            ragContext += "\nРелевантные факты из документов RAG:\n" + textRagResults.map { "- \($0.chunk) (\($0.parentDoc))" }.joined(separator: "\n")
+            let header = isRu ? "Релевантные факты из документов RAG:"
+                              : "Relevant facts from RAG documents:"
+            ragContext += "\n" + header + "\n" + textRagResults.map { "- \($0.chunk) (\($0.parentDoc))" }.joined(separator: "\n")
         }
-        
+
         if !ragContext.isEmpty {
-            let instructions = """
-            
-            [БАЗА ЗНАНИЙ (RAG)]
-            Используй следующие проверенные факты для ответа пользователю. Строй свои ответы строго на основе этой информации. Если факты не содержат ответа, скажи, что не знаешь, и не выдумывай лишнего:
-            \(ragContext)
-            """
+            let instructions: String
+            if isRu {
+                instructions = """
+
+                [БАЗА ЗНАНИЙ (RAG)]
+                Используй следующие проверенные факты для ответа пользователю. Строй свои ответы строго на основе этой информации. Если факты не содержат ответа, скажи, что не знаешь, и не выдумывай лишнего:
+                \(ragContext)
+                """
+            } else {
+                instructions = """
+
+                [KNOWLEDGE BASE (RAG)]
+                Use the following verified facts to answer the user. Ground your answers strictly in this information. If the facts don't contain the answer, say you don't know — do not make things up:
+                \(ragContext)
+                """
+            }
             dynamicSystemPrompt = (dynamicSystemPrompt ?? "") + instructions
-            
+
             if !thinkingLogStr.isEmpty {
                 thinkingLogStr += "\n\n"
             }
-            
+
             if !graphPathDescription.isEmpty {
-                thinkingLogStr += """
-                🔗 **Семантические связи графа:**
-                \(graphPathDescription)
-                
-                """
+                let title = isRu ? "🔗 **Семантические связи графа:**" : "🔗 **Graph semantic links:**"
+                thinkingLogStr += "\(title)\n\(graphPathDescription)\n\n"
             }
-            
+
             if !textRagResults.isEmpty {
-                thinkingLogStr += "📚 **Поиск в RAG (Энциклопедия):**\n"
+                thinkingLogStr += isRu ? "📚 **Поиск в RAG (Энциклопедия):**\n" : "📚 **RAG search (Encyclopedia):**\n"
+                let matchWord = isRu ? "соответствие" : "match"
                 for res in textRagResults {
-                    thinkingLogStr += String(format: "- [%@ (соответствие: %.0f%%)] \"%@\"\n", res.parentDoc, res.similarity * 100.0, res.chunk)
+                    thinkingLogStr += String(format: "- [%@ (%@: %.0f%%)] \"%@\"\n", res.parentDoc, matchWord, res.similarity * 100.0, res.chunk)
                 }
             }
         }
@@ -884,9 +898,13 @@ class ChatStore {
             // prompt" → empty reply), so only add one for non-audio models.
             let isAudioModel = session.modelName.contains("Audio")
             if !isAudioModel {
-                var systemPrompt = customSystemPrompt ?? session.systemPrompt
+                // The user's own system prompt (e.g. the QCA preset) stays primary;
+                // the vision-derived persona/RAG context is appended, not a replacement.
+                var systemPrompt = session.systemPrompt
                 if systemPrompt.isEmpty {
-                    systemPrompt = "You are a helpful AI assistant."
+                    systemPrompt = customSystemPrompt ?? "You are a helpful AI assistant."
+                } else if let dynamic = customSystemPrompt, !dynamic.isEmpty {
+                    systemPrompt += "\n\n[Perception context]\n" + dynamic
                 }
                 history.append(ChatMessage(role: .system, textContent: systemPrompt))
             }

@@ -33,9 +33,12 @@
 		B85690B35EC2BFC602DD2081 /* SpeechRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF9196F8EE93E4FE9A194001 /* SpeechRecognizer.swift */; };
 		BEC00D3464B79E2650BC7152 /* LeapModelDownloader in Frameworks */ = {isa = PBXBuildFile; productRef = DCF3CAF6641D234A4BF0225F /* LeapModelDownloader */; };
 		D3083BE98A2F2BDA4005DB80 /* ChatStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19A56CD75751D17343CEC018 /* ChatStoreTests.swift */; };
+		D38AF406B3820698E643C475 /* LabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DD8185353ED69EB9F33C82 /* LabView.swift */; };
 		D70DB2847C4E55FCBAA218B2 /* KnowledgeGraphView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6DF8B3584B34B39EE340864 /* KnowledgeGraphView.swift */; };
 		DEF3041FF678D6DF30508A01 /* VoicePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3066218725958F09A3B263 /* VoicePickerView.swift */; };
+		ECBC2740A54642068AC28B62 /* GPUSimilarityEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D50613748C8AF0893CBFD17 /* GPUSimilarityEngine.swift */; };
 		F1A8D64143E81279725103EC /* VisionProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C895E9A62763237D24867D3 /* VisionProcessor.swift */; };
+		F7EA8DED2ACC07A2AF145916 /* VectorSearch.metal in Sources */ = {isa = PBXBuildFile; fileRef = BDE2E153EEE1892D2D0A3866 /* VectorSearch.metal */; };
 		FC6FF8FF1C761DA4E1C63FA0 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC36999EC0C748E6C0D2CD5C /* AppTheme.swift */; };
 /* End PBXBuildFile section */
 
@@ -54,12 +57,14 @@
 		0878B3A98605D4BDEC699587 /* ChatStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatStorageTests.swift; sourceTree = "<group>"; };
 		0C7B76C167EF4958D8DA35E4 /* AudioPlaybackManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlaybackManager.swift; sourceTree = "<group>"; };
 		15A2F55129813D3BE7737388 /* EmptyChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyChatView.swift; sourceTree = "<group>"; };
+		15DD8185353ED69EB9F33C82 /* LabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabView.swift; sourceTree = "<group>"; };
 		171354B165D3A2E3DC13D0F8 /* KnowledgeGraphManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnowledgeGraphManager.swift; sourceTree = "<group>"; };
 		19A56CD75751D17343CEC018 /* ChatStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatStoreTests.swift; sourceTree = "<group>"; };
 		1DD73FEC565B6E5E0DB36EE4 /* CameraPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPicker.swift; sourceTree = "<group>"; };
 		1E3066218725958F09A3B263 /* VoicePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoicePickerView.swift; sourceTree = "<group>"; };
 		20FEC0DD4A6024FCC42FAF7B /* Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Localization.swift; sourceTree = "<group>"; };
 		30C029C947BAE14106EC57F2 /* TrainedObjectsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainedObjectsManager.swift; sourceTree = "<group>"; };
+		4D50613748C8AF0893CBFD17 /* GPUSimilarityEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GPUSimilarityEngine.swift; sourceTree = "<group>"; };
 		4DA3AEC2CE6EF8DB65F060EC /* TrainingCameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingCameraView.swift; sourceTree = "<group>"; };
 		51E505EB05F9EACE06A3D3C2 /* PromptPresets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptPresets.swift; sourceTree = "<group>"; };
 		69FC04211C6B05B6079D97C8 /* TypingIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingIndicator.swift; sourceTree = "<group>"; };
@@ -70,6 +75,7 @@
 		A6DF8B3584B34B39EE340864 /* KnowledgeGraphView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnowledgeGraphView.swift; sourceTree = "<group>"; };
 		A772B8164598C45FFC9648D9 /* ConversationBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationBanner.swift; sourceTree = "<group>"; };
 		BC36999EC0C748E6C0D2CD5C /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
+		BDE2E153EEE1892D2D0A3866 /* VectorSearch.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = VectorSearch.metal; sourceTree = "<group>"; };
 		CCEEC0E25493168C1338526B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		D521148AB7A23CDCFB9B9B8D /* ModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelsTests.swift; sourceTree = "<group>"; };
 		D9B3C350605FC09B6F0ED035 /* NativeLiquidChatTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = NativeLiquidChatTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -116,8 +122,10 @@
 				CCEEC0E25493168C1338526B /* ContentView.swift */,
 				A772B8164598C45FFC9648D9 /* ConversationBanner.swift */,
 				15A2F55129813D3BE7737388 /* EmptyChatView.swift */,
+				4D50613748C8AF0893CBFD17 /* GPUSimilarityEngine.swift */,
 				171354B165D3A2E3DC13D0F8 /* KnowledgeGraphManager.swift */,
 				A6DF8B3584B34B39EE340864 /* KnowledgeGraphView.swift */,
+				15DD8185353ED69EB9F33C82 /* LabView.swift */,
 				20FEC0DD4A6024FCC42FAF7B /* Localization.swift */,
 				EB3322B586046C7B93B42359 /* ModelCatalog.swift */,
 				84EE3E9A6056629418916A27 /* ModelManager.swift */,
@@ -130,6 +138,7 @@
 				30C029C947BAE14106EC57F2 /* TrainedObjectsManager.swift */,
 				4DA3AEC2CE6EF8DB65F060EC /* TrainingCameraView.swift */,
 				69FC04211C6B05B6079D97C8 /* TypingIndicator.swift */,
+				BDE2E153EEE1892D2D0A3866 /* VectorSearch.metal */,
 				8C895E9A62763237D24867D3 /* VisionProcessor.swift */,
 				1E3066218725958F09A3B263 /* VoicePickerView.swift */,
 			);
@@ -286,8 +295,10 @@
 				3E78A3C67F010FF680B388DA /* ContentView.swift in Sources */,
 				0D25B4D5F6465965507D9D6B /* ConversationBanner.swift in Sources */,
 				6C5CC08B0433FA961FADE3E7 /* EmptyChatView.swift in Sources */,
+				ECBC2740A54642068AC28B62 /* GPUSimilarityEngine.swift in Sources */,
 				225F1DA45EA7A6505A504E48 /* KnowledgeGraphManager.swift in Sources */,
 				D70DB2847C4E55FCBAA218B2 /* KnowledgeGraphView.swift in Sources */,
+				D38AF406B3820698E643C475 /* LabView.swift in Sources */,
 				3C88F24B77168C2627E8BA27 /* Localization.swift in Sources */,
 				96C994F7E65C4FF95D5E09AC /* ModelCatalog.swift in Sources */,
 				1A2034768DD4FC1520D08CA4 /* ModelManager.swift in Sources */,
@@ -300,6 +311,7 @@
 				54F4BD76F0C8D6175834C0A2 /* TrainedObjectsManager.swift in Sources */,
 				1DBCCAC18BD92B28AA782135 /* TrainingCameraView.swift in Sources */,
 				75BA73F1E5F330BF7154121D /* TypingIndicator.swift in Sources */,
+				F7EA8DED2ACC07A2AF145916 /* VectorSearch.metal in Sources */,
 				F1A8D64143E81279725103EC /* VisionProcessor.swift in Sources */,
 				DEF3041FF678D6DF30508A01 /* VoicePickerView.swift in Sources */,
 			);
@@ -358,12 +370,14 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Q4MWQ3X44V;
+				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited) LEAP_DUAL_IMPORT_ALLOW=1";
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -DLEAP_DUAL_IMPORT_ALLOW";
 				PRODUCT_BUNDLE_IDENTIFIER = com.dimatrubnikov.NativeLiquidChatTests;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.9;
@@ -460,12 +474,14 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Q4MWQ3X44V;
+				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited) LEAP_DUAL_IMPORT_ALLOW=1";
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -DLEAP_DUAL_IMPORT_ALLOW";
 				PRODUCT_BUNDLE_IDENTIFIER = com.dimatrubnikov.NativeLiquidChatTests;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.9;

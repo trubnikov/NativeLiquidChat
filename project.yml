@@ -64,6 +64,8 @@ targets:
         CODE_SIGN_STYLE: Automatic
         GENERATE_INFOPLIST_FILE: YES
         SWIFT_VERSION: 5.9
+        GCC_PREPROCESSOR_DEFINITIONS: "$(inherited) LEAP_DUAL_IMPORT_ALLOW=1"
+        OTHER_SWIFT_FLAGS: "$(inherited) -DLEAP_DUAL_IMPORT_ALLOW"
     dependencies:
       - target: NativeLiquidChat
 
