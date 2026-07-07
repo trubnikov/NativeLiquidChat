@@ -30,6 +30,7 @@
 		76BEB3A71FE9D8D76FB195BD /* ModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D521148AB7A23CDCFB9B9B8D /* ModelsTests.swift */; };
 		7E255EDCFBEDBA7685A98CD1 /* NativeLiquidChatApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 890C24E5039C187ED13994BA /* NativeLiquidChatApp.swift */; };
 		96C994F7E65C4FF95D5E09AC /* ModelCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB3322B586046C7B93B42359 /* ModelCatalog.swift */; };
+		A35DA2A751E4DE05708E095A /* seed_knowledge.json in Resources */ = {isa = PBXBuildFile; fileRef = 6C9531E98C8E8F9907D315F5 /* seed_knowledge.json */; };
 		B85690B35EC2BFC602DD2081 /* SpeechRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF9196F8EE93E4FE9A194001 /* SpeechRecognizer.swift */; };
 		BEC00D3464B79E2650BC7152 /* LeapModelDownloader in Frameworks */ = {isa = PBXBuildFile; productRef = DCF3CAF6641D234A4BF0225F /* LeapModelDownloader */; };
 		D3083BE98A2F2BDA4005DB80 /* ChatStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19A56CD75751D17343CEC018 /* ChatStoreTests.swift */; };
@@ -69,6 +70,7 @@
 		4DA3AEC2CE6EF8DB65F060EC /* TrainingCameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingCameraView.swift; sourceTree = "<group>"; };
 		51E505EB05F9EACE06A3D3C2 /* PromptPresets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptPresets.swift; sourceTree = "<group>"; };
 		69FC04211C6B05B6079D97C8 /* TypingIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingIndicator.swift; sourceTree = "<group>"; };
+		6C9531E98C8E8F9907D315F5 /* seed_knowledge.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = seed_knowledge.json; sourceTree = "<group>"; };
 		84EE3E9A6056629418916A27 /* ModelManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelManager.swift; sourceTree = "<group>"; };
 		84F01864F61776E0889F1905 /* AgentVisionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentVisionView.swift; sourceTree = "<group>"; };
 		890C24E5039C187ED13994BA /* NativeLiquidChatApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeLiquidChatApp.swift; sourceTree = "<group>"; };
@@ -161,10 +163,19 @@
 		C9125EE81014ABD4EB8B3B36 = {
 			isa = PBXGroup;
 			children = (
+				EA1BB9F50AF75974C818B272 /* Resources */,
 				8F808B4C9FF93DBAB4D48E58 /* Sources */,
 				923B441F90061BC624BAE87D /* Tests */,
 				7835BE6507B65EEC2986D007 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		EA1BB9F50AF75974C818B272 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				6C9531E98C8E8F9907D315F5 /* seed_knowledge.json */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -258,6 +269,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5B69FF61701D2BF9A8C08879 /* Assets.xcassets in Resources */,
+				A35DA2A751E4DE05708E095A /* seed_knowledge.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

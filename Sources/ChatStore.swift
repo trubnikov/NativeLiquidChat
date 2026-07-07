@@ -284,11 +284,19 @@ class ChatStore {
             var reality = ""
             if let customMatch = customObjectRecognized {
                 reality += "User-trained object recognized: \"\(customMatch)\"\n"
-                
+
                 // Graph Traversal Chain
                 let traversal = KnowledgeGraphManager.shared.traverseGraph(startingFrom: customMatch)
                 graphPathDescription = traversal.pathDescription
                 graphFacts = traversal.associatedFacts
+            } else if let topLabel = classificationsMap.max(by: { $0.value < $1.value })?.key {
+                // No trained match — the seeded world knowledge may still know
+                // this category (Apple Vision label → graph facts).
+                let traversal = KnowledgeGraphManager.shared.traverseGraph(startingFrom: topLabel)
+                if !traversal.associatedFacts.isEmpty {
+                    graphPathDescription = traversal.pathDescription
+                    graphFacts = traversal.associatedFacts
+                }
             }
             reality += "Objects detected: \(classificationsStr)"
             if !detectedText.isEmpty {

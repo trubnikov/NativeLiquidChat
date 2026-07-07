@@ -121,11 +121,11 @@ final class AgentVisionCoordinator: ObservableObject {
 
         phase = .thinking
         Task { @MainActor in
-            var facts: [String] = []
-            if known {
-                facts = KnowledgeGraphManager.shared
-                    .traverseGraph(startingFrom: label).associatedFacts
-            }
+            // Seeded world knowledge covers generic categories too, so pull
+            // graph facts for both trained objects and Apple Vision labels.
+            let facts = KnowledgeGraphManager.shared
+                .traverseGraph(startingFrom: label).associatedFacts
+            _ = known
 
             let system = "You are the voice of an assistant watching the world through a camera. Speak in one or two short lively sentences, no greetings. English only."
             var user = "Currently in view: \(label)."
@@ -150,7 +150,15 @@ final class AgentVisionCoordinator: ObservableObject {
         pendingClassifications = camera.currentClassifications
         pendingPrint = camera.averagedPrint()
 
-        let question = "I see something like a \(appleLabel), but I don't know this object. What should I call it? Say a name, or stay silent to skip."
+        // If the seeded knowledge base knows this category, weave a fact into
+        // the question — the agent sounds informed even about unknown items.
+        let fact = KnowledgeGraphManager.shared
+            .traverseGraph(startingFrom: appleLabel).associatedFacts.first
+        var question = "I see something like a \(appleLabel.replacingOccurrences(of: "_", with: " "))."
+        if let fact {
+            question += " \(fact)"
+        }
+        question += " I don't know this one specifically — what should I call it? Say a name, or stay silent to skip."
 
         lastComment = question
         phase = .asking
