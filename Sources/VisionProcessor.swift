@@ -52,6 +52,37 @@ struct VisionAnalysisResult {
 }
 
 class VisionProcessor {
+
+    // MARK: - Visual feature print (instance-level embedding)
+
+    /// Converts a VNFeaturePrintObservation into a plain [Float] vector so it can
+    /// be stored in JSON and compared with cosine similarity.
+    static func floats(from observation: VNFeaturePrintObservation) -> [Float]? {
+        guard observation.elementType == .float, observation.elementCount > 0 else { return nil }
+        let count = observation.elementCount
+        return observation.data.withUnsafeBytes { raw -> [Float] in
+            let buf = raw.bindMemory(to: Float.self)
+            return Array(buf.prefix(count))
+        }
+    }
+
+    /// Visual embedding of the whole image — unlike the classification histogram,
+    /// this distinguishes *instances* (your mug vs. another similar mug).
+    static func featurePrint(for image: UIImage) -> [Float]? {
+        guard let cgImage = image.cgImage else { return nil }
+        let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+        let request = VNGenerateImageFeaturePrintRequest()
+        do {
+            try handler.perform([request])
+            if let obs = request.results?.first as? VNFeaturePrintObservation {
+                return floats(from: obs)
+            }
+        } catch {
+            print("[VisionProcessor] featurePrint failed: \(error)")
+        }
+        return nil
+    }
+
     static func analyzeImage(_ image: UIImage) async -> VisionAnalysisResult {
         guard let cgImage = image.cgImage else {
             return VisionAnalysisResult(classifications: [], recognizedText: "")

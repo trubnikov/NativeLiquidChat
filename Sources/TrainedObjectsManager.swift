@@ -3,13 +3,19 @@ import Foundation
 struct TrainedObject: Codable, Identifiable {
     let id: UUID
     let customLabel: String
-    let featureVector: [String: Double] // e.g. ["chair": 0.85, "desk": 0.12]
+    let featureVector: [String: Double] // legacy: classification histogram ["chair": 0.85]
+    /// v2: visual feature print of the actual image (VNGenerateImageFeaturePrintRequest).
+    /// Distinguishes instances (your mug vs. a similar mug), unlike the histogram.
+    /// Optional so objects trained before this upgrade still decode and match.
+    let featurePrint: [Float]?
     let timestamp: Date
-    
-    init(id: UUID = UUID(), customLabel: String, featureVector: [String: Double], timestamp: Date = Date()) {
+
+    init(id: UUID = UUID(), customLabel: String, featureVector: [String: Double],
+         featurePrint: [Float]? = nil, timestamp: Date = Date()) {
         self.id = id
         self.customLabel = customLabel
         self.featureVector = featureVector
+        self.featurePrint = featurePrint
         self.timestamp = timestamp
     }
 }
@@ -30,20 +36,29 @@ class TrainedObjectsManager: ObservableObject {
         load()
     }
     
-    func train(customLabel: String, classifications: [String: Double]) {
+    /// Cosine similarity needed on the visual feature print to count as the same
+    /// object instance. Prints of the same object across angles typically score
+    /// well above this; different objects of the same type fall below.
+    static let featurePrintThreshold: Float = 0.75
+    /// Legacy histogram threshold (kept for objects trained before feature prints).
+    static let histogramThreshold: Double = 0.65
+
+    func train(customLabel: String, classifications: [String: Double], featurePrint: [Float]? = nil) {
         // Remove prior items with exactly the same custom label to avoid duplication
         trainedObjects.removeAll { $0.customLabel.lowercased() == customLabel.lowercased() }
-        
-        let newObj = TrainedObject(customLabel: customLabel, featureVector: classifications)
+
+        let newObj = TrainedObject(customLabel: customLabel,
+                                   featureVector: classifications,
+                                   featurePrint: featurePrint)
         trainedObjects.append(newObj)
         save()
-        
+
         // Register in Knowledge Graph
         if !KnowledgeGraphManager.shared.nodes.contains(where: { $0.label.lowercased() == customLabel.lowercased() }) {
             KnowledgeGraphManager.shared.addNode(label: customLabel, type: .object)
         }
     }
-    
+
     func forget(id: UUID) {
         if let obj = trainedObjects.first(where: { $0.id == id }) {
             // Also clean up from Knowledge Graph
@@ -54,26 +69,59 @@ class TrainedObjectsManager: ObservableObject {
         trainedObjects.removeAll { $0.id == id }
         save()
     }
-    
-    func findMatch(for classifications: [String: Double]) -> String? {
-        guard !classifications.isEmpty else { return nil }
-        
-        var bestMatch: TrainedObject? = nil
-        var bestScore: Double = 0.0
-        
+
+    /// Matches against trained objects. Prefers the visual feature print (true
+    /// instance recognition); falls back to the classification histogram for
+    /// objects trained before the upgrade.
+    func findMatch(for classifications: [String: Double], featurePrint: [Float]? = nil) -> String? {
+        var bestPrintMatch: TrainedObject? = nil
+        var bestPrintScore: Float = 0.0
+        var bestHistMatch: TrainedObject? = nil
+        var bestHistScore: Double = 0.0
+
         for obj in trainedObjects {
-            let score = cosineSimilarity(classifications, obj.featureVector)
-            if score > bestScore {
-                bestScore = score
-                bestMatch = obj
+            if let query = featurePrint, let stored = obj.featurePrint {
+                let score = Self.cosine(query, stored)
+                if score > bestPrintScore {
+                    bestPrintScore = score
+                    bestPrintMatch = obj
+                }
+            } else if !classifications.isEmpty {
+                let score = cosineSimilarity(classifications, obj.featureVector)
+                if score > bestHistScore {
+                    bestHistScore = score
+                    bestHistMatch = obj
+                }
             }
         }
-        
-        // Threshold: 65% similarity
-        if bestScore >= 0.65 {
-            return bestMatch?.customLabel
+
+        #if DEBUG
+        if bestPrintScore > 0 {
+            print(String(format: "[TrainedObjects] best print score: %.3f (%@)",
+                         bestPrintScore, bestPrintMatch?.customLabel ?? "-"))
+        }
+        #endif
+
+        if bestPrintScore >= Self.featurePrintThreshold {
+            return bestPrintMatch?.customLabel
+        }
+        if bestHistScore >= Self.histogramThreshold {
+            return bestHistMatch?.customLabel
         }
         return nil
+    }
+
+    /// Plain cosine over float vectors (feature prints).
+    static func cosine(_ a: [Float], _ b: [Float]) -> Float {
+        guard a.count == b.count, !a.isEmpty else { return 0 }
+        var dot: Float = 0, na: Float = 0, nb: Float = 0
+        for i in 0..<a.count {
+            dot += a[i] * b[i]
+            na += a[i] * a[i]
+            nb += b[i] * b[i]
+        }
+        let denom = sqrt(na) * sqrt(nb)
+        return denom > 0 ? dot / denom : 0
     }
     
     private func cosineSimilarity(_ vecA: [String: Double], _ vecB: [String: Double]) -> Double {

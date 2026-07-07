@@ -290,7 +290,11 @@ class CameraViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampl
     private let cameraQueue = DispatchQueue(label: "camera.frame.processing")
     
     private var lastAnalysisTime: Date = .distantPast
-    private var currentClassifications: [String: Double] = [:]
+    private(set) var currentClassifications: [String: Double] = [:]
+    /// Ring buffer of the last few visual feature prints; averaged on train so a
+    /// single noisy frame doesn't define the object.
+    private var recentPrints: [[Float]] = []
+    private let maxRecentPrints = 3
     
     func checkAuthorizationAndStart() {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
@@ -350,9 +354,24 @@ class CameraViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampl
     
     func trainCurrentObject(as name: String) {
         guard !currentClassifications.isEmpty else { return }
-        TrainedObjectsManager.shared.train(customLabel: name, classifications: currentClassifications)
+        TrainedObjectsManager.shared.train(customLabel: name,
+                                           classifications: currentClassifications,
+                                           featurePrint: averagedPrint())
         // Refresh local matching state
         matchedLabel = name
+    }
+
+    /// Element-wise mean of the buffered prints — steadier than any single frame.
+    func averagedPrint() -> [Float]? {
+        guard let first = recentPrints.first else { return nil }
+        let usable = recentPrints.filter { $0.count == first.count }
+        guard !usable.isEmpty else { return nil }
+        var sum = [Float](repeating: 0, count: first.count)
+        for print in usable {
+            for i in 0..<sum.count { sum[i] += print[i] }
+        }
+        let n = Float(usable.count)
+        return sum.map { $0 / n }
     }
     
     // SampleBuffer Delegate to analyze frames at 1Hz throttle rate
@@ -365,27 +384,56 @@ class CameraViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampl
         
         // Build image request handler on pixel buffer
         let requestHandler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .up, options: [:])
-        
-        let classificationRequest = VNClassifyImageRequest { [weak self] request, error in
-            guard let self = self else { return }
+
+        // Visual feature print of the reticle area — true instance recognition.
+        let printRequest = VNGenerateImageFeaturePrintRequest()
+        printRequest.regionOfInterest = CGRect(x: 0.25, y: 0.25, width: 0.5, height: 0.5)
+
+        let classificationRequest = VNClassifyImageRequest { request, error in
             guard error == nil,
-                  let results = request.results as? [VNClassificationObservation] else {
+                  let _ = request.results as? [VNClassificationObservation] else {
                 return
             }
-            
-            // Map top 10 categories with confidence > 1%
+        }
+        // Focus the classification on the central rect to align with the reticle
+        classificationRequest.regionOfInterest = CGRect(x: 0.25, y: 0.25, width: 0.5, height: 0.5)
+
+        DispatchQueue.main.async {
+            self.isAnalyzing = true
+        }
+
+        let startTime = Date()
+        do {
+            try requestHandler.perform([classificationRequest, printRequest])
+            let duration = Date().timeIntervalSince(startTime) * 1000.0
+
+            // Extract results synchronously after perform.
+            let results = (classificationRequest.results as? [VNClassificationObservation]) ?? []
             let mappedVec = results
                 .filter { $0.confidence > 0.01 }
                 .prefix(10)
                 .reduce(into: [String: Double]()) { dict, item in
                     dict[item.identifier] = Double(item.confidence)
                 }
-            
+
+            var framePrint: [Float]? = nil
+            if let obs = printRequest.results?.first as? VNFeaturePrintObservation {
+                framePrint = VisionProcessor.floats(from: obs)
+            }
+
             DispatchQueue.main.async {
+                self.analysisTimeMs = duration
                 self.currentClassifications = mappedVec
-                
-                // 1. Run local similarity vector matching against trained objects
-                if let match = TrainedObjectsManager.shared.findMatch(for: mappedVec) {
+                if let p = framePrint {
+                    self.recentPrints.append(p)
+                    if self.recentPrints.count > self.maxRecentPrints {
+                        self.recentPrints.removeFirst()
+                    }
+                }
+
+                // 1. Instance match on the visual print (falls back to histogram
+                //    for objects trained before the upgrade).
+                if let match = TrainedObjectsManager.shared.findMatch(for: mappedVec, featurePrint: framePrint) {
                     self.matchedLabel = match
                     self.dominantLabel = nil
                 } else {
@@ -400,22 +448,6 @@ class CameraViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampl
                     }
                 }
                 self.isAnalyzing = false
-            }
-        }
-        
-        // Focus the classification on the central rect to align with the reticle
-        classificationRequest.regionOfInterest = CGRect(x: 0.25, y: 0.25, width: 0.5, height: 0.5)
-        
-        DispatchQueue.main.async {
-            self.isAnalyzing = true
-        }
-        
-        let startTime = Date()
-        do {
-            try requestHandler.perform([classificationRequest])
-            let duration = Date().timeIntervalSince(startTime) * 1000.0
-            DispatchQueue.main.async {
-                self.analysisTimeMs = duration
             }
         } catch {
             print("Failed to run real-time camera classification: \(error)")

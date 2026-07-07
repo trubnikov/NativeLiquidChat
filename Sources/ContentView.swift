@@ -24,6 +24,7 @@ struct ContentView: View {
     @State private var showingAttachDialog = false
     @State private var showingPhotoPicker = false
     @State private var showingTrainingCamera = false
+    @State private var showingAgentVision = false
     @AppStorage("appLanguage") private var appLanguage = AppLanguage.russian.rawValue
     @AppStorage("appTheme") private var appThemeRaw = AppTheme.system.rawValue
 
@@ -290,12 +291,23 @@ struct ContentView: View {
                         .accessibilityLabel(store.speakResponses ? "Turn off spoken replies" : "Turn on spoken replies")
                     }
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            showingTrainingCamera = true
+                        Menu {
+                            Button {
+                                showingAgentVision = true
+                            } label: {
+                                Label(appLanguage == "ru" ? "Агент смотрит" : "Agent watches",
+                                      systemImage: "eye")
+                            }
+                            Button {
+                                showingTrainingCamera = true
+                            } label: {
+                                Label(appLanguage == "ru" ? "Режим обучения" : "Training mode",
+                                      systemImage: "graduationcap")
+                            }
                         } label: {
                             Image(systemName: "camera.badge.ellipsis")
                         }
-                        .accessibilityLabel("Режим обучения")
+                        .accessibilityLabel(appLanguage == "ru" ? "Камера" : "Camera")
                     }
                     ToolbarItem(placement: .topBarTrailing) {
                         Button(action: {
@@ -454,6 +466,9 @@ struct ContentView: View {
                 }
                 .fullScreenCover(isPresented: $showingTrainingCamera) {
                     TrainingCameraView()
+                }
+                .fullScreenCover(isPresented: $showingAgentVision) {
+                    AgentVisionView(store: store)
                 }
                 .onChange(of: selectedItem) { _, newItem in
                     Task {

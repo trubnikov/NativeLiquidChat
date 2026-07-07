@@ -28,6 +28,11 @@ final class SpeechManager: NSObject {
     /// Used by conversation mode to resume listening after a reply is spoken.
     var onFinishSpeaking: (() -> Void)?
 
+    /// When true, ignores the user's chosen voice and always auto-picks by the
+    /// text's language (used by the English-only Agent Vision mode so a chosen
+    /// Russian voice doesn't read English narration).
+    var forceAutoVoice = false
+
     override init() {
         self.selectedVoiceID = UserDefaults.standard.string(forKey: Self.voiceKey)
             ?? Self.autoVoiceID
@@ -124,7 +129,7 @@ final class SpeechManager: NSObject {
 
         let utterance = AVSpeechUtterance(string: trimmed)
         // A user-chosen voice wins; otherwise auto-pick by the text's language.
-        if !selectedVoiceID.isEmpty,
+        if !forceAutoVoice, !selectedVoiceID.isEmpty,
            let chosen = AVSpeechSynthesisVoice(identifier: selectedVoiceID) {
             utterance.voice = chosen
         } else if let voice = bestVoice(for: trimmed) {

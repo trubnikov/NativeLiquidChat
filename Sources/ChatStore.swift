@@ -276,7 +276,10 @@ class ChatStore {
                 }
             }
             
-            customObjectRecognized = TrainedObjectsManager.shared.findMatch(for: classificationsMap)
+            // Instance-level match on the visual feature print (with histogram
+            // fallback for objects trained before the upgrade).
+            let photoPrint = VisionProcessor.featurePrint(for: image)
+            customObjectRecognized = TrainedObjectsManager.shared.findMatch(for: classificationsMap, featurePrint: photoPrint)
             
             var reality = ""
             if let customMatch = customObjectRecognized {
@@ -551,6 +554,31 @@ class ChatStore {
     @MainActor
     func stopSpeaking() {
         speech.stop()
+    }
+
+    /// One-shot LFM generation outside any chat session — used by the live
+    /// Agent Vision loop to narrate what the camera sees. Does not touch chat
+    /// history or streaming state.
+    @MainActor
+    func generateOneShot(system: String, user: String) async -> String? {
+        let name = loadedModelName ?? currentSession?.modelName ?? "LFM2.5-1.2B-Instruct"
+        let ok = await ensureModelLoaded(for: name)
+        guard ok, let runner = modelRunner else { return nil }
+
+        let transient = Conversation(
+            modelRunner: runner,
+            history: [ChatMessage(role: .system, textContent: system)]
+        )
+        let stream = transient.generateResponse(
+            message: ChatMessage(role: .user, textContent: user))
+
+        var text = ""
+        for await event in stream {
+            if case .chunk(let c) = onEnum(of: event) {
+                text += c.text
+            }
+        }
+        return text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     /// Chosen TTS voice identifier (empty string = automatic by language).

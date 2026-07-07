@@ -1,0 +1,313 @@
+import SwiftUI
+import AVFoundation
+
+/// Live "agent eyes" mode: the camera watches the world, the LFM narrates what
+/// it sees out loud, and when a *stable unknown* object appears the agent asks
+/// the user (by voice) what to call it, listens for the answer, and learns it —
+/// feature print + knowledge-graph node. Fully on-device.
+///
+/// State machine: observing → thinking → speaking → observing
+///                observing → asking → listening → speaking(confirm) → observing
+@MainActor
+final class AgentVisionCoordinator: ObservableObject {
+    enum Phase: String {
+        case observing, thinking, speaking, asking, listening
+    }
+
+    @Published var phase: Phase = .observing
+    @Published var currentSeen: String = ""
+    @Published var lastComment: String = ""
+    @Published var liveTranscript: String = ""
+
+    let camera = CameraViewModel()
+    private let speech = SpeechManager()
+    // English-only mode: recognize spoken names with the English engine.
+    private let recognizer = SpeechRecognizer(locale: Locale(identifier: "en-US"))
+    private weak var store: ChatStore?
+
+    // Scene stability: same label for N consecutive ticks (1 tick ≈ 1 s).
+    private var stableLabel: String?
+    private var stableCount = 0
+    private let stabilityNeeded = 3
+
+    // Throttles so the agent doesn't babble or nag.
+    private var lastCommentedLabel: String?
+    private var lastCommentTime = Date.distantPast
+    private var recentlyAsked: [String: Date] = [:]
+
+    // Captured at the moment we decide to ask, so the learned vector matches
+    // what the user was actually shown.
+    private var pendingClassifications: [String: Double] = [:]
+    private var pendingPrint: [Float]?
+    private var pendingAppleLabel = ""
+
+    private var tick: Timer?
+
+    // Agent mode is English-only: the small on-device LFM is much more reliable
+    // in English, and mixed-language TTS/narration confused it in testing.
+
+    func start(store: ChatStore) {
+        self.store = store
+        store.stopConversation()   // don't fight over the mic with hands-free chat
+        store.stopSpeaking()
+
+        speech.forceAutoVoice = true   // English narration → English voice, always
+        speech.onFinishSpeaking = { [weak self] in
+            Task { @MainActor in self?.didFinishSpeaking() }
+        }
+
+        camera.checkAuthorizationAndStart()
+        phase = .observing
+
+        tick?.invalidate()
+        tick = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.evaluate() }
+        }
+    }
+
+    func stop() {
+        tick?.invalidate()
+        tick = nil
+        camera.stopSession()
+        recognizer.stop()
+        speech.stop()
+        phase = .observing
+    }
+
+    // MARK: - Perception loop
+
+    private func evaluate() {
+        guard phase == .observing else { return }
+
+        let matched = camera.matchedLabel
+        let dominant = camera.dominantLabel
+        let label = matched ?? dominant
+        currentSeen = label ?? ""
+
+        guard let label else {
+            stableLabel = nil
+            stableCount = 0
+            return
+        }
+
+        if label == stableLabel {
+            stableCount += 1
+        } else {
+            stableLabel = label
+            stableCount = 1
+        }
+        guard stableCount >= stabilityNeeded else { return }
+
+        if matched != nil {
+            // A known (user-trained) object — narrate it, with graph facts.
+            maybeComment(about: label, known: true)
+        } else {
+            // Unknown but stable — ask once, then leave it alone for a while.
+            if let asked = recentlyAsked[label], Date().timeIntervalSince(asked) < 180 {
+                maybeComment(about: label, known: false)
+            } else {
+                askAboutUnknown(label)
+            }
+        }
+    }
+
+    // MARK: - Narration (LFM speaks about the scene)
+
+    private func maybeComment(about label: String, known: Bool) {
+        let now = Date()
+        guard label != lastCommentedLabel || now.timeIntervalSince(lastCommentTime) > 60 else { return }
+        lastCommentedLabel = label
+        lastCommentTime = now
+
+        phase = .thinking
+        Task { @MainActor in
+            var facts: [String] = []
+            if known {
+                facts = KnowledgeGraphManager.shared
+                    .traverseGraph(startingFrom: label).associatedFacts
+            }
+
+            let system = "You are the voice of an assistant watching the world through a camera. Speak in one or two short lively sentences, no greetings. English only."
+            var user = "Currently in view: \(label)."
+            if !facts.isEmpty {
+                user += " Known facts about it: \(facts.joined(separator: "; "))."
+            }
+
+            let reply = await store?.generateOneShot(system: system, user: user) ?? ""
+            let text = reply.isEmpty ? "I can see: \(label)." : reply
+
+            lastComment = text
+            phase = .speaking
+            speech.speak(text)
+        }
+    }
+
+    // MARK: - Ask-and-learn (unknown object)
+
+    private func askAboutUnknown(_ appleLabel: String) {
+        recentlyAsked[appleLabel] = Date()
+        pendingAppleLabel = appleLabel
+        pendingClassifications = camera.currentClassifications
+        pendingPrint = camera.averagedPrint()
+
+        let question = "I see something like a \(appleLabel), but I don't know this object. What should I call it? Say a name, or stay silent to skip."
+
+        lastComment = question
+        phase = .asking
+        speech.speak(question)
+        // didFinishSpeaking() flips us into .listening
+    }
+
+    private func startListening() {
+        phase = .listening
+        liveTranscript = ""
+
+        recognizer.onPartial = { [weak self] text in
+            Task { @MainActor in self?.liveTranscript = text }
+        }
+        recognizer.onFinished = { [weak self] text in
+            Task { @MainActor in self?.handleName(text) }
+        }
+        do {
+            try recognizer.start()
+        } catch {
+            print("[AgentVision] recognizer failed: \(error)")
+            phase = .observing
+        }
+    }
+
+    private func handleName(_ raw: String) {
+        let name = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        liveTranscript = ""
+
+        guard !name.isEmpty else {
+            let skip = "Okay, I'll keep watching."
+            lastComment = skip
+            phase = .speaking
+            speech.speak(skip)
+            return
+        }
+
+        TrainedObjectsManager.shared.train(
+            customLabel: name,
+            classifications: pendingClassifications,
+            featurePrint: pendingPrint
+        )
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+
+        let confirm = "Got it: \(name)."
+        lastComment = confirm
+        phase = .speaking
+        speech.speak(confirm)
+    }
+
+    private func didFinishSpeaking() {
+        switch phase {
+        case .asking:
+            startListening()
+        case .speaking:
+            phase = .observing
+        default:
+            break
+        }
+    }
+}
+
+// MARK: - View
+
+struct AgentVisionView: View {
+    @Environment(\.dismiss) private var dismiss
+    @StateObject private var agent = AgentVisionCoordinator()
+    let store: ChatStore
+
+    var body: some View {
+        ZStack {
+            if agent.camera.isCameraAuthorized {
+                CameraPreviewView(session: agent.camera.captureSession)
+                    .ignoresSafeArea()
+            } else {
+                Color.black.ignoresSafeArea()
+                Text("Camera access required")
+                    .foregroundColor(.white)
+            }
+
+            VStack {
+                // Top bar: phase + close
+                HStack {
+                    phaseChip
+                    Spacer()
+                    Button {
+                        agent.stop()
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 32))
+                            .foregroundColor(.white.opacity(0.85))
+                            .shadow(radius: 4)
+                    }
+                }
+                .padding()
+
+                Spacer()
+
+                // Bottom card: what the agent sees / says / hears
+                VStack(alignment: .leading, spacing: 10) {
+                    if !agent.currentSeen.isEmpty {
+                        Label(agent.currentSeen, systemImage: "eye")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundColor(.white)
+                    }
+                    if !agent.lastComment.isEmpty {
+                        Text(agent.lastComment)
+                            .font(.body)
+                            .foregroundColor(.white.opacity(0.95))
+                    }
+                    if agent.phase == .listening {
+                        HStack(spacing: 8) {
+                            Image(systemName: "mic.fill")
+                                .foregroundColor(.red)
+                                .symbolEffect(.pulse)
+                            Text(agent.liveTranscript.isEmpty
+                                 ? "Listening…"
+                                 : agent.liveTranscript)
+                                .font(.callout)
+                                .foregroundColor(.white.opacity(0.9))
+                        }
+                    }
+                }
+                .padding(18)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    RoundedRectangle(cornerRadius: 24)
+                        .fill(Color.black.opacity(0.6))
+                        .background(.ultraThinMaterial)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24)
+                        .stroke(Color.white.opacity(0.15), lineWidth: 0.5)
+                )
+                .padding()
+            }
+        }
+        .onAppear { agent.start(store: store) }
+        .onDisappear { agent.stop() }
+    }
+
+    private var phaseChip: some View {
+        let (icon, text): (String, String) = {
+            switch agent.phase {
+            case .observing: return ("eye", "Watching")
+            case .thinking: return ("brain", "Thinking…")
+            case .speaking: return ("speaker.wave.2.fill", "Speaking")
+            case .asking: return ("questionmark.bubble", "Asking")
+            case .listening: return ("mic.fill", "Listening")
+            }
+        }()
+        return Label(text, systemImage: icon)
+            .font(.footnote.weight(.semibold))
+            .foregroundColor(.white)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(Capsule().fill(Color.black.opacity(0.55)))
+    }
+}

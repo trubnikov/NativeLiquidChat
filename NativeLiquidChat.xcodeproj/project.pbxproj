@@ -40,6 +40,7 @@
 		F1A8D64143E81279725103EC /* VisionProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C895E9A62763237D24867D3 /* VisionProcessor.swift */; };
 		F7EA8DED2ACC07A2AF145916 /* VectorSearch.metal in Sources */ = {isa = PBXBuildFile; fileRef = BDE2E153EEE1892D2D0A3866 /* VectorSearch.metal */; };
 		FC6FF8FF1C761DA4E1C63FA0 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC36999EC0C748E6C0D2CD5C /* AppTheme.swift */; };
+		FCFEF6D94416C8196134B685 /* AgentVisionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84F01864F61776E0889F1905 /* AgentVisionView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -69,6 +70,7 @@
 		51E505EB05F9EACE06A3D3C2 /* PromptPresets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptPresets.swift; sourceTree = "<group>"; };
 		69FC04211C6B05B6079D97C8 /* TypingIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingIndicator.swift; sourceTree = "<group>"; };
 		84EE3E9A6056629418916A27 /* ModelManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelManager.swift; sourceTree = "<group>"; };
+		84F01864F61776E0889F1905 /* AgentVisionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentVisionView.swift; sourceTree = "<group>"; };
 		890C24E5039C187ED13994BA /* NativeLiquidChatApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeLiquidChatApp.swift; sourceTree = "<group>"; };
 		8C895E9A62763237D24867D3 /* VisionProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionProcessor.swift; sourceTree = "<group>"; };
 		993DCDDF88FEF91ABE327C1C /* ChatStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatStore.swift; sourceTree = "<group>"; };
@@ -113,6 +115,7 @@
 		8F808B4C9FF93DBAB4D48E58 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				84F01864F61776E0889F1905 /* AgentVisionView.swift */,
 				BC36999EC0C748E6C0D2CD5C /* AppTheme.swift */,
 				F535D1F03887D1312483C8ED /* Assets.xcassets */,
 				0C7B76C167EF4958D8DA35E4 /* AudioPlaybackManager.swift */,
@@ -287,6 +290,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FCFEF6D94416C8196134B685 /* AgentVisionView.swift in Sources */,
 				FC6FF8FF1C761DA4E1C63FA0 /* AppTheme.swift in Sources */,
 				220B6A9AC9AAF85EF9DF0380 /* AudioPlaybackManager.swift in Sources */,
 				4635020FF16600947B13802C /* AudioRecorder.swift in Sources */,
