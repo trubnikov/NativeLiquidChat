@@ -126,6 +126,9 @@ final class AgentVisionCoordinator: ObservableObject {
             let facts = KnowledgeGraphManager.shared
                 .traverseGraph(startingFrom: label).associatedFacts
             _ = known
+            #if DEBUG
+            print("[Agent] narrate label='\(label)' known=\(known) facts=\(facts.count)")
+            #endif
 
             let system = "You are the voice of an assistant watching the world through a camera. Speak in one or two short lively sentences, no greetings. English only."
             var user = "Currently in view: \(label)."
@@ -154,6 +157,9 @@ final class AgentVisionCoordinator: ObservableObject {
         // the question — the agent sounds informed even about unknown items.
         let fact = KnowledgeGraphManager.shared
             .traverseGraph(startingFrom: appleLabel).associatedFacts.first
+        #if DEBUG
+        print("[Agent] ask label='\(appleLabel)' fact=\(fact != nil)")
+        #endif
         var question = "I see something like a \(appleLabel.replacingOccurrences(of: "_", with: " "))."
         if let fact {
             question += " \(fact)"
@@ -201,6 +207,18 @@ final class AgentVisionCoordinator: ObservableObject {
             classifications: pendingClassifications,
             featurePrint: pendingPrint
         )
+        // Link the new instance to its category node ("my mug" → "mug") so the
+        // 2-hop graph traversal reaches the category's seeded facts when
+        // narrating about the trained object.
+        let category = pendingAppleLabel.replacingOccurrences(of: "_", with: " ").lowercased()
+        DispatchQueue.main.async {
+            let kg = KnowledgeGraphManager.shared
+            if let obj = kg.nodes.first(where: { $0.label.lowercased() == name.lowercased() }),
+               let cat = kg.nodes.first(where: { $0.label.lowercased() == category }),
+               obj.id != cat.id {
+                kg.addEdge(sourceId: obj.id, targetId: cat.id, relationType: "instance_of")
+            }
+        }
         UINotificationFeedbackGenerator().notificationOccurred(.success)
 
         let confirm = "Got it: \(name)."

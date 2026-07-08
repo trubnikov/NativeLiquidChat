@@ -289,13 +289,21 @@ class ChatStore {
                 let traversal = KnowledgeGraphManager.shared.traverseGraph(startingFrom: customMatch)
                 graphPathDescription = traversal.pathDescription
                 graphFacts = traversal.associatedFacts
-            } else if let topLabel = classificationsMap.max(by: { $0.value < $1.value })?.key {
-                // No trained match — the seeded world knowledge may still know
-                // this category (Apple Vision label → graph facts).
-                let traversal = KnowledgeGraphManager.shared.traverseGraph(startingFrom: topLabel)
-                if !traversal.associatedFacts.isEmpty {
-                    graphPathDescription = traversal.pathDescription
-                    graphFacts = traversal.associatedFacts
+            } else {
+                // No trained match — try a zero-shot CLIP label first (concrete
+                // noun, aligned with our seeded vocabulary), then Apple's top
+                // classification, and look either up in the knowledge graph.
+                var lookupLabel = classificationsMap.max(by: { $0.value < $1.value })?.key
+                if let clip = CLIPEngine.shared.bestLabel(image: image) {
+                    lookupLabel = clip.label
+                    reality += "Zero-shot recognition: \(clip.label)\n"
+                }
+                if let topLabel = lookupLabel {
+                    let traversal = KnowledgeGraphManager.shared.traverseGraph(startingFrom: topLabel)
+                    if !traversal.associatedFacts.isEmpty {
+                        graphPathDescription = traversal.pathDescription
+                        graphFacts = traversal.associatedFacts
+                    }
                 }
             }
             reality += "Objects detected: \(classificationsStr)"

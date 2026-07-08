@@ -421,6 +421,10 @@ class CameraViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampl
                 framePrint = VisionProcessor.floats(from: obs)
             }
 
+            // Zero-shot open-vocabulary label via MobileCLIP — concrete nouns
+            // ("mug") instead of Apple's abstract taxonomy ("structure").
+            let clipMatch = CLIPEngine.shared.bestLabel(pixelBuffer: pixelBuffer)
+
             DispatchQueue.main.async {
                 self.analysisTimeMs = duration
                 self.currentClassifications = mappedVec
@@ -437,10 +441,12 @@ class CameraViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampl
                     self.matchedLabel = match
                     self.dominantLabel = nil
                 } else {
-                    // 2. Fall back to dominant Apple Vision prediction
                     self.matchedLabel = nil
-                    if let firstResult = results.first(where: { $0.confidence > 0.02 }) {
-                        // Extract first segment of comma-separated VN identifier
+                    // 2. Zero-shot CLIP label (concrete, open-vocabulary) …
+                    if let clip = clipMatch {
+                        self.dominantLabel = clip.label.capitalized
+                    // 3. … falling back to Apple's classifier taxonomy.
+                    } else if let firstResult = results.first(where: { $0.confidence > 0.02 }) {
                         let name = firstResult.identifier.components(separatedBy: ",").first ?? firstResult.identifier
                         self.dominantLabel = name.capitalized
                     } else {

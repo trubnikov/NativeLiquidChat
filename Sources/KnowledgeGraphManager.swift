@@ -51,6 +51,9 @@ class KnowledgeGraphManager: ObservableObject {
         loadGraph()
         seedDefaultGraphIfNeeded()
         seedBundledKnowledgeIfNeeded()
+        #if DEBUG
+        print("[KnowledgeGraph] ready: \(nodes.count) nodes, \(edges.count) edges")
+        #endif
     }
 
     // MARK: - Bundled world knowledge (LLM-synthesized at build time)
@@ -256,8 +259,25 @@ class KnowledgeGraphManager: ObservableObject {
             s.replacingOccurrences(of: "_", with: " ").lowercased()
                 .trimmingCharacters(in: .whitespaces)
         }
+        func find(_ q: String) -> GraphNode? {
+            nodes.first(where: { norm($0.label) == q })
+        }
+        // Lookup chain: exact → singular ("mugs"→"mug") → last word of a
+        // compound label ("coffee mug"→"mug") → its singular. Apple's labels
+        // are often compounds; the seed base uses head nouns.
         let target = norm(nodeLabel)
-        guard let startNode = nodes.first(where: { norm($0.label) == target }) else {
+        var startCandidate = find(target)
+        if startCandidate == nil, target.hasSuffix("s") {
+            startCandidate = find(String(target.dropLast()))
+        }
+        if startCandidate == nil, let last = target.split(separator: " ").last, last.count > 2 {
+            startCandidate = find(String(last))
+                ?? (last.hasSuffix("s") ? find(String(last.dropLast())) : nil)
+        }
+        guard let startNode = startCandidate else {
+            #if DEBUG
+            print("[KnowledgeGraph] no node for label '\(nodeLabel)' (norm: '\(target)')")
+            #endif
             return ([], [], "")
         }
         

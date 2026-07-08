@@ -20,19 +20,24 @@
 		3C88F24B77168C2627E8BA27 /* Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20FEC0DD4A6024FCC42FAF7B /* Localization.swift */; };
 		3E78A3C67F010FF680B388DA /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCEEC0E25493168C1338526B /* ContentView.swift */; };
 		4635020FF16600947B13802C /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9D3B65F4DD881E141C02829 /* AudioRecorder.swift */; };
+		4BE20ADF85DA4720BC0C4D44 /* clip_vocab_labels.json in Resources */ = {isa = PBXBuildFile; fileRef = 821DDAB6BBC05F2339B6D563 /* clip_vocab_labels.json */; };
 		54F4BD76F0C8D6175834C0A2 /* TrainedObjectsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30C029C947BAE14106EC57F2 /* TrainedObjectsManager.swift */; };
 		592FFF59463121490B0DF591 /* SpeechManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAAF72BCDA89DF409CEAFB37 /* SpeechManager.swift */; };
 		5B69FF61701D2BF9A8C08879 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F535D1F03887D1312483C8ED /* Assets.xcassets */; };
 		5C377BCD0622DA020E8FE94E /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20F15652552BF8AC888C972 /* Models.swift */; };
 		603DD5CC91E625C7C2065B2E /* CameraPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DD73FEC565B6E5E0DB36EE4 /* CameraPicker.swift */; };
+		6C1C31048B7D3B90521AC645 /* clip_vocabulary.txt in Resources */ = {isa = PBXBuildFile; fileRef = 78BC4A65983AE654D17B9C9F /* clip_vocabulary.txt */; };
 		6C5CC08B0433FA961FADE3E7 /* EmptyChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15A2F55129813D3BE7737388 /* EmptyChatView.swift */; };
 		75BA73F1E5F330BF7154121D /* TypingIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69FC04211C6B05B6079D97C8 /* TypingIndicator.swift */; };
 		76BEB3A71FE9D8D76FB195BD /* ModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D521148AB7A23CDCFB9B9B8D /* ModelsTests.swift */; };
 		7E255EDCFBEDBA7685A98CD1 /* NativeLiquidChatApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 890C24E5039C187ED13994BA /* NativeLiquidChatApp.swift */; };
 		96C994F7E65C4FF95D5E09AC /* ModelCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB3322B586046C7B93B42359 /* ModelCatalog.swift */; };
+		990525241861E4323560EA7E /* mobileclip_s0_image.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = 9FF98E1557CF79DC62471295 /* mobileclip_s0_image.mlpackage */; };
+		9C511557CF618083F21762FE /* clip_vocab_embeddings.bin in Resources */ = {isa = PBXBuildFile; fileRef = 72C70BF090A12A8F641543BD /* clip_vocab_embeddings.bin */; };
 		A35DA2A751E4DE05708E095A /* seed_knowledge.json in Resources */ = {isa = PBXBuildFile; fileRef = 6C9531E98C8E8F9907D315F5 /* seed_knowledge.json */; };
 		B85690B35EC2BFC602DD2081 /* SpeechRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF9196F8EE93E4FE9A194001 /* SpeechRecognizer.swift */; };
 		BEC00D3464B79E2650BC7152 /* LeapModelDownloader in Frameworks */ = {isa = PBXBuildFile; productRef = DCF3CAF6641D234A4BF0225F /* LeapModelDownloader */; };
+		D2F3D03013A7E37BB773832C /* CLIPEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ED45C87D8EE9335E0FD054C /* CLIPEngine.swift */; };
 		D3083BE98A2F2BDA4005DB80 /* ChatStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19A56CD75751D17343CEC018 /* ChatStoreTests.swift */; };
 		D38AF406B3820698E643C475 /* LabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DD8185353ED69EB9F33C82 /* LabView.swift */; };
 		D70DB2847C4E55FCBAA218B2 /* KnowledgeGraphView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6DF8B3584B34B39EE340864 /* KnowledgeGraphView.swift */; };
@@ -64,6 +69,7 @@
 		19A56CD75751D17343CEC018 /* ChatStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatStoreTests.swift; sourceTree = "<group>"; };
 		1DD73FEC565B6E5E0DB36EE4 /* CameraPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPicker.swift; sourceTree = "<group>"; };
 		1E3066218725958F09A3B263 /* VoicePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoicePickerView.swift; sourceTree = "<group>"; };
+		1ED45C87D8EE9335E0FD054C /* CLIPEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLIPEngine.swift; sourceTree = "<group>"; };
 		20FEC0DD4A6024FCC42FAF7B /* Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Localization.swift; sourceTree = "<group>"; };
 		30C029C947BAE14106EC57F2 /* TrainedObjectsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainedObjectsManager.swift; sourceTree = "<group>"; };
 		4D50613748C8AF0893CBFD17 /* GPUSimilarityEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GPUSimilarityEngine.swift; sourceTree = "<group>"; };
@@ -71,11 +77,15 @@
 		51E505EB05F9EACE06A3D3C2 /* PromptPresets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptPresets.swift; sourceTree = "<group>"; };
 		69FC04211C6B05B6079D97C8 /* TypingIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingIndicator.swift; sourceTree = "<group>"; };
 		6C9531E98C8E8F9907D315F5 /* seed_knowledge.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = seed_knowledge.json; sourceTree = "<group>"; };
+		72C70BF090A12A8F641543BD /* clip_vocab_embeddings.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = clip_vocab_embeddings.bin; sourceTree = "<group>"; };
+		78BC4A65983AE654D17B9C9F /* clip_vocabulary.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = clip_vocabulary.txt; sourceTree = "<group>"; };
+		821DDAB6BBC05F2339B6D563 /* clip_vocab_labels.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = clip_vocab_labels.json; sourceTree = "<group>"; };
 		84EE3E9A6056629418916A27 /* ModelManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelManager.swift; sourceTree = "<group>"; };
 		84F01864F61776E0889F1905 /* AgentVisionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentVisionView.swift; sourceTree = "<group>"; };
 		890C24E5039C187ED13994BA /* NativeLiquidChatApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeLiquidChatApp.swift; sourceTree = "<group>"; };
 		8C895E9A62763237D24867D3 /* VisionProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionProcessor.swift; sourceTree = "<group>"; };
 		993DCDDF88FEF91ABE327C1C /* ChatStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatStore.swift; sourceTree = "<group>"; };
+		9FF98E1557CF79DC62471295 /* mobileclip_s0_image.mlpackage */ = {isa = PBXFileReference; path = mobileclip_s0_image.mlpackage; sourceTree = "<group>"; };
 		A6DF8B3584B34B39EE340864 /* KnowledgeGraphView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnowledgeGraphView.swift; sourceTree = "<group>"; };
 		A772B8164598C45FFC9648D9 /* ConversationBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationBanner.swift; sourceTree = "<group>"; };
 		BC36999EC0C748E6C0D2CD5C /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
@@ -124,6 +134,7 @@
 				E9D3B65F4DD881E141C02829 /* AudioRecorder.swift */,
 				1DD73FEC565B6E5E0DB36EE4 /* CameraPicker.swift */,
 				993DCDDF88FEF91ABE327C1C /* ChatStore.swift */,
+				1ED45C87D8EE9335E0FD054C /* CLIPEngine.swift */,
 				CCEEC0E25493168C1338526B /* ContentView.swift */,
 				A772B8164598C45FFC9648D9 /* ConversationBanner.swift */,
 				15A2F55129813D3BE7737388 /* EmptyChatView.swift */,
@@ -163,6 +174,7 @@
 		C9125EE81014ABD4EB8B3B36 = {
 			isa = PBXGroup;
 			children = (
+				FD0D20760A25FA9AED5FCCE2 /* MLModels */,
 				EA1BB9F50AF75974C818B272 /* Resources */,
 				8F808B4C9FF93DBAB4D48E58 /* Sources */,
 				923B441F90061BC624BAE87D /* Tests */,
@@ -173,9 +185,20 @@
 		EA1BB9F50AF75974C818B272 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				72C70BF090A12A8F641543BD /* clip_vocab_embeddings.bin */,
+				821DDAB6BBC05F2339B6D563 /* clip_vocab_labels.json */,
+				78BC4A65983AE654D17B9C9F /* clip_vocabulary.txt */,
 				6C9531E98C8E8F9907D315F5 /* seed_knowledge.json */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		FD0D20760A25FA9AED5FCCE2 /* MLModels */ = {
+			isa = PBXGroup;
+			children = (
+				9FF98E1557CF79DC62471295 /* mobileclip_s0_image.mlpackage */,
+			);
+			path = MLModels;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -269,6 +292,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				5B69FF61701D2BF9A8C08879 /* Assets.xcassets in Resources */,
+				9C511557CF618083F21762FE /* clip_vocab_embeddings.bin in Resources */,
+				4BE20ADF85DA4720BC0C4D44 /* clip_vocab_labels.json in Resources */,
+				6C1C31048B7D3B90521AC645 /* clip_vocabulary.txt in Resources */,
 				A35DA2A751E4DE05708E095A /* seed_knowledge.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -306,6 +332,7 @@
 				FC6FF8FF1C761DA4E1C63FA0 /* AppTheme.swift in Sources */,
 				220B6A9AC9AAF85EF9DF0380 /* AudioPlaybackManager.swift in Sources */,
 				4635020FF16600947B13802C /* AudioRecorder.swift in Sources */,
+				D2F3D03013A7E37BB773832C /* CLIPEngine.swift in Sources */,
 				603DD5CC91E625C7C2065B2E /* CameraPicker.swift in Sources */,
 				16E846ABE7C39A6E39189EFA /* ChatStore.swift in Sources */,
 				3E78A3C67F010FF680B388DA /* ContentView.swift in Sources */,
@@ -330,6 +357,7 @@
 				F7EA8DED2ACC07A2AF145916 /* VectorSearch.metal in Sources */,
 				F1A8D64143E81279725103EC /* VisionProcessor.swift in Sources */,
 				DEF3041FF678D6DF30508A01 /* VoicePickerView.swift in Sources */,
+				990525241861E4323560EA7E /* mobileclip_s0_image.mlpackage in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -1,0 +1,1225 @@
+mug
+cup
+coffee mug
+teacup
+teapot
+kettle
+electric kettle
+coffee maker
+espresso machine
+french press
+coffee grinder
+frying pan
+saucepan
+pot
+cooking pot
+pressure cooker
+wok
+baking tray
+casserole dish
+plate
+dinner plate
+bowl
+salad bowl
+spoon
+tablespoon
+teaspoon
+fork
+knife
+kitchen knife
+bread knife
+chopsticks
+drinking glass
+wine glass
+champagne glass
+beer glass
+shot glass
+bottle
+water bottle
+thermos
+flask
+jug
+pitcher
+carafe
+toaster
+microwave oven
+oven
+stove
+refrigerator
+freezer
+dishwasher
+blender
+food processor
+stand mixer
+hand mixer
+cutting board
+spatula
+ladle
+whisk
+tongs
+grater
+peeler
+colander
+strainer
+sieve
+rolling pin
+measuring cup
+kitchen scale
+jar
+mason jar
+tin can
+can opener
+corkscrew
+bottle opener
+salt shaker
+pepper mill
+napkin
+paper towel
+kitchen towel
+oven mitt
+apron
+lunch box
+food container
+plastic wrap
+aluminum foil
+trash bag
+laptop
+laptop computer
+desktop computer
+computer
+computer monitor
+monitor
+keyboard
+computer keyboard
+mechanical keyboard
+computer mouse
+mouse pad
+trackpad
+printer
+scanner
+photocopier
+smartphone
+mobile phone
+iphone
+tablet
+ipad
+e-reader
+headphones
+wireless headphones
+earphones
+earbuds
+airpods
+headset
+speaker
+bluetooth speaker
+soundbar
+microphone
+camera
+digital camera
+dslr camera
+film camera
+action camera
+security camera
+webcam
+camera lens
+tripod
+television
+tv remote
+remote control
+game console
+game controller
+joystick
+vr headset
+router
+wifi router
+modem
+network switch
+server
+charger
+phone charger
+charging cable
+usb cable
+hdmi cable
+power cord
+extension cord
+power strip
+adapter
+power bank
+battery
+aa battery
+smartwatch
+fitness tracker
+calculator
+usb flash drive
+external hard drive
+ssd
+memory card
+sim card
+projector
+drone
+robot vacuum
+smart speaker
+pen
+ballpoint pen
+fountain pen
+pencil
+mechanical pencil
+colored pencil
+crayon
+marker
+permanent marker
+highlighter
+eraser
+pencil sharpener
+notebook
+notepad
+sketchbook
+journal
+diary
+book
+hardcover book
+paperback book
+textbook
+comic book
+magazine
+newspaper
+envelope
+postcard
+greeting card
+sticky note
+paper
+sheet of paper
+folder
+file folder
+binder
+clipboard
+stapler
+staples
+staple remover
+scissors
+tape
+duct tape
+masking tape
+tape dispenser
+glue
+glue stick
+ruler
+protractor
+compass
+paper clip
+binder clip
+push pin
+rubber band
+whiteboard
+whiteboard marker
+blackboard
+chalk
+corkboard
+calendar
+desk organizer
+pencil case
+letter opener
+rubber stamp
+ink pad
+desk lamp
+table lamp
+floor lamp
+lamp
+lampshade
+ceiling light
+chandelier
+light bulb
+led bulb
+flashlight
+lantern
+candle
+candlestick
+lighter
+matches
+chair
+office chair
+dining chair
+folding chair
+rocking chair
+armchair
+recliner
+stool
+bar stool
+bench
+sofa
+couch
+loveseat
+futon
+ottoman
+bean bag
+table
+dining table
+coffee table
+side table
+desk
+standing desk
+nightstand
+bed
+bunk bed
+crib
+mattress
+pillow
+cushion
+blanket
+duvet
+quilt
+bedsheet
+sleeping bag
+hammock
+wardrobe
+closet
+dresser
+chest of drawers
+drawer
+cabinet
+filing cabinet
+cupboard
+shelf
+bookshelf
+bookcase
+tv stand
+coat rack
+shoe rack
+mirror
+wall mirror
+hand mirror
+curtain
+blinds
+carpet
+rug
+doormat
+clock
+wall clock
+alarm clock
+grandfather clock
+hourglass
+picture frame
+photo frame
+painting
+poster
+wall art
+sculpture
+figurine
+vase
+flower vase
+plant
+houseplant
+potted plant
+succulent
+cactus
+fern
+bonsai tree
+flower
+rose
+tulip
+sunflower
+orchid
+bouquet
+flower pot
+planter
+watering can
+door
+front door
+door handle
+doorknob
+doorbell
+window
+window frame
+windowsill
+key
+keychain
+lock
+padlock
+door lock
+hinge
+umbrella
+umbrella stand
+fan
+ceiling fan
+electric fan
+heater
+space heater
+radiator
+air conditioner
+humidifier
+dehumidifier
+air purifier
+thermostat
+vacuum cleaner
+washing machine
+clothes dryer
+iron
+ironing board
+clothes hanger
+clothespin
+laundry basket
+laundry detergent
+basket
+wicker basket
+storage box
+cardboard box
+crate
+trash can
+garbage bin
+recycling bin
+bucket
+mop
+broom
+dustpan
+brush
+scrub brush
+sponge
+cleaning cloth
+rubber gloves
+plunger
+ladder
+step ladder
+stepladder
+toolbox
+hammer
+mallet
+screwdriver
+phillips screwdriver
+wrench
+adjustable wrench
+socket wrench
+pliers
+needle nose pliers
+wire cutters
+drill
+power drill
+drill bit
+saw
+handsaw
+circular saw
+jigsaw
+chisel
+file
+sandpaper
+level
+tape measure
+utility knife
+box cutter
+crowbar
+axe
+hatchet
+shovel
+spade
+rake
+hoe
+garden trowel
+pruning shears
+hedge trimmer
+lawn mower
+leaf blower
+wheelbarrow
+garden hose
+sprinkler
+nail
+screw
+bolt
+nut
+washer
+anchor
+hook
+nail gun
+soldering iron
+multimeter
+wire
+rope
+chain
+string
+twine
+zip tie
+carabiner
+pulley
+magnet
+glasses
+eyeglasses
+reading glasses
+sunglasses
+contact lenses
+glasses case
+watch
+wristwatch
+pocket watch
+wallet
+purse
+handbag
+clutch
+tote bag
+backpack
+rucksack
+messenger bag
+briefcase
+duffel bag
+gym bag
+suitcase
+luggage
+carry-on bag
+garment bag
+fanny pack
+shopping bag
+plastic bag
+paper bag
+hat
+baseball cap
+beanie
+fedora
+sun hat
+cowboy hat
+helmet
+bicycle helmet
+motorcycle helmet
+hard hat
+scarf
+gloves
+mittens
+winter gloves
+jacket
+leather jacket
+denim jacket
+bomber jacket
+coat
+winter coat
+raincoat
+trench coat
+parka
+vest
+blazer
+suit
+suit jacket
+shirt
+dress shirt
+t-shirt
+polo shirt
+tank top
+blouse
+sweater
+hoodie
+sweatshirt
+cardigan
+turtleneck
+jeans
+trousers
+pants
+shorts
+sweatpants
+leggings
+skirt
+dress
+evening gown
+jumpsuit
+overalls
+pajamas
+bathrobe
+underwear
+socks
+stockings
+tights
+shoe
+shoes
+sneakers
+running shoes
+dress shoes
+loafers
+high heels
+sandals
+flip flops
+slippers
+boots
+rain boots
+hiking boots
+work boots
+belt
+tie
+necktie
+bow tie
+suspenders
+ring
+wedding ring
+earrings
+necklace
+pendant
+bracelet
+brooch
+cufflinks
+hairpin
+hair clip
+headband
+comb
+hairbrush
+toothbrush
+electric toothbrush
+toothpaste
+dental floss
+mouthwash
+soap
+soap bar
+soap dispenser
+hand sanitizer
+shampoo
+conditioner
+shower gel
+body lotion
+face cream
+moisturizer
+sunscreen
+deodorant
+perfume
+cologne
+towel
+bath towel
+hand towel
+washcloth
+bathrobe
+shower curtain
+bath mat
+bathtub
+shower head
+faucet
+sink
+toilet
+toilet paper
+tissue box
+tissues
+razor
+electric razor
+shaving cream
+nail clippers
+nail file
+tweezers
+cotton swabs
+cotton balls
+makeup
+lipstick
+mascara
+eyeliner
+foundation
+makeup brush
+nail polish
+hair dryer
+curling iron
+hair straightener
+first aid kit
+bandage
+band-aid
+thermometer
+pill bottle
+medicine
+pills
+syringe
+stethoscope
+blood pressure monitor
+heating pad
+ice pack
+crutches
+wheelchair
+apple
+green apple
+red apple
+banana
+orange
+tangerine
+lemon
+lime
+grapefruit
+grape
+grapes
+strawberry
+blueberry
+raspberry
+blackberry
+cranberry
+cherry
+watermelon
+melon
+cantaloupe
+pineapple
+mango
+papaya
+kiwi
+peach
+nectarine
+apricot
+plum
+pear
+pomegranate
+fig
+date
+coconut
+avocado
+tomato
+cherry tomato
+cucumber
+carrot
+potato
+sweet potato
+onion
+red onion
+garlic
+ginger
+bell pepper
+chili pepper
+jalapeno
+broccoli
+cauliflower
+cabbage
+lettuce
+spinach
+kale
+arugula
+celery
+asparagus
+zucchini
+eggplant
+pumpkin
+squash
+corn
+corn on the cob
+peas
+green beans
+mushroom
+radish
+beet
+turnip
+leek
+scallion
+herbs
+basil
+parsley
+cilantro
+mint
+rosemary
+bread
+loaf of bread
+baguette
+croissant
+bagel
+toast
+bun
+roll
+tortilla
+pita bread
+cheese
+cheddar cheese
+mozzarella
+parmesan
+brie
+egg
+eggs
+boiled egg
+fried egg
+milk
+milk carton
+cream
+butter
+yogurt
+ice cream
+chocolate
+chocolate bar
+candy
+lollipop
+gummy bears
+cookie
+cookies
+biscuit
+cracker
+cake
+birthday cake
+cupcake
+muffin
+donut
+pie
+apple pie
+brownie
+pancake
+waffle
+pizza
+pizza slice
+sandwich
+burger
+hamburger
+cheeseburger
+hot dog
+taco
+burrito
+sushi
+noodles
+ramen
+pasta
+spaghetti
+macaroni
+lasagna
+rice
+fried rice
+soup
+salad
+french fries
+potato chips
+popcorn
+pretzel
+nuts
+almonds
+peanuts
+cashews
+walnuts
+peanut butter
+jam
+honey
+maple syrup
+sugar
+salt
+black pepper
+olive oil
+vinegar
+ketchup
+mustard
+mayonnaise
+soy sauce
+hot sauce
+coffee
+cup of coffee
+espresso
+cappuccino
+latte
+tea
+green tea
+iced tea
+juice
+orange juice
+apple juice
+smoothie
+soda
+cola
+lemonade
+water
+sparkling water
+wine
+red wine
+white wine
+beer
+whiskey
+vodka
+cocktail
+cat
+kitten
+dog
+puppy
+bird
+parrot
+canary
+budgie
+fish
+goldfish
+aquarium
+hamster
+guinea pig
+rabbit
+turtle
+tortoise
+lizard
+snake
+frog
+horse
+pony
+cow
+pig
+sheep
+goat
+chicken
+rooster
+duck
+goose
+turkey
+mouse
+rat
+squirrel
+hedgehog
+fox
+deer
+bear
+wolf
+lion
+tiger
+elephant
+giraffe
+zebra
+monkey
+panda
+koala
+kangaroo
+dolphin
+whale
+shark
+octopus
+crab
+lobster
+shrimp
+butterfly
+bee
+ladybug
+spider
+ant
+dragonfly
+snail
+pet bed
+pet bowl
+dog leash
+dog collar
+pet carrier
+bird cage
+litter box
+dog toy
+car
+sedan
+suv
+hatchback
+sports car
+convertible
+electric car
+taxi
+police car
+ambulance
+fire truck
+truck
+pickup truck
+van
+minivan
+bus
+school bus
+trolleybus
+tram
+train
+subway train
+locomotive
+bicycle
+mountain bike
+road bike
+bmx bike
+electric bike
+tricycle
+motorcycle
+scooter
+electric scooter
+moped
+skateboard
+longboard
+roller skates
+rollerblades
+segway
+airplane
+jet
+helicopter
+glider
+hot air balloon
+rocket
+boat
+sailboat
+motorboat
+canoe
+kayak
+yacht
+ship
+ferry
+jet ski
+submarine
+car tire
+wheel
+steering wheel
+car seat
+license plate
+gas pump
+traffic light
+stop sign
+road sign
+street sign
+parking meter
+fire hydrant
+street lamp
+bench
+mailbox
+telephone booth
+bus stop
+crosswalk
+manhole cover
+fence
+gate
+wall
+brick wall
+bridge
+tunnel
+building
+house
+skyscraper
+tower
+lighthouse
+windmill
+barn
+garage
+shed
+greenhouse
+tent
+camping tent
+gazebo
+fountain
+statue
+monument
+ball
+soccer ball
+football
+basketball
+volleyball
+tennis ball
+baseball
+golf ball
+ping pong ball
+bowling ball
+rugby ball
+badminton shuttlecock
+tennis racket
+badminton racket
+ping pong paddle
+baseball bat
+baseball glove
+hockey stick
+hockey puck
+golf club
+cricket bat
+boxing gloves
+punching bag
+dumbbell
+barbell
+kettlebell
+weight plate
+exercise bike
+treadmill
+rowing machine
+yoga mat
+foam roller
+jump rope
+resistance band
+pull-up bar
+gym equipment
+ski
+skis
+ski poles
+snowboard
+ice skates
+sled
+surfboard
+paddleboard
+swim goggles
+swimming cap
+swimsuit
+life jacket
+diving mask
+snorkel
+fishing rod
+fishing reel
+fishing net
+bow
+arrow
+dartboard
+darts
+pool table
+billiard balls
+pool cue
+chess board
+chess piece
+checkers
+dice
+playing cards
+poker chips
+board game
+puzzle
+jigsaw puzzle
+rubik's cube
+domino
+toy
+teddy bear
+stuffed animal
+doll
+action figure
+toy car
+toy train
+lego
+building blocks
+marbles
+yo-yo
+kite
+frisbee
+hula hoop
+slinky
+spinning top
+toy robot
+water gun
+balloon
+party balloon
+piñata
+guitar
+acoustic guitar
+electric guitar
+bass guitar
+ukulele
+banjo
+violin
+viola
+cello
+double bass
+piano
+grand piano
+keyboard piano
+synthesizer
+accordion
+harmonica
+flute
+clarinet
+saxophone
+trumpet
+trombone
+tuba
+french horn
+oboe
+recorder
+drum
+drum kit
+snare drum
+bass drum
+bongo drums
+tambourine
+maracas
+xylophone
+triangle
+cymbals
+gong
+harp
+guitar pick
+guitar amplifier
+metronome
+music stand
+sheet music
+microphone stand
+turntable
+vinyl record
+cd
+cassette tape
+radio
+boombox
+suit of armor
+sword
+shield
+trophy
+medal
+crown
+flag
+globe
+map
+compass
+binoculars
+telescope
+microscope
+magnifying glass
+hourglass
+scale
+weighing scale
+barometer
+weather vane
+anchor
+bell
+whistle
+horn
+fire extinguisher
+smoke detector
+safe
+cash register
+vending machine
+atm
+parking ticket
+receipt
+money
+cash
+coin
+coins
+dollar bill
+credit card
+debit card
+gift card
+id card
+passport
+driver's license
+ticket
+stamp
+seal
+certificate
+diploma
+contract
+document
+blueprint
+newspaper stand
+cigarette
+cigar
+pipe
+ashtray
+vape
+walking stick
+cane
+crutch
+umbrella
+briefcase
+gavel
+handcuffs
+badge
+gun
+pistol
+rifle
+bullet
+knife
+dagger
+grenade
+bomb
+mask
+face mask
+gas mask
+halloween mask
+wig
+costume
+santa hat
+party hat
+sunglasses case
+gift
+present
+gift box
+ribbon
+bow
+wrapping paper
+christmas tree
+christmas ornament
+christmas lights
+wreath
+menorah
+easter egg
+jack-o-lantern
+fireworks
+sparkler
+confetti
+piggy bank
+snow globe
+souvenir
+keychain
+magnet souvenir
+postage stamp
+antique
+artifact
+fossil
+crystal
+gemstone
+diamond
+pearl
+gold bar
+treasure chest
