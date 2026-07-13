@@ -31,6 +31,7 @@
 		75BA73F1E5F330BF7154121D /* TypingIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69FC04211C6B05B6079D97C8 /* TypingIndicator.swift */; };
 		76BEB3A71FE9D8D76FB195BD /* ModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D521148AB7A23CDCFB9B9B8D /* ModelsTests.swift */; };
 		7E255EDCFBEDBA7685A98CD1 /* NativeLiquidChatApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 890C24E5039C187ED13994BA /* NativeLiquidChatApp.swift */; };
+		86BE4A6BEEA5D12C1F490295 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CC0A995538EEBA3AFEA9B69 /* DesignSystem.swift */; };
 		96C994F7E65C4FF95D5E09AC /* ModelCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB3322B586046C7B93B42359 /* ModelCatalog.swift */; };
 		990525241861E4323560EA7E /* mobileclip_s0_image.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = 9FF98E1557CF79DC62471295 /* mobileclip_s0_image.mlpackage */; };
 		9C511557CF618083F21762FE /* clip_vocab_embeddings.bin in Resources */ = {isa = PBXBuildFile; fileRef = 72C70BF090A12A8F641543BD /* clip_vocab_embeddings.bin */; };
@@ -77,6 +78,7 @@
 		51E505EB05F9EACE06A3D3C2 /* PromptPresets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptPresets.swift; sourceTree = "<group>"; };
 		69FC04211C6B05B6079D97C8 /* TypingIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingIndicator.swift; sourceTree = "<group>"; };
 		6C9531E98C8E8F9907D315F5 /* seed_knowledge.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = seed_knowledge.json; sourceTree = "<group>"; };
+		6CC0A995538EEBA3AFEA9B69 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		72C70BF090A12A8F641543BD /* clip_vocab_embeddings.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = clip_vocab_embeddings.bin; sourceTree = "<group>"; };
 		78BC4A65983AE654D17B9C9F /* clip_vocabulary.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = clip_vocabulary.txt; sourceTree = "<group>"; };
 		821DDAB6BBC05F2339B6D563 /* clip_vocab_labels.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = clip_vocab_labels.json; sourceTree = "<group>"; };
@@ -137,6 +139,7 @@
 				1ED45C87D8EE9335E0FD054C /* CLIPEngine.swift */,
 				CCEEC0E25493168C1338526B /* ContentView.swift */,
 				A772B8164598C45FFC9648D9 /* ConversationBanner.swift */,
+				6CC0A995538EEBA3AFEA9B69 /* DesignSystem.swift */,
 				15A2F55129813D3BE7737388 /* EmptyChatView.swift */,
 				4D50613748C8AF0893CBFD17 /* GPUSimilarityEngine.swift */,
 				171354B165D3A2E3DC13D0F8 /* KnowledgeGraphManager.swift */,
@@ -337,6 +340,7 @@
 				16E846ABE7C39A6E39189EFA /* ChatStore.swift in Sources */,
 				3E78A3C67F010FF680B388DA /* ContentView.swift in Sources */,
 				0D25B4D5F6465965507D9D6B /* ConversationBanner.swift in Sources */,
+				86BE4A6BEEA5D12C1F490295 /* DesignSystem.swift in Sources */,
 				6C5CC08B0433FA961FADE3E7 /* EmptyChatView.swift in Sources */,
 				ECBC2740A54642068AC28B62 /* GPUSimilarityEngine.swift in Sources */,
 				225F1DA45EA7A6505A504E48 /* KnowledgeGraphManager.swift in Sources */,

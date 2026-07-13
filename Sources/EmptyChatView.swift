@@ -21,15 +21,16 @@ struct EmptyChatView: View {
 
     var body: some View {
         VStack(spacing: 20) {
-            Image(systemName: info?.iconName ?? "bubble.left.and.bubble.right")
-                .font(.system(size: 56))
-                .foregroundStyle(.tint)
-                .symbolEffect(.pulse)
+            Lucide(info?.kind.lucideName ?? "message-square", size: 34)
+                .foregroundStyle(DS.onAccent)
+                .frame(width: 76, height: 76)
+                .background(DS.accentGradient, in: RoundedRectangle(cornerRadius: DS.Radius.l, style: .continuous))
+                .shadow(color: DS.accent.opacity(0.35), radius: 20, y: 8)
                 .padding(.top, 40)
 
             VStack(spacing: 6) {
                 Text(info?.displayName ?? "Liquid Chat")
-                    .font(.title3.weight(.semibold))
+                    .font(DS.display(24))
                 Text("Everything runs privately on your device.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -54,17 +55,15 @@ struct EmptyChatView: View {
                             Text(prompt)
                                 .multilineTextAlignment(.leading)
                             Spacer()
-                            Image(systemName: "arrow.up.left")
-                                .font(.caption)
-                                .foregroundStyle(.tertiary)
+                            Lucide("sparkles", size: 14)
+                                .foregroundStyle(DS.accent)
                         }
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color(uiColor: .secondarySystemGroupedBackground),
-                                    in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .dsCard(radius: DS.Radius.m)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(PressableStyle())
                     .foregroundStyle(.primary)
                 }
             }

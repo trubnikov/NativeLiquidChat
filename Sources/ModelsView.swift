@@ -73,10 +73,11 @@ private struct ModelRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 14) {
-                Image(systemName: model.iconName)
-                    .font(.title2)
-                    .foregroundStyle(isActive ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary))
-                    .frame(width: 30)
+                Lucide(model.kind.lucideName, size: 20)
+                    .foregroundStyle(isActive ? AnyShapeStyle(DS.onAccent) : AnyShapeStyle(.secondary))
+                    .frame(width: 40, height: 40)
+                    .background(isActive ? AnyShapeStyle(DS.accentGradient) : AnyShapeStyle(DS.surfaceElevated),
+                                in: RoundedRectangle(cornerRadius: DS.Radius.s, style: .continuous))
 
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 6) {
@@ -150,8 +151,10 @@ private struct ModelRow: View {
                     .foregroundStyle(.red)
             } else {
                 Button(action: onDownload) {
-                    Image(systemName: "arrow.down.circle")
-                        .font(.title2)
+                    Lucide("download", size: 18)
+                        .foregroundStyle(.tint)
+                        .frame(width: 36, height: 36)
+                        .background(DS.surfaceElevated, in: Circle())
                 }
                 .buttonStyle(.borderless)
             }
@@ -175,8 +178,7 @@ private struct ModelRow: View {
 
         case .downloaded:
             if isActive {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.title2)
+                Lucide("check", size: 18)
                     .foregroundStyle(.tint)
             } else if isLoadingActive {
                 ProgressView()

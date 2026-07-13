@@ -14,7 +14,13 @@ final class AgentVisionCoordinator: ObservableObject {
         case observing, thinking, speaking, asking, listening
     }
 
-    @Published var phase: Phase = .observing
+    @Published var phase: Phase = .observing {
+        didSet {
+            // Pause camera analysis while the LFM thinks/speaks — GPU/ANE
+            // contention between CLIP+Vision and LLM inference froze the feed.
+            camera.analysisEnabled = (phase == .observing)
+        }
+    }
     @Published var currentSeen: String = ""
     @Published var lastComment: String = ""
     @Published var liveTranscript: String = ""
@@ -130,14 +136,18 @@ final class AgentVisionCoordinator: ObservableObject {
             print("[Agent] narrate label='\(label)' known=\(known) facts=\(facts.count)")
             #endif
 
-            let system = "You are the voice of an assistant watching the world through a camera. Speak in one or two short lively sentences, no greetings. English only."
+            let system = "You are the voice of an assistant watching the world through a camera. Reply with EXACTLY ONE short sentence, max 15 words. No greetings. English only."
             var user = "Currently in view: \(label)."
-            if !facts.isEmpty {
-                user += " Known facts about it: \(facts.joined(separator: "; "))."
+            if let fact = facts.first {
+                user += " A known fact: \(String(fact.prefix(160)))."
             }
 
             let reply = await store?.generateOneShot(system: system, user: user) ?? ""
-            let text = reply.isEmpty ? "I can see: \(label)." : reply
+            // Hard cap: never let the agent monologue — first sentence only.
+            let firstSentence = reply
+                .components(separatedBy: CharacterSet(charactersIn: ".!?"))
+                .first.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) } ?? ""
+            let text = firstSentence.isEmpty ? "I can see: \(label)." : firstSentence + "."
 
             lastComment = text
             phase = .speaking
@@ -162,7 +172,7 @@ final class AgentVisionCoordinator: ObservableObject {
         #endif
         var question = "I see something like a \(appleLabel.replacingOccurrences(of: "_", with: " "))."
         if let fact {
-            question += " \(fact)"
+            question += " \(String(fact.prefix(120)))"
         }
         question += " I don't know this one specifically — what should I call it? Say a name, or stay silent to skip."
 
@@ -227,6 +237,14 @@ final class AgentVisionCoordinator: ObservableObject {
         speech.speak(confirm)
     }
 
+    /// User-initiated interrupt: stop talking/listening and go back to watching.
+    func skip() {
+        speech.stop()
+        recognizer.stop()
+        liveTranscript = ""
+        phase = .observing
+    }
+
     private func didFinishSpeaking() {
         switch phase {
         case .asking:
@@ -279,9 +297,12 @@ struct AgentVisionView: View {
                 // Bottom card: what the agent sees / says / hears
                 VStack(alignment: .leading, spacing: 10) {
                     if !agent.currentSeen.isEmpty {
-                        Label(agent.currentSeen, systemImage: "eye")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundColor(.white)
+                        HStack(spacing: 6) {
+                            Lucide("eye", size: 15)
+                            Text(agent.currentSeen)
+                        }
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundColor(.white)
                     }
                     if !agent.lastComment.isEmpty {
                         Text(agent.lastComment)
@@ -290,15 +311,31 @@ struct AgentVisionView: View {
                     }
                     if agent.phase == .listening {
                         HStack(spacing: 8) {
-                            Image(systemName: "mic.fill")
+                            Lucide("mic", size: 15)
                                 .foregroundColor(.red)
-                                .symbolEffect(.pulse)
                             Text(agent.liveTranscript.isEmpty
                                  ? "Listening…"
                                  : agent.liveTranscript)
                                 .font(.callout)
                                 .foregroundColor(.white.opacity(0.9))
                         }
+                    }
+
+                    // Interrupt: stop talking/asking and go back to watching.
+                    if agent.phase != .observing {
+                        Button(action: { agent.skip() }) {
+                            HStack(spacing: 6) {
+                                Lucide("circle-stop", size: 15)
+                                Text("Skip")
+                            }
+                            .font(.footnote.weight(.semibold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(Capsule().fill(Color.white.opacity(0.14)))
+                            .overlay(Capsule().strokeBorder(Color.white.opacity(0.2), lineWidth: 1))
+                        }
+                        .buttonStyle(PressableStyle())
                     }
                 }
                 .padding(18)
@@ -324,16 +361,19 @@ struct AgentVisionView: View {
             switch agent.phase {
             case .observing: return ("eye", "Watching")
             case .thinking: return ("brain", "Thinking…")
-            case .speaking: return ("speaker.wave.2.fill", "Speaking")
-            case .asking: return ("questionmark.bubble", "Asking")
-            case .listening: return ("mic.fill", "Listening")
+            case .speaking: return ("volume-2", "Speaking")
+            case .asking: return ("message-square", "Asking")
+            case .listening: return ("mic", "Listening")
             }
         }()
-        return Label(text, systemImage: icon)
-            .font(.footnote.weight(.semibold))
-            .foregroundColor(.white)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(Capsule().fill(Color.black.opacity(0.55)))
+        return HStack(spacing: 6) {
+            Lucide(icon, size: 14)
+            Text(text).font(.footnote.weight(.semibold))
+        }
+        .foregroundColor(.white)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(Capsule().fill(Color.black.opacity(0.55)))
+        .overlay(Capsule().strokeBorder(Color.white.opacity(0.15), lineWidth: 1))
     }
 }

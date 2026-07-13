@@ -39,7 +39,7 @@ struct ContentView: View {
                     ForEach(store.sessions) { session in
                         NavigationLink(value: session.id) {
                             HStack {
-                                Image(systemName: session.iconName) // Optimization: use iconName property to avoid nested ternary compiler slow down
+                                Lucide(session.modelName.contains("VL") ? "eye" : session.modelName.contains("Audio") ? "audio-lines" : "message-square", size: 18)
                                     .foregroundStyle(.tint)
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(session.title)
@@ -84,12 +84,12 @@ struct ContentView: View {
                             store.createSession()
                         }
                     }) {
-                        Image(systemName: "square.and.pencil")
+                        Lucide("pencil", size: 20)
                     }
                 }
                 ToolbarItem(placement: .topBarLeading) {
                     Button(action: { showingModels = true }) {
-                        Image(systemName: "cube.box")
+                        Lucide("package", size: 20)
                     }
                 }
             }
@@ -101,7 +101,7 @@ struct ContentView: View {
             if let session = store.currentSession {
                 ZStack {
                     // Background
-                    Color(uiColor: .systemGroupedBackground)
+                    DS.bg
                         .ignoresSafeArea()
                     
                     VStack(spacing: 0) {
@@ -202,38 +202,37 @@ struct ContentView: View {
                     // Input bar lives in a bottom safe-area inset: a system
                     // "floating" layer the OS renders itself (Liquid Glass on iOS 26+).
                     // We only describe the contents and sizes — never the look.
+                    // Floating input dock — a detached glass capsule (2026
+                    // "floating dock" pattern): content only, look via tokens.
                     .safeAreaInset(edge: .bottom) {
-                        HStack(alignment: .bottom, spacing: 12) {
+                        HStack(alignment: .bottom, spacing: DS.Space.s) {
 
-                            // Image Upload Button
+                            // Attach
                             Button(action: { showingAttachDialog = true }) {
-                                Image(systemName: "plus.circle.fill")
-                                    .font(.system(size: 28))
+                                Lucide("plus", size: 20)
+                                    .foregroundStyle(.secondary)
+                                    .frame(width: 38, height: 38)
+                                    .background(DS.surfaceElevated, in: Circle())
                             }
+                            .buttonStyle(PressableStyle())
 
                             TextField("Message LFM...", text: $inputText, axis: .vertical)
                                 .focused($isInputFocused)
                                 .lineLimit(1...6)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 11)
-                                .background(Color(uiColor: .secondarySystemBackground),
-                                            in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 22, style: .continuous)
-                                        .strokeBorder(Color(uiColor: .separator).opacity(0.5), lineWidth: 0.5)
-                                )
+                                .padding(.horizontal, DS.Space.m)
+                                .padding(.vertical, 9)
 
                             if store.isLoadingResponse {
-                                // STOP BUTTON to cancel response generation
                                 Button(action: {
                                     store.stopGeneration()
                                 }) {
-                                    Image(systemName: "stop.circle.fill")
-                                        .font(.system(size: 32))
+                                    Lucide("circle-stop", size: 20)
                                         .foregroundStyle(.red)
+                                        .frame(width: 38, height: 38)
+                                        .background(DS.surfaceElevated, in: Circle())
                                 }
+                                .buttonStyle(PressableStyle())
                             } else {
-                                // SEND BUTTON
                                 Button(action: {
                                     let text = inputText
                                     let img = attachedImage
@@ -245,16 +244,25 @@ struct ContentView: View {
                                         await store.sendMessage(text, attachedImage: img)
                                     }
                                 }) {
-                                    Image(systemName: "arrow.up.circle.fill")
-                                        .font(.system(size: 32))
-                                        .symbolEffect(.bounce, value: inputText.isEmpty)
+                                    Lucide("arrow-up", size: 20)
+                                        .foregroundStyle(DS.onAccent)
+                                        .frame(width: 38, height: 38)
+                                        .background(DS.accentGradient, in: Circle())
+                                        .opacity(inputText.isEmpty && attachedImage == nil ? 0.4 : 1)
                                 }
+                                .buttonStyle(PressableStyle())
                                 .disabled(inputText.isEmpty && attachedImage == nil)
                             }
                         }
-                        .padding(.horizontal)
-                        .padding(.vertical, 8)
-                        .background(.bar)
+                        .padding(DS.Space.s)
+                        .background(.ultraThinMaterial,
+                                    in: RoundedRectangle(cornerRadius: DS.Radius.l + 2, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: DS.Radius.l + 2, style: .continuous)
+                                .strokeBorder(DS.stroke, lineWidth: 1))
+                        .shadow(color: .black.opacity(0.12), radius: 18, y: 8)
+                        .padding(.horizontal, DS.Space.m)
+                        .padding(.bottom, DS.Space.s)
                     }
                 }
                 .navigationTitle(session.modelName)
@@ -276,7 +284,7 @@ struct ContentView: View {
                         Button {
                             store.toggleConversationMode()
                         } label: {
-                            Image(systemName: store.conversationMode ? "waveform.circle.fill" : "waveform.circle")
+                            Lucide("audio-lines", size: 20)
                                 .foregroundStyle(store.conversationMode ? AnyShapeStyle(.tint) : AnyShapeStyle(.primary))
                         }
                         .accessibilityLabel(store.conversationMode ? "Stop voice conversation" : "Start voice conversation")
@@ -286,7 +294,7 @@ struct ContentView: View {
                             store.speakResponses.toggle()
                             if !store.speakResponses { store.stopSpeaking() }
                         } label: {
-                            Image(systemName: store.speakResponses ? "speaker.wave.2.fill" : "speaker.slash.fill")
+                            Lucide(store.speakResponses ? "volume-2" : "volume-x", size: 20)
                         }
                         .accessibilityLabel(store.speakResponses ? "Turn off spoken replies" : "Turn on spoken replies")
                     }
@@ -305,7 +313,7 @@ struct ContentView: View {
                                       systemImage: "graduationcap")
                             }
                         } label: {
-                            Image(systemName: "camera.badge.ellipsis")
+                            Lucide("camera", size: 20)
                         }
                         .accessibilityLabel(appLanguage == "ru" ? "Камера" : "Camera")
                     }
@@ -317,7 +325,7 @@ struct ContentView: View {
                             userLanguageCodeTemp = session.languageCode
                             showingSettings = true
                         }) {
-                            Image(systemName: "slider.horizontal.3")
+                            Lucide("sliders-horizontal", size: 20)
                         }
                     }
                 }
@@ -511,14 +519,14 @@ struct ContentView: View {
             }
         }
         .tabItem {
-            Label(AppText.get(.tabChat, lang: appLanguage), systemImage: "bubble.left.and.bubble.right")
+            Label(AppText.get(.tabChat, lang: appLanguage), image: "message-square")
         }
         
         NavigationStack {
             LabView()
         }
         .tabItem {
-            Label(AppText.get(.tabLab, lang: appLanguage), systemImage: "flask.fill")
+            Label(AppText.get(.tabLab, lang: appLanguage), image: "flask-conical")
         }
     }
 }
@@ -600,27 +608,32 @@ struct MessageBubbleView: View {
                         Button(action: {
                             onPlayAudio(audData)
                         }) {
-                            Image(systemName: "play.circle.fill")
-                                .font(.title2)
-                                .foregroundStyle(message.isUser ? AnyShapeStyle(.white) : AnyShapeStyle(.tint))
+                            Lucide("play", size: 18)
+                                .foregroundStyle(message.isUser ? AnyShapeStyle(DS.onAccent) : AnyShapeStyle(.tint))
                         }
                     }
 
                     Text(formattedContent)
                         .font(.body)
-                        .foregroundStyle(message.isUser ? AnyShapeStyle(.white) : AnyShapeStyle(.primary))
+                        .foregroundStyle(message.isUser ? AnyShapeStyle(DS.onAccent) : AnyShapeStyle(.primary))
                         .textSelection(.enabled)
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
                 .background {
                     if message.isUser {
-                        Color.accentColor
+                        DS.accentGradient
                     } else {
-                        Color(uiColor: .secondarySystemGroupedBackground)
+                        DS.surface
                     }
                 }
-                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: DS.Radius.l, style: .continuous))
+                .overlay {
+                    if !message.isUser {
+                        RoundedRectangle(cornerRadius: DS.Radius.l, style: .continuous)
+                            .strokeBorder(DS.stroke, lineWidth: 1)
+                    }
+                }
                 .contextMenu {
                     Button {
                         UIPasteboard.general.string = message.content
@@ -653,7 +666,7 @@ struct MessageBubbleView: View {
                             Button {
                                 onSpeak?(message.content)
                             } label: {
-                                Image(systemName: "speaker.wave.2.fill")
+                                Lucide("volume-2", size: 14)
                             }
                             .buttonStyle(.borderless)
                         }

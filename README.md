@@ -16,14 +16,15 @@ Local LFM2/LFM2.5 language & vision models (Liquid AI LEAP SDK) + Apple's on-dev
 
 - 💬 **Local LLM chat** — streaming token output, markdown rendering, tokens/sec metric, stop button, multiple sessions with per-session model & system prompt.
 - 🖼️ **Vision chat** — attach photos (camera / library); the VL model genuinely *sees* the image. Text-only models receive an Apple-Vision-generated scene description instead.
-- 👁️ **Agent Vision (live mode)** — the camera watches the world at 1 Hz; the agent **narrates aloud** what it sees, and when it meets a *stable unknown object* it **asks you by voice** what to call it, listens, and **remembers it forever** (visual feature print + knowledge-graph node).
+- 👁️ **Agent Vision (live mode)** — the camera watches the world at 1 Hz; the agent **narrates aloud** what it sees (one crisp sentence, with a Skip button to interrupt), and when it meets a *stable unknown object* it **asks you by voice** what to call it, listens, and **remembers it forever** (visual feature print + knowledge-graph node). Frame analysis pauses while the LLM thinks, so vision and inference never fight for the Neural Engine.
 - 🧠 **Zero-shot recognition (MobileCLIP)** — an LLM wrote a 1,215-object vocabulary at build time; MobileCLIP's text encoder turned it into vectors on the Mac; on device only the 22 MB image encoder runs. The agent recognizes over a thousand object types **it was never trained on** — offline.
 - 📚 **Implanted world knowledge** — 246 everyday object categories with LLM-synthesized facts, seeded into an on-device knowledge graph (nodes, typed edges, 2-hop traversal). See a mug → hear what mugs are for.
 - 🎓 **Instance memory** — teach it *your* mug vs. any mug: `VNGenerateImageFeaturePrintRequest` embeddings, cosine matching, 3-frame averaging, `instance_of` links into the graph.
 - 🗣️ **Voice, both ways** — on-device TTS (streamed sentence-by-sentence *while the reply generates*), voice picker with Premium/Enhanced voices, and a **hands-free conversation loop**: listen → recognize (strictly on-device STT) → answer → speak → listen again.
 - 📦 **Model manager (LM-Studio style)** — download / activate / delete models with live progress, plus a per-device fit check (RAM & free storage → *Fits / Heavy / Too large / No space*).
 - 🔬 **Lab** — LiDAR-assisted object measurements and a Metal compute-shader GPU vs CPU vector-search benchmark.
-- 🌐 **RU / EN localization**, dark/light/system themes, optional offline translation layer, QCA · Ocean reasoning persona preset.
+- 🌐 **RU / EN localization**, dark/light/system themes, offline translation layer, QCA · Ocean reasoning persona preset.
+- 🎨 **"Private Intelligence" design system** — graphite surfaces with a single liquid-mint accent, floating glass input dock, token-driven theming (`DesignSystem.swift`), and [Lucide](https://lucide.dev) icons shipped as template vector assets.
 
 ---
 
@@ -126,6 +127,8 @@ Sources/
 ├── SpeechManager.swift        # TTS: streaming sentences, voice selection
 ├── SpeechRecognizer.swift     # Strictly on-device STT with end-of-turn detection
 ├── PromptPresets.swift        # QCA · Ocean reasoning persona
+├── DesignSystem.swift         # Design tokens: colors, radii, type, Lucide helper
+├── Assets.xcassets/Icons/     # Lucide icon set (30 template vector assets)
 ├── LabView.swift              # LiDAR measurements + Metal GPU benchmark
 └── ...
 Resources/

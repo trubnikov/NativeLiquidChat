@@ -12,6 +12,7 @@ struct NativeLiquidChatApp: App {
         WindowGroup {
             ContentView()
                 .preferredColorScheme(theme.colorScheme)
+                .tint(DS.accent)
         }
     }
 }

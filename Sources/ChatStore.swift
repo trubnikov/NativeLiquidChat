@@ -206,7 +206,7 @@ class ChatStore {
         loadedModelName = nil
 
         do {
-            let options = LiquidInferenceEngineManifestOptions().with(contextSize: 2048)
+            let options = LiquidInferenceEngineManifestOptions().with(contextSize: 4096)
 
             let runner = try await Leap.shared.load(
                 model: modelName,
@@ -353,15 +353,19 @@ class ChatStore {
         let isRu = (UserDefaults.standard.string(forKey: "appLanguage") ?? AppLanguage.russian.rawValue) == AppLanguage.russian.rawValue
 
         var ragContext = ""
-        if !graphFacts.isEmpty {
+        // Cap injected knowledge hard: the small model's context is precious,
+        // and an overstuffed prompt made photo replies come back empty.
+        let cappedGraphFacts = graphFacts.prefix(2).map { String($0.prefix(180)) }
+        let cappedRag = textRagResults.prefix(2)
+        if !cappedGraphFacts.isEmpty {
             let header = isRu ? "Факты из графа знаний о замеченных объектах:"
                               : "Knowledge-graph facts about the detected objects:"
-            ragContext += "\n" + header + "\n" + graphFacts.map { "- \($0)" }.joined(separator: "\n")
+            ragContext += "\n" + header + "\n" + cappedGraphFacts.map { "- \($0)" }.joined(separator: "\n")
         }
-        if !textRagResults.isEmpty {
+        if !cappedRag.isEmpty {
             let header = isRu ? "Релевантные факты из документов RAG:"
                               : "Relevant facts from RAG documents:"
-            ragContext += "\n" + header + "\n" + textRagResults.map { "- \($0.chunk) (\($0.parentDoc))" }.joined(separator: "\n")
+            ragContext += "\n" + header + "\n" + cappedRag.map { "- \(String($0.chunk.prefix(200))) (\($0.parentDoc))" }.joined(separator: "\n")
         }
 
         if !ragContext.isEmpty {

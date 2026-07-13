@@ -8,10 +8,9 @@ struct ConversationBanner: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.title3)
+            Lucide(icon, size: 20)
                 .foregroundStyle(.tint)
-                .symbolEffect(.variableColor.iterative, isActive: phase == .listening)
+                .symbolEffect(.pulse, isActive: phase == .listening)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(label)
@@ -28,16 +27,18 @@ struct ConversationBanner: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(uiColor: .secondarySystemGroupedBackground),
-                    in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(.ultraThinMaterial,
+                    in: RoundedRectangle(cornerRadius: DS.Radius.m, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: DS.Radius.m, style: .continuous)
+            .strokeBorder(DS.stroke, lineWidth: 1))
     }
 
     private var icon: String {
         switch phase {
-        case .idle: return "waveform"
-        case .listening: return "waveform"
-        case .thinking: return "ellipsis.circle"
-        case .speaking: return "speaker.wave.2.fill"
+        case .idle: return "audio-lines"
+        case .listening: return "audio-lines"
+        case .thinking: return "brain"
+        case .speaking: return "volume-2"
         }
     }
 

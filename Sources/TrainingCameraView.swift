@@ -289,6 +289,10 @@ class CameraViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampl
     private let videoDataOutput = AVCaptureVideoDataOutput()
     private let cameraQueue = DispatchQueue(label: "camera.frame.processing")
     
+    /// Agent coordinator flips this off while the LFM is thinking/speaking so
+    /// CLIP/Vision don't fight the LLM for the ANE/GPU (froze the preview).
+    var analysisEnabled = true
+    private var isProcessingFrame = false
     private var lastAnalysisTime: Date = .distantPast
     private(set) var currentClassifications: [String: Double] = [:]
     /// Ring buffer of the last few visual feature prints; averaged on train so a
@@ -377,8 +381,11 @@ class CameraViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampl
     // SampleBuffer Delegate to analyze frames at 1Hz throttle rate
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         let now = Date()
-        guard now.timeIntervalSince(lastAnalysisTime) >= 1.0 else { return }
+        guard analysisEnabled, !isProcessingFrame,
+              now.timeIntervalSince(lastAnalysisTime) >= 1.0 else { return }
         lastAnalysisTime = now
+        isProcessingFrame = true
+        defer { isProcessingFrame = false }
         
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         

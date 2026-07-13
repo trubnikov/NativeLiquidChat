@@ -11,15 +11,14 @@ struct TypingIndicator: View {
             ForEach(0..<dotCount, id: \.self) { index in
                 Circle()
                     .frame(width: 7, height: 7)
-                    .foregroundStyle(.secondary)
-                    .opacity(phase == index ? 1 : 0.3)
+                    .foregroundStyle(DS.accent)
+                    .opacity(phase == index ? 1 : 0.25)
                     .scaleEffect(phase == index ? 1.0 : 0.7)
             }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
-        .background(Color(uiColor: .secondarySystemGroupedBackground),
-                    in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .dsCard(radius: DS.Radius.l)
         .onReceive(timer) { _ in
             withAnimation(.easeInOut(duration: 0.25)) {
                 phase = (phase + 1) % dotCount
