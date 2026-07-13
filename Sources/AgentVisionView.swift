@@ -237,6 +237,15 @@ final class AgentVisionCoordinator: ObservableObject {
         speech.speak(confirm)
     }
 
+    /// Focus zone moved — forget the old scene so recognition restarts cleanly.
+    func focusChanged() {
+        stableLabel = nil
+        stableCount = 0
+        currentSeen = ""
+        camera.matchedLabel = nil
+        camera.dominantLabel = nil
+    }
+
     /// User-initiated interrupt: stop talking/listening and go back to watching.
     func skip() {
         speech.stop()
@@ -263,12 +272,29 @@ struct AgentVisionView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var agent = AgentVisionCoordinator()
     let store: ChatStore
+    /// Focus zone center in screen coords (nil = screen center).
+    @State private var focusScreenPoint: CGPoint? = nil
 
     var body: some View {
+        GeometryReader { geo in
         ZStack {
             if agent.camera.isCameraAuthorized {
-                CameraPreviewView(session: agent.camera.captureSession)
-                    .ignoresSafeArea()
+                CameraPreviewView(session: agent.camera.captureSession) { device, view in
+                    agent.camera.focusDevicePoint = device
+                    focusScreenPoint = view
+                    agent.focusChanged()
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                }
+                .ignoresSafeArea()
+
+                // Tap-to-focus zone: recognition happens ONLY inside the frame.
+                FocusOverlay(
+                    center: focusScreenPoint ?? CGPoint(x: geo.size.width / 2,
+                                                        y: geo.size.height / 2 - 40),
+                    label: agent.currentSeen,
+                    isTrained: agent.camera.matchedLabel != nil
+                )
+                .ignoresSafeArea()
             } else {
                 Color.black.ignoresSafeArea()
                 Text("Camera access required")
@@ -354,6 +380,7 @@ struct AgentVisionView: View {
         }
         .onAppear { agent.start(store: store) }
         .onDisappear { agent.stop() }
+        }
     }
 
     private var phaseChip: some View {

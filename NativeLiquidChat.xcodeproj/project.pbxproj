@@ -44,6 +44,7 @@
 		D70DB2847C4E55FCBAA218B2 /* KnowledgeGraphView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6DF8B3584B34B39EE340864 /* KnowledgeGraphView.swift */; };
 		DEF3041FF678D6DF30508A01 /* VoicePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3066218725958F09A3B263 /* VoicePickerView.swift */; };
 		ECBC2740A54642068AC28B62 /* GPUSimilarityEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D50613748C8AF0893CBFD17 /* GPUSimilarityEngine.swift */; };
+		EF13258264AD760235A39CCB /* FocusOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B04BBD4BD7AC1B020A46B48 /* FocusOverlay.swift */; };
 		F1A8D64143E81279725103EC /* VisionProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C895E9A62763237D24867D3 /* VisionProcessor.swift */; };
 		F7EA8DED2ACC07A2AF145916 /* VectorSearch.metal in Sources */ = {isa = PBXBuildFile; fileRef = BDE2E153EEE1892D2D0A3866 /* VectorSearch.metal */; };
 		FC6FF8FF1C761DA4E1C63FA0 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC36999EC0C748E6C0D2CD5C /* AppTheme.swift */; };
@@ -63,6 +64,7 @@
 /* Begin PBXFileReference section */
 		01B274B2CD6315298B8BDBE6 /* NativeLiquidChat.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = NativeLiquidChat.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878B3A98605D4BDEC699587 /* ChatStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatStorageTests.swift; sourceTree = "<group>"; };
+		0B04BBD4BD7AC1B020A46B48 /* FocusOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusOverlay.swift; sourceTree = "<group>"; };
 		0C7B76C167EF4958D8DA35E4 /* AudioPlaybackManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlaybackManager.swift; sourceTree = "<group>"; };
 		15A2F55129813D3BE7737388 /* EmptyChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyChatView.swift; sourceTree = "<group>"; };
 		15DD8185353ED69EB9F33C82 /* LabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabView.swift; sourceTree = "<group>"; };
@@ -141,6 +143,7 @@
 				A772B8164598C45FFC9648D9 /* ConversationBanner.swift */,
 				6CC0A995538EEBA3AFEA9B69 /* DesignSystem.swift */,
 				15A2F55129813D3BE7737388 /* EmptyChatView.swift */,
+				0B04BBD4BD7AC1B020A46B48 /* FocusOverlay.swift */,
 				4D50613748C8AF0893CBFD17 /* GPUSimilarityEngine.swift */,
 				171354B165D3A2E3DC13D0F8 /* KnowledgeGraphManager.swift */,
 				A6DF8B3584B34B39EE340864 /* KnowledgeGraphView.swift */,
@@ -342,6 +345,7 @@
 				0D25B4D5F6465965507D9D6B /* ConversationBanner.swift in Sources */,
 				86BE4A6BEEA5D12C1F490295 /* DesignSystem.swift in Sources */,
 				6C5CC08B0433FA961FADE3E7 /* EmptyChatView.swift in Sources */,
+				EF13258264AD760235A39CCB /* FocusOverlay.swift in Sources */,
 				ECBC2740A54642068AC28B62 /* GPUSimilarityEngine.swift in Sources */,
 				225F1DA45EA7A6505A504E48 /* KnowledgeGraphManager.swift in Sources */,
 				D70DB2847C4E55FCBAA218B2 /* KnowledgeGraphView.swift in Sources */,

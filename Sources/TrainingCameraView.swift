@@ -7,14 +7,28 @@ struct TrainingCameraView: View {
     @StateObject private var model = CameraViewModel()
     @State private var showingCustomNameInput = false
     @State private var customNameText = ""
+    @State private var focusScreenPoint: CGPoint? = nil
     @AppStorage("appLanguage") private var appLanguage = AppLanguage.russian.rawValue
-    
+
     var body: some View {
+        GeometryReader { geo in
         ZStack {
             // Live camera view layer
             if model.isCameraAuthorized {
-                CameraPreviewView(session: model.captureSession)
-                    .ignoresSafeArea()
+                CameraPreviewView(session: model.captureSession) { device, view in
+                    model.focusDevicePoint = device
+                    focusScreenPoint = view
+                    model.matchedLabel = nil
+                    model.dominantLabel = nil
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                }
+                .ignoresSafeArea()
+
+                FocusOverlay(
+                    center: focusScreenPoint ?? CGPoint(x: geo.size.width / 2,
+                                                        y: geo.size.height / 2 - 40)
+                )
+                .ignoresSafeArea()
             } else {
                 Color.black
                     .ignoresSafeArea()
@@ -33,20 +47,6 @@ struct TrainingCameraView: View {
                     .buttonStyle(.borderedProminent)
                 }
                 .padding()
-            }
-            
-            // Focus overlay (Reticle in center)
-            VStack {
-                Spacer()
-                RoundedRectangle(cornerRadius: 16)
-                    .strokeBorder(Color.white.opacity(0.6), style: StrokeStyle(lineWidth: 2, dash: [10, 10]))
-                    .frame(width: 200, height: 200)
-                    .overlay(
-                        Image(systemName: "plus")
-                            .foregroundColor(.white.opacity(0.4))
-                            .font(.title)
-                    )
-                Spacer()
             }
             
             // Top Controls (Dismiss)
@@ -236,6 +236,7 @@ struct TrainingCameraView: View {
         .onDisappear {
             model.stopSession()
         }
+        }
     }
 }
 
@@ -243,18 +244,30 @@ class CameraPreviewUIView: UIView {
     override class var layerClass: AnyClass {
         return AVCaptureVideoPreviewLayer.self
     }
-    
+
     var previewLayer: AVCaptureVideoPreviewLayer {
         return layer as! AVCaptureVideoPreviewLayer
     }
-    
+
+    /// Called with (devicePoint 0…1, viewPoint in this view's coords) on tap.
+    var onTap: ((CGPoint, CGPoint) -> Void)?
+
     init(session: AVCaptureSession) {
         super.init(frame: .zero)
         backgroundColor = .black
         previewLayer.session = session
         previewLayer.videoGravity = .resizeAspectFill
+        let tap = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
+        addGestureRecognizer(tap)
     }
-    
+
+    @objc private func handleTap(_ g: UITapGestureRecognizer) {
+        let viewPoint = g.location(in: self)
+        // Correct mapping through aspect-fill + rotation into sensor coords.
+        let devicePoint = previewLayer.captureDevicePointConverted(fromLayerPoint: viewPoint)
+        onTap?(devicePoint, viewPoint)
+    }
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -263,12 +276,16 @@ class CameraPreviewUIView: UIView {
 // SwiftUI camera preview wrapper
 struct CameraPreviewView: UIViewRepresentable {
     let session: AVCaptureSession
-    
+    var onTap: ((CGPoint, CGPoint) -> Void)? = nil
+
     func makeUIView(context: Context) -> CameraPreviewUIView {
-        return CameraPreviewUIView(session: session)
+        let v = CameraPreviewUIView(session: session)
+        v.onTap = onTap
+        return v
     }
-    
+
     func updateUIView(_ uiView: CameraPreviewUIView, context: Context) {
+        uiView.onTap = onTap
     }
 }
 
@@ -292,6 +309,23 @@ class CameraViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampl
     /// Agent coordinator flips this off while the LFM is thinking/speaking so
     /// CLIP/Vision don't fight the LLM for the ANE/GPU (froze the preview).
     var analysisEnabled = true
+
+    /// Where recognition looks, in capture-device coordinates (0…1, top-left
+    /// origin). Tap-to-focus moves this; recognition uses ONLY this zone, so a
+    /// cluttered scene no longer confuses the matchers.
+    @Published var focusDevicePoint = CGPoint(x: 0.5, y: 0.5)
+    /// Side of the square focus zone as a fraction of the frame.
+    let focusZoneSide: CGFloat = 0.42
+
+    /// Vision-style normalized ROI (bottom-left origin) around the focus point.
+    var visionROI: CGRect {
+        let s = focusZoneSide
+        var x = focusDevicePoint.x - s/2
+        var y = (1 - focusDevicePoint.y) - s/2   // flip to bottom-left origin
+        x = min(max(x, 0), 1 - s)
+        y = min(max(y, 0), 1 - s)
+        return CGRect(x: x, y: y, width: s, height: s)
+    }
     private var isProcessingFrame = false
     private var lastAnalysisTime: Date = .distantPast
     private(set) var currentClassifications: [String: Double] = [:]
@@ -392,9 +426,10 @@ class CameraViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampl
         // Build image request handler on pixel buffer
         let requestHandler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .up, options: [:])
 
-        // Visual feature print of the reticle area — true instance recognition.
+        // Visual feature print of the focus zone — true instance recognition.
+        let roi = visionROI
         let printRequest = VNGenerateImageFeaturePrintRequest()
-        printRequest.regionOfInterest = CGRect(x: 0.25, y: 0.25, width: 0.5, height: 0.5)
+        printRequest.regionOfInterest = roi
 
         let classificationRequest = VNClassifyImageRequest { request, error in
             guard error == nil,
@@ -402,8 +437,8 @@ class CameraViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampl
                 return
             }
         }
-        // Focus the classification on the central rect to align with the reticle
-        classificationRequest.regionOfInterest = CGRect(x: 0.25, y: 0.25, width: 0.5, height: 0.5)
+        // Classification looks only inside the focus zone.
+        classificationRequest.regionOfInterest = roi
 
         DispatchQueue.main.async {
             self.isAnalyzing = true
@@ -430,7 +465,7 @@ class CameraViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampl
 
             // Zero-shot open-vocabulary label via MobileCLIP — concrete nouns
             // ("mug") instead of Apple's abstract taxonomy ("structure").
-            let clipMatch = CLIPEngine.shared.bestLabel(pixelBuffer: pixelBuffer)
+            let clipMatch = CLIPEngine.shared.bestLabel(pixelBuffer: pixelBuffer, roi: roi)
 
             DispatchQueue.main.async {
                 self.analysisTimeMs = duration

@@ -80,11 +80,17 @@ final class CLIPEngine {
 
     // MARK: - Embedding
 
-    /// Embeds a camera frame (Vision handles center-crop + resize to 256).
-    func embed(pixelBuffer: CVPixelBuffer) -> [Float]? {
+    /// Embeds a camera frame. When `roi` is given (normalized, bottom-left
+    /// origin), only that zone is embedded — tap-to-focus recognition.
+    func embed(pixelBuffer: CVPixelBuffer, roi: CGRect? = nil) -> [Float]? {
         guard let visionModel else { return nil }
         let request = VNCoreMLRequest(model: visionModel)
-        request.imageCropAndScaleOption = .centerCrop
+        if let roi {
+            request.regionOfInterest = roi
+            request.imageCropAndScaleOption = .scaleFill   // ROI is already square
+        } else {
+            request.imageCropAndScaleOption = .centerCrop
+        }
         let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .up)
         return runEmbed(request: request, handler: handler)
     }
@@ -133,9 +139,9 @@ final class CLIPEngine {
         return idx.map { Match(label: labels[$0], score: scores[$0]) }
     }
 
-    /// One-call helper: best accepted label for a frame, or nil.
-    func bestLabel(pixelBuffer: CVPixelBuffer) -> Match? {
-        guard let emb = embed(pixelBuffer: pixelBuffer) else { return nil }
+    /// One-call helper: best accepted label for a frame (optionally a zone), or nil.
+    func bestLabel(pixelBuffer: CVPixelBuffer, roi: CGRect? = nil) -> Match? {
+        guard let emb = embed(pixelBuffer: pixelBuffer, roi: roi) else { return nil }
         let top = classify(emb, topK: 3)
         #if DEBUG
         let s = top.map { "\($0.label)=\(String(format: "%.3f", $0.score))" }.joined(separator: ", ")
