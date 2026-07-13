@@ -59,8 +59,8 @@ enum DS {
 
     enum Radius {
         static let s: CGFloat = 12
-        static let m: CGFloat = 18
-        static let l: CGFloat = 26
+        static let m: CGFloat = 20
+        static let l: CGFloat = 28
     }
 
     enum Space {
@@ -78,28 +78,6 @@ enum DS {
     }
 }
 
-// MARK: - Lucide icon
-
-/// Renders a bundled Lucide SVG (template) at a given size, tinted by the
-/// current foreground style.
-struct Lucide: View {
-    let name: String
-    var size: CGFloat = 20
-
-    init(_ name: String, size: CGFloat = 20) {
-        self.name = name
-        self.size = size
-    }
-
-    var body: some View {
-        Image(name)
-            .renderingMode(.template)
-            .resizable()
-            .scaledToFit()
-            .frame(width: size, height: size)
-    }
-}
-
 // MARK: - Reusable styles
 
 /// Micro-interaction: cards and chips compress slightly under the finger.
@@ -113,15 +91,16 @@ struct PressableStyle: ButtonStyle {
     }
 }
 
-/// Soft elevated card used across the app.
+/// Soft elevated card used across the app with glassmorphism.
 struct DSCard: ViewModifier {
     var radius: CGFloat = DS.Radius.m
     func body(content: Content) -> some View {
         content
-            .background(DS.surface, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: radius, style: .continuous)
                     .strokeBorder(DS.stroke, lineWidth: 1))
+            .shadow(color: .black.opacity(0.12), radius: 12, y: 6)
     }
 }
 

@@ -42,7 +42,7 @@ struct FocusOverlay: View {
             // Label chip under the zone: what the camera sees HERE.
             if !label.isEmpty {
                 HStack(spacing: 6) {
-                    Lucide(isTrained ? "sparkles" : "eye", size: 13)
+                    Image(systemName: isTrained ? "sparkles" : "eye").font(.system(size: 13))
                     Text(label)
                         .font(.footnote.weight(.semibold))
                         .lineLimit(1)

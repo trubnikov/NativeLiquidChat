@@ -23,14 +23,6 @@ struct ModelInfo: Identifiable, Hashable, Codable {
             }
         }
 
-        /// Lucide asset name for the design system.
-        var lucideName: String {
-            switch self {
-            case .text: return "message-square"
-            case .vision: return "eye"
-            case .audio: return "audio-lines"
-            }
-        }
     }
 
     let id: String          // the modelName passed to the SDK

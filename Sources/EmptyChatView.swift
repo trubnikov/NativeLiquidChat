@@ -21,7 +21,7 @@ struct EmptyChatView: View {
 
     var body: some View {
         VStack(spacing: 20) {
-            Lucide(info?.kind.lucideName ?? "message-square", size: 34)
+            Image(systemName: info?.kind.iconName ?? "message").font(.system(size: 34))
                 .foregroundStyle(DS.onAccent)
                 .frame(width: 76, height: 76)
                 .background(DS.accentGradient, in: RoundedRectangle(cornerRadius: DS.Radius.l, style: .continuous))
@@ -55,7 +55,7 @@ struct EmptyChatView: View {
                             Text(prompt)
                                 .multilineTextAlignment(.leading)
                             Spacer()
-                            Lucide("sparkles", size: 14)
+                            Image(systemName: "sparkles").font(.system(size: 14))
                                 .foregroundStyle(DS.accent)
                         }
                         .padding(.horizontal, 16)

@@ -3,7 +3,7 @@
 # LeapSDK is arm64-only and the Mac is Intel, so the simulator can't be used — device only.
 set -e
 
-DEVICE_ID="00008120-00046C2A348BC01E"   # iPhone Dima T (2) — iPhone 14 Pro Max
+DEVICE_ID="024A4A30-2146-5D7E-8C4B-7AA13A4C4CF0"   # iPhone Dima T (2) — iPhone 14 Pro Max
 BUNDLE_ID="com.dimatrubnikov.NativeLiquidChat"
 SCHEME="NativeLiquidChat"
 

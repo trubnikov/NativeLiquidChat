@@ -8,7 +8,7 @@ struct ConversationBanner: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Lucide(icon, size: 20)
+            Image(systemName: icon).font(.system(size: 20))
                 .foregroundStyle(.tint)
                 .symbolEffect(.pulse, isActive: phase == .listening)
 
@@ -35,10 +35,10 @@ struct ConversationBanner: View {
 
     private var icon: String {
         switch phase {
-        case .idle: return "audio-lines"
-        case .listening: return "audio-lines"
-        case .thinking: return "brain"
-        case .speaking: return "volume-2"
+        case .idle: return "waveform"
+        case .listening: return "waveform"
+        case .thinking: return "brain.head.profile"
+        case .speaking: return "speaker.wave.2.fill"
         }
     }
 

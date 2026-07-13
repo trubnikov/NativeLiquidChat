@@ -31,7 +31,7 @@ struct ContentView: View {
     @FocusState private var isInputFocused: Bool
     
     var body: some View {
-        TabView {
+        // TabView {
             NavigationSplitView {
             // SIDEBAR: Chat History List
             List(selection: $store.currentSessionId) {
@@ -39,7 +39,8 @@ struct ContentView: View {
                     ForEach(store.sessions) { session in
                         NavigationLink(value: session.id) {
                             HStack {
-                                Lucide(session.modelName.contains("VL") ? "eye" : session.modelName.contains("Audio") ? "audio-lines" : "message-square", size: 18)
+                                Image(systemName: session.modelName.contains("VL") ? "eye" : session.modelName.contains("Audio") ? "waveform" : "message")
+                                    .font(.system(size: 18))
                                     .foregroundStyle(.tint)
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(session.title)
@@ -84,12 +85,12 @@ struct ContentView: View {
                             store.createSession()
                         }
                     }) {
-                        Lucide("pencil", size: 20)
+                        Image(systemName: "square.and.pencil").font(.system(size: 20))
                     }
                 }
                 ToolbarItem(placement: .topBarLeading) {
                     Button(action: { showingModels = true }) {
-                        Lucide("package", size: 20)
+                        Image(systemName: "shippingbox").font(.system(size: 20))
                     }
                 }
             }
@@ -101,7 +102,7 @@ struct ContentView: View {
             if let session = store.currentSession {
                 ZStack {
                     // Background
-                    DS.bg
+                    AnimatedMeshBackground()
                         .ignoresSafeArea()
                     
                     VStack(spacing: 0) {
@@ -209,12 +210,32 @@ struct ContentView: View {
 
                             // Attach
                             Button(action: { showingAttachDialog = true }) {
-                                Lucide("plus", size: 20)
+                                Image(systemName: "plus").font(.system(size: 22))
                                     .foregroundStyle(.secondary)
-                                    .frame(width: 38, height: 38)
+                                    .frame(width: 44, height: 44)
                                     .background(DS.surfaceElevated, in: Circle())
                             }
                             .buttonStyle(PressableStyle())
+
+                            // Voice
+                            Button(action: { store.toggleConversationMode() }) {
+                                Image(systemName: "waveform").font(.system(size: 22))
+                                    .foregroundStyle(store.conversationMode ? AnyShapeStyle(DS.onAccent) : AnyShapeStyle(.secondary))
+                                    .frame(width: 44, height: 44)
+                                    .background(store.conversationMode ? AnyShapeStyle(DS.accentGradient) : AnyShapeStyle(DS.surfaceElevated), in: Circle())
+                            }
+                            .buttonStyle(PressableStyle())
+
+                            // Camera / Vision
+                            Menu {
+                                Button { showingAgentVision = true } label: { Label(appLanguage == "ru" ? "Агент смотрит" : "Agent watches", systemImage: "eye") }
+                                Button { showingTrainingCamera = true } label: { Label(appLanguage == "ru" ? "Режим обучения" : "Training mode", systemImage: "graduationcap") }
+                            } label: {
+                                Image(systemName: "camera").font(.system(size: 22))
+                                    .foregroundStyle(.secondary)
+                                    .frame(width: 44, height: 44)
+                                    .background(DS.surfaceElevated, in: Circle())
+                            }
 
                             TextField("Message LFM...", text: $inputText, axis: .vertical)
                                 .focused($isInputFocused)
@@ -226,9 +247,9 @@ struct ContentView: View {
                                 Button(action: {
                                     store.stopGeneration()
                                 }) {
-                                    Lucide("circle-stop", size: 20)
+                                    Image(systemName: "stop.circle.fill").font(.system(size: 22))
                                         .foregroundStyle(.red)
-                                        .frame(width: 38, height: 38)
+                                        .frame(width: 44, height: 44)
                                         .background(DS.surfaceElevated, in: Circle())
                                 }
                                 .buttonStyle(PressableStyle())
@@ -244,9 +265,9 @@ struct ContentView: View {
                                         await store.sendMessage(text, attachedImage: img)
                                     }
                                 }) {
-                                    Lucide("arrow-up", size: 20)
+                                    Image(systemName: "arrow.up").font(.system(size: 22))
                                         .foregroundStyle(DS.onAccent)
-                                        .frame(width: 38, height: 38)
+                                        .frame(width: 44, height: 44)
                                         .background(DS.accentGradient, in: Circle())
                                         .opacity(inputText.isEmpty && attachedImage == nil ? 0.4 : 1)
                                 }
@@ -265,6 +286,7 @@ struct ContentView: View {
                         .padding(.bottom, DS.Space.s)
                     }
                 }
+                .fontDesign(.rounded)
                 .navigationTitle(session.modelName)
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
@@ -281,52 +303,28 @@ struct ContentView: View {
                         }
                     }
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            store.toggleConversationMode()
-                        } label: {
-                            Lucide("audio-lines", size: 20)
-                                .foregroundStyle(store.conversationMode ? AnyShapeStyle(.tint) : AnyShapeStyle(.primary))
-                        }
-                        .accessibilityLabel(store.conversationMode ? "Stop voice conversation" : "Start voice conversation")
-                    }
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            store.speakResponses.toggle()
-                            if !store.speakResponses { store.stopSpeaking() }
-                        } label: {
-                            Lucide(store.speakResponses ? "volume-2" : "volume-x", size: 20)
-                        }
-                        .accessibilityLabel(store.speakResponses ? "Turn off spoken replies" : "Turn on spoken replies")
-                    }
-                    ToolbarItem(placement: .topBarTrailing) {
                         Menu {
                             Button {
-                                showingAgentVision = true
+                                store.speakResponses.toggle()
+                                if !store.speakResponses { store.stopSpeaking() }
                             } label: {
-                                Label(appLanguage == "ru" ? "Агент смотрит" : "Agent watches",
-                                      systemImage: "eye")
+                                Label(store.speakResponses ? (appLanguage == "ru" ? "Выключить озвучку" : "Turn off spoken replies") : (appLanguage == "ru" ? "Включить озвучку" : "Turn on spoken replies"), systemImage: store.speakResponses ? "speaker.wave.2.fill" : "speaker.slash.fill")
                             }
-                            Button {
-                                showingTrainingCamera = true
-                            } label: {
-                                Label(appLanguage == "ru" ? "Режим обучения" : "Training mode",
-                                      systemImage: "graduationcap")
+                            
+                            Button(action: {
+                                systemPromptTemp = session.systemPrompt
+                                selectedModelTemp = session.modelName
+                                translationEnabledTemp = session.isTranslationEnabled
+                                userLanguageCodeTemp = session.languageCode
+                                showingSettings = true
+                            }) {
+                                Label(appLanguage == "ru" ? "Настройки" : "Settings", systemImage: "slider.horizontal.3")
                             }
                         } label: {
-                            Lucide("camera", size: 20)
+                            Image(systemName: "ellipsis.circle").font(.system(size: 20))
+                                .foregroundStyle(DS.onAccent) // primary color fallback via DS.onAccent or similar if applicable, we can just use normal font
                         }
-                        .accessibilityLabel(appLanguage == "ru" ? "Камера" : "Camera")
-                    }
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button(action: {
-                            systemPromptTemp = session.systemPrompt
-                            selectedModelTemp = session.modelName
-                            translationEnabledTemp = session.isTranslationEnabled
-                            userLanguageCodeTemp = session.languageCode
-                            showingSettings = true
-                        }) {
-                            Lucide("sliders-horizontal", size: 20)
-                        }
+                        .accessibilityLabel(appLanguage == "ru" ? "Дополнительные действия" : "More actions")
                     }
                 }
                 .sheet(isPresented: $showingSettings) {
@@ -518,18 +516,18 @@ struct ContentView: View {
                 sessionToRename = nil
             }
         }
-        .tabItem {
-            Label(AppText.get(.tabChat, lang: appLanguage), image: "message-square")
-        }
-        
-        NavigationStack {
-            LabView()
-        }
-        .tabItem {
-            Label(AppText.get(.tabLab, lang: appLanguage), image: "flask-conical")
-        }
+        // .tabItem {
+        //     Label(AppText.get(.tabChat, lang: appLanguage), image: "message-square")
+        // }
+        // 
+        // NavigationStack {
+        //     LabView()
+        // }
+        // .tabItem {
+        //     Label(AppText.get(.tabLab, lang: appLanguage), image: "flask-conical")
+        // }
+        // }
     }
-}
     
     /// Two-way binding between the preset Picker and the system-prompt text:
     /// selecting a preset fills the text; editing the text shows "Custom".
@@ -608,7 +606,7 @@ struct MessageBubbleView: View {
                         Button(action: {
                             onPlayAudio(audData)
                         }) {
-                            Lucide("play", size: 18)
+                            Image(systemName: "play.fill").font(.system(size: 18))
                                 .foregroundStyle(message.isUser ? AnyShapeStyle(DS.onAccent) : AnyShapeStyle(.tint))
                         }
                     }
@@ -666,7 +664,7 @@ struct MessageBubbleView: View {
                             Button {
                                 onSpeak?(message.content)
                             } label: {
-                                Lucide("volume-2", size: 14)
+                                Image(systemName: "speaker.wave.2.fill").font(.system(size: 14))
                             }
                             .buttonStyle(.borderless)
                         }
@@ -749,5 +747,38 @@ struct ThinkingLogView: View {
             }
         }
         .frame(maxWidth: 300)
+    }
+}
+
+struct AnimatedMeshBackground: View {
+    @State private var appear = false
+    @Environment(\.colorScheme) var colorScheme
+
+    var body: some View {
+        let isDark = colorScheme == .dark
+        MeshGradient(
+            width: 3,
+            height: 3,
+            points: [
+                .init(0, 0), .init(0.5, 0), .init(1, 0),
+                .init(0, 0.5), appear ? .init(0.3, 0.5) : .init(0.7, 0.5), .init(1, 0.5),
+                .init(0, 1), .init(0.5, 1), .init(1, 1)
+            ],
+            colors: isDark ? [
+                .black, .purple.opacity(0.6), .black,
+                .indigo.opacity(0.6), .black, .blue.opacity(0.5),
+                .black, .black, .black
+            ] : [
+                .white, .purple.opacity(0.2), .white,
+                .blue.opacity(0.2), .white, .indigo.opacity(0.2),
+                .white, .white, .white
+            ]
+        )
+        .ignoresSafeArea()
+        .onAppear {
+            withAnimation(.easeInOut(duration: 8).repeatForever(autoreverses: true)) {
+                appear.toggle()
+            }
+        }
     }
 }

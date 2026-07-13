@@ -73,7 +73,7 @@ private struct ModelRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 14) {
-                Lucide(model.kind.lucideName, size: 20)
+                Image(systemName: model.kind.iconName).font(.system(size: 20))
                     .foregroundStyle(isActive ? AnyShapeStyle(DS.onAccent) : AnyShapeStyle(.secondary))
                     .frame(width: 40, height: 40)
                     .background(isActive ? AnyShapeStyle(DS.accentGradient) : AnyShapeStyle(DS.surfaceElevated),
@@ -151,7 +151,7 @@ private struct ModelRow: View {
                     .foregroundStyle(.red)
             } else {
                 Button(action: onDownload) {
-                    Lucide("download", size: 18)
+                    Image(systemName: "arrow.down.circle").font(.system(size: 18))
                         .foregroundStyle(.tint)
                         .frame(width: 36, height: 36)
                         .background(DS.surfaceElevated, in: Circle())
@@ -178,7 +178,7 @@ private struct ModelRow: View {
 
         case .downloaded:
             if isActive {
-                Lucide("check", size: 18)
+                Image(systemName: "checkmark").font(.system(size: 18))
                     .foregroundStyle(.tint)
             } else if isLoadingActive {
                 ProgressView()

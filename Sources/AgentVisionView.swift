@@ -324,7 +324,7 @@ struct AgentVisionView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     if !agent.currentSeen.isEmpty {
                         HStack(spacing: 6) {
-                            Lucide("eye", size: 15)
+                            Image(systemName: "eye").font(.system(size: 15))
                             Text(agent.currentSeen)
                         }
                         .font(.subheadline.weight(.semibold))
@@ -337,7 +337,7 @@ struct AgentVisionView: View {
                     }
                     if agent.phase == .listening {
                         HStack(spacing: 8) {
-                            Lucide("mic", size: 15)
+                            Image(systemName: "mic").font(.system(size: 15))
                                 .foregroundColor(.red)
                             Text(agent.liveTranscript.isEmpty
                                  ? "Listening…"
@@ -351,7 +351,7 @@ struct AgentVisionView: View {
                     if agent.phase != .observing {
                         Button(action: { agent.skip() }) {
                             HStack(spacing: 6) {
-                                Lucide("circle-stop", size: 15)
+                                Image(systemName: "stop.circle.fill").font(.system(size: 15))
                                 Text("Skip")
                             }
                             .font(.footnote.weight(.semibold))
@@ -387,14 +387,14 @@ struct AgentVisionView: View {
         let (icon, text): (String, String) = {
             switch agent.phase {
             case .observing: return ("eye", "Watching")
-            case .thinking: return ("brain", "Thinking…")
-            case .speaking: return ("volume-2", "Speaking")
-            case .asking: return ("message-square", "Asking")
+            case .thinking: return ("brain.head.profile", "Thinking…")
+            case .speaking: return ("speaker.wave.2.fill", "Speaking")
+            case .asking: return ("message", "Asking")
             case .listening: return ("mic", "Listening")
             }
         }()
         return HStack(spacing: 6) {
-            Lucide(icon, size: 14)
+            Image(systemName: icon).font(.system(size: 14))
             Text(text).font(.footnote.weight(.semibold))
         }
         .foregroundColor(.white)
