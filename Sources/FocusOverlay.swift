@@ -31,13 +31,21 @@ struct FocusOverlay: View {
                 .compositingGroup()
                 .allowsHitTesting(false)
 
-            // Corner brackets.
-            CornerBrackets()
-                .stroke(bracketColor, style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                .frame(width: side, height: side)
-                .position(center)
-                .shadow(color: .black.opacity(0.35), radius: 3)
-                .allowsHitTesting(false)
+            // Corner brackets: breathe softly while searching, glow when found.
+            TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: !label.isEmpty)) { timeline in
+                let t = timeline.date.timeIntervalSinceReferenceDate
+                let breathe = label.isEmpty ? 1 + 0.015 * sin(t * 2.2) : 1.0
+                CornerBrackets()
+                    .stroke(bracketColor, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                    .frame(width: side, height: side)
+                    .scaleEffect(breathe)
+                    .shadow(color: label.isEmpty ? .black.opacity(0.35)
+                                                 : DS.accent.opacity(0.55),
+                            radius: label.isEmpty ? 3 : 12)
+            }
+            .frame(width: side, height: side)
+            .position(center)
+            .allowsHitTesting(false)
 
             // Label chip under the zone: what the camera sees HERE.
             if !label.isEmpty {

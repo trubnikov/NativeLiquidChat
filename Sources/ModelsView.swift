@@ -168,6 +168,8 @@ private struct ModelRow: View {
                     Text("\(Int(status.progress * 100))%")
                         .font(.caption2.monospacedDigit())
                         .foregroundStyle(.secondary)
+                        .contentTransition(.numericText())
+                        .animation(.snappy, value: status.progress)
                 } else {
                     ProgressView()
                     Text("Preparing…")

@@ -5,6 +5,7 @@ struct EmptyChatView: View {
     let modelName: String
     let systemPrompt: String
     let onPick: (String) -> Void
+    @State private var appeared = false
 
     private var info: ModelInfo? { ModelCatalog.info(for: modelName) }
 
@@ -47,7 +48,7 @@ struct EmptyChatView: View {
             }
 
             VStack(spacing: 10) {
-                ForEach(suggestions, id: \.self) { prompt in
+                ForEach(Array(suggestions.enumerated()), id: \.element) { i, prompt in
                     Button {
                         onPick(prompt)
                     } label: {
@@ -65,11 +66,16 @@ struct EmptyChatView: View {
                     }
                     .buttonStyle(PressableStyle())
                     .foregroundStyle(.primary)
+                    .opacity(appeared ? 1 : 0)
+                    .offset(y: appeared ? 0 : 16)
+                    .animation(.snappy(duration: 0.4).delay(0.15 + Double(i) * 0.07),
+                               value: appeared)
                 }
             }
             .padding(.horizontal)
             .padding(.top, 8)
         }
         .frame(maxWidth: 440)
+        .onAppear { appeared = true }
     }
 }

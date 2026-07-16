@@ -29,6 +29,8 @@ struct ContentView: View {
     @AppStorage("appTheme") private var appThemeRaw = AppTheme.system.rawValue
 
     @FocusState private var isInputFocused: Bool
+    @State private var showJumpToLatest = false
+    @State private var chatViewportHeight: CGFloat = 0
     
     var body: some View {
         // TabView {
@@ -128,6 +130,11 @@ struct ContentView: View {
                                             store.speak(text)
                                         })
                                         .transition(.move(edge: msg.isUser ? .trailing : .leading).combined(with: .opacity))
+                                        .scrollTransition(.interactive) { content, phase in
+                                            content
+                                                .opacity(phase.isIdentity ? 1 : 0.55)
+                                                .scaleEffect(phase.isIdentity ? 1 : 0.97)
+                                        }
                                     }
                                     // Streaming message
                                     if store.isLoadingResponse && !store.currentAssistantMessage.isEmpty {
@@ -143,10 +150,45 @@ struct ContentView: View {
                                     }
 
                                     Color.clear.frame(height: 8).id("bottom")
+                                        .background(GeometryReader { g in
+                                            Color.clear.preference(
+                                                key: BottomMarkerKey.self,
+                                                value: g.frame(in: .named("chatScroll")).minY)
+                                        })
                                 }
                                 .animation(.spring(response: 0.35, dampingFraction: 0.85), value: session.messages.count)
                                 .animation(.easeInOut(duration: 0.2), value: store.isLoadingResponse)
                                 .padding()
+                            }
+                            .coordinateSpace(name: "chatScroll")
+                            .background(GeometryReader { g in
+                                Color.clear.onAppear { chatViewportHeight = g.size.height }
+                                    .onChange(of: g.size.height) { _, h in chatViewportHeight = h }
+                            })
+                            .onPreferenceChange(BottomMarkerKey.self) { minY in
+                                let shouldShow = minY > chatViewportHeight + 40
+                                if shouldShow != showJumpToLatest {
+                                    withAnimation(.snappy) { showJumpToLatest = shouldShow }
+                                }
+                            }
+                            .overlay(alignment: .bottomTrailing) {
+                                if showJumpToLatest {
+                                    Button {
+                                        withAnimation(.snappy) { proxy.scrollTo("bottom", anchor: .bottom) }
+                                    } label: {
+                                        Image(systemName: "chevron.down")
+                                            .font(.system(size: 16, weight: .semibold))
+                                            .foregroundStyle(.primary)
+                                            .frame(width: 44, height: 44)
+                                            .background(.ultraThinMaterial, in: Circle())
+                                            .overlay(Circle().strokeBorder(DS.stroke, lineWidth: 1))
+                                            .shadow(color: .black.opacity(0.15), radius: 10, y: 4)
+                                    }
+                                    .buttonStyle(PressableStyle())
+                                    .padding(.trailing, DS.Space.l)
+                                    .padding(.bottom, DS.Space.s)
+                                    .transition(.scale(scale: 0.6).combined(with: .opacity))
+                                }
                             }
                             .scrollDismissesKeyboard(.interactively)
                             .onChange(of: session.messages.count) {
@@ -280,8 +322,12 @@ struct ContentView: View {
                                     in: RoundedRectangle(cornerRadius: DS.Radius.l + 2, style: .continuous))
                         .overlay(
                             RoundedRectangle(cornerRadius: DS.Radius.l + 2, style: .continuous)
-                                .strokeBorder(DS.stroke, lineWidth: 1))
-                        .shadow(color: .black.opacity(0.12), radius: 18, y: 8)
+                                .strokeBorder(isInputFocused ? AnyShapeStyle(DS.accent.opacity(0.55))
+                                                             : AnyShapeStyle(DS.stroke),
+                                              lineWidth: isInputFocused ? 1.5 : 1))
+                        .shadow(color: isInputFocused ? DS.accent.opacity(0.18) : .black.opacity(0.12),
+                                radius: 18, y: 8)
+                        .animation(.snappy, value: isInputFocused)
                         .padding(.horizontal, DS.Space.m)
                         .padding(.bottom, DS.Space.s)
                     }
@@ -296,8 +342,10 @@ struct ContentView: View {
                                 ProgressView().controlSize(.small)
                                 if store.downloadProgress > 0 && store.downloadProgress < 1.0 {
                                     Text("\(Int(store.downloadProgress * 100))%")
-                                        .font(.caption)
+                                        .font(.caption.monospacedDigit())
                                         .foregroundStyle(.secondary)
+                                        .contentTransition(.numericText())
+                                        .animation(.snappy, value: store.downloadProgress)
                                 }
                             }
                         }
@@ -780,5 +828,14 @@ struct AnimatedMeshBackground: View {
                 appear.toggle()
             }
         }
+    }
+}
+
+
+/// Tracks the chat's bottom sentinel position to drive the jump-to-latest pill.
+private struct BottomMarkerKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
     }
 }
