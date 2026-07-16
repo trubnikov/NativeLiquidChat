@@ -25,6 +25,7 @@ struct ContentView: View {
     @State private var showingPhotoPicker = false
     @State private var showingTrainingCamera = false
     @State private var showingAgentVision = false
+    @State private var showingDepthScan = false
     @AppStorage("appLanguage") private var appLanguage = AppLanguage.russian.rawValue
     @AppStorage("appTheme") private var appThemeRaw = AppTheme.system.rawValue
 
@@ -278,6 +279,7 @@ struct ContentView: View {
                             Menu {
                                 Button { showingAgentVision = true } label: { Label(appLanguage == "ru" ? "Агент смотрит" : "Agent watches", systemImage: "eye") }
                                 Button { showingTrainingCamera = true } label: { Label(appLanguage == "ru" ? "Режим обучения" : "Training mode", systemImage: "graduationcap") }
+                                Button { showingDepthScan = true } label: { Label(appLanguage == "ru" ? "3D-сканер" : "3D Scan", systemImage: "cube.transparent") }
                             } label: {
                                 Image(systemName: "camera").font(.system(size: 22))
                                     .foregroundStyle(.secondary)
@@ -529,6 +531,9 @@ struct ContentView: View {
                 }
                 .fullScreenCover(isPresented: $showingAgentVision) {
                     AgentVisionView(store: store)
+                }
+                .fullScreenCover(isPresented: $showingDepthScan) {
+                    DepthScanView()
                 }
                 .onChange(of: selectedItem) { _, newItem in
                     Task {
