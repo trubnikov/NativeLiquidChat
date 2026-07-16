@@ -10,7 +10,10 @@ struct ConversationBanner: View {
         HStack(spacing: 12) {
             Image(systemName: icon).font(.system(size: 20))
                 .foregroundStyle(.tint)
-                .symbolEffect(.pulse, isActive: phase == .listening)
+                .contentTransition(.symbolEffect(.replace))
+                .symbolEffect(.variableColor.iterative,
+                              isActive: phase == .listening || phase == .speaking)
+                .symbolEffect(.pulse, isActive: phase == .thinking)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(label)
@@ -27,10 +30,7 @@ struct ConversationBanner: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.ultraThinMaterial,
-                    in: RoundedRectangle(cornerRadius: DS.Radius.m, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: DS.Radius.m, style: .continuous)
-            .strokeBorder(DS.stroke, lineWidth: 1))
+        .dsGlass(in: RoundedRectangle(cornerRadius: DS.Radius.m, style: .continuous))
     }
 
     private var icon: String {

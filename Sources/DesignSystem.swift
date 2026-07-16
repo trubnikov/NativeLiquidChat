@@ -6,7 +6,8 @@ import UIKit
 /// 2026 direction distilled: a quiet graphite base, ONE electric signature
 /// accent ("liquid mint", playing on the LiquidChat name), soft glass
 /// surfaces, pill geometry, rounded display type, and micro-interactions that
-/// communicate. Icons are Lucide (ISC) shipped as template vector assets.
+/// communicate. Icons are SF Symbols with live symbol effects (variableColor,
+/// pulse, breathe, replace transitions) so state reads at a glance.
 enum DS {
 
     // MARK: - Color tokens (adaptive light/dark)
@@ -91,21 +92,47 @@ struct PressableStyle: ButtonStyle {
     }
 }
 
-/// Soft elevated card used across the app with glassmorphism.
+/// Soft elevated card used across the app. On iOS 26+ the OS renders it as
+/// real Liquid Glass; earlier systems fall back to a material imitation.
 struct DSCard: ViewModifier {
     var radius: CGFloat = DS.Radius.m
     func body(content: Content) -> some View {
-        content
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: radius, style: .continuous)
-                    .strokeBorder(DS.stroke, lineWidth: 1))
-            .shadow(color: .black.opacity(0.12), radius: 12, y: 6)
+        if #available(iOS 26.0, *) {
+            content
+                .glassEffect(.regular, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+        } else {
+            content
+                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: radius, style: .continuous)
+                        .strokeBorder(DS.stroke, lineWidth: 1))
+                .shadow(color: .black.opacity(0.12), radius: 12, y: 6)
+        }
+    }
+}
+
+/// Liquid Glass on an arbitrary shape (capsule, circle) with a material
+/// fallback pre-iOS 26. `interactive` lets the glass react to touch.
+struct DSGlassShape<S: InsettableShape>: ViewModifier {
+    var shape: S
+    var interactive = false
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content.glassEffect(interactive ? .regular.interactive() : .regular, in: shape)
+        } else {
+            content
+                .background(.ultraThinMaterial, in: shape)
+                .overlay(shape.strokeBorder(DS.stroke, lineWidth: 1))
+        }
     }
 }
 
 extension View {
     func dsCard(radius: CGFloat = DS.Radius.m) -> some View {
         modifier(DSCard(radius: radius))
+    }
+
+    func dsGlass<S: InsettableShape>(in shape: S, interactive: Bool = false) -> some View {
+        modifier(DSGlassShape(shape: shape, interactive: interactive))
     }
 }

@@ -186,8 +186,7 @@ struct ContentView: View {
                                             .font(.system(size: 16, weight: .semibold))
                                             .foregroundStyle(.primary)
                                             .frame(width: 44, height: 44)
-                                            .background(.ultraThinMaterial, in: Circle())
-                                            .overlay(Circle().strokeBorder(DS.stroke, lineWidth: 1))
+                                            .dsGlass(in: Circle(), interactive: true)
                                             .shadow(color: .black.opacity(0.15), radius: 10, y: 4)
                                     }
                                     .buttonStyle(PressableStyle())
@@ -268,6 +267,7 @@ struct ContentView: View {
                             // Voice
                             Button(action: { store.toggleConversationMode() }) {
                                 Image(systemName: "waveform").font(.system(size: 22))
+                                    .symbolEffect(.variableColor.iterative, isActive: store.conversationMode)
                                     .foregroundStyle(store.conversationMode ? AnyShapeStyle(DS.onAccent) : AnyShapeStyle(.secondary))
                                     .frame(width: 44, height: 44)
                                     .background(store.conversationMode ? AnyShapeStyle(DS.accentGradient) : AnyShapeStyle(DS.surfaceElevated), in: Circle())
@@ -324,13 +324,13 @@ struct ContentView: View {
                             }
                         }
                         .padding(DS.Space.s)
-                        .background(.ultraThinMaterial,
-                                    in: RoundedRectangle(cornerRadius: DS.Radius.l + 2, style: .continuous))
+                        .dsGlass(in: RoundedRectangle(cornerRadius: DS.Radius.l + 2, style: .continuous),
+                                 interactive: true)
                         .overlay(
                             RoundedRectangle(cornerRadius: DS.Radius.l + 2, style: .continuous)
                                 .strokeBorder(isInputFocused ? AnyShapeStyle(DS.accent.opacity(0.55))
-                                                             : AnyShapeStyle(DS.stroke),
-                                              lineWidth: isInputFocused ? 1.5 : 1))
+                                                             : AnyShapeStyle(.clear),
+                                              lineWidth: 1.5))
                         .shadow(color: isInputFocused ? DS.accent.opacity(0.18) : .black.opacity(0.12),
                                 radius: 18, y: 8)
                         .animation(.snappy, value: isInputFocused)

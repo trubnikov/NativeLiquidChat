@@ -395,12 +395,16 @@ struct AgentVisionView: View {
         }()
         return HStack(spacing: 6) {
             Image(systemName: icon).font(.system(size: 14))
+                .contentTransition(.symbolEffect(.replace))
+                .symbolEffect(.variableColor.iterative,
+                              isActive: icon == "speaker.wave.2.fill" || icon == "mic")
+                .symbolEffect(.pulse, isActive: icon == "brain.head.profile")
             Text(text).font(.footnote.weight(.semibold))
+                .contentTransition(.numericText())
         }
         .foregroundColor(.white)
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .background(Capsule().fill(Color.black.opacity(0.55)))
-        .overlay(Capsule().strokeBorder(Color.white.opacity(0.15), lineWidth: 1))
+        .dsGlass(in: Capsule())
     }
 }

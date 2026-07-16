@@ -23,6 +23,7 @@ struct EmptyChatView: View {
     var body: some View {
         VStack(spacing: 20) {
             Image(systemName: info?.kind.iconName ?? "message").font(.system(size: 34))
+                .symbolEffect(.breathe.pulse.byLayer, options: .repeat(.periodic(delay: 2.5)))
                 .foregroundStyle(DS.onAccent)
                 .frame(width: 76, height: 76)
                 .background(DS.accentGradient, in: RoundedRectangle(cornerRadius: DS.Radius.l, style: .continuous))

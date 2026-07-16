@@ -58,10 +58,7 @@ struct FocusOverlay: View {
                 .foregroundColor(isTrained ? DS.onAccent : .white)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 7)
-                .background(
-                    Capsule().fill(isTrained ? AnyShapeStyle(DS.accentGradient)
-                                             : AnyShapeStyle(Color.black.opacity(0.6))))
-                .overlay(Capsule().strokeBorder(Color.white.opacity(0.2), lineWidth: 1))
+                .modifier(FocusChipBackground(isTrained: isTrained))
                 .position(x: center.x, y: center.y + side / 2 + 26)
                 .allowsHitTesting(false)
             }
@@ -110,5 +107,23 @@ struct CornerBrackets: Shape {
                  radius: r, startAngle: .degrees(90), endAngle: .degrees(180), clockwise: false)
         p.addLine(to: CGPoint(x: rect.minX, y: rect.maxY - l))
         return p
+    }
+}
+
+/// Chip surface: recognized objects get accent-tinted Liquid Glass (iOS 26+),
+/// unknown zones a clear glass over the camera feed. Material fallback earlier.
+private struct FocusChipBackground: ViewModifier {
+    let isTrained: Bool
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content.glassEffect(isTrained ? .regular.tint(DS.accent.opacity(0.7)) : .regular,
+                                in: Capsule())
+        } else {
+            content
+                .background(
+                    Capsule().fill(isTrained ? AnyShapeStyle(DS.accentGradient)
+                                             : AnyShapeStyle(Color.black.opacity(0.6))))
+                .overlay(Capsule().strokeBorder(Color.white.opacity(0.2), lineWidth: 1))
+        }
     }
 }
