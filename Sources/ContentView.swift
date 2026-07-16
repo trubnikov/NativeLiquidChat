@@ -103,10 +103,16 @@ struct ContentView: View {
             // DETAIL VIEW: Active Chat Screen
             if let session = store.currentSession {
                 ZStack {
-                    // Background
+                    // Background: the living mesh is a HERO moment on an empty
+                    // chat; once messages arrive it recedes to a faint ambient
+                    // glow so content and the system bar material lead.
+                    DS.bg
+                        .ignoresSafeArea()
                     AnimatedMeshBackground()
                         .ignoresSafeArea()
-                    
+                        .opacity(session.messages.isEmpty ? 1 : 0.18)
+                        .animation(.easeInOut(duration: 0.8), value: session.messages.isEmpty)
+
                     VStack(spacing: 0) {
                         // Messages ScrollView
                         ScrollViewReader { proxy in
@@ -812,13 +818,17 @@ struct AnimatedMeshBackground: View {
                 .init(0, 0.5), appear ? .init(0.3, 0.5) : .init(0.7, 0.5), .init(1, 0.5),
                 .init(0, 1), .init(0.5, 1), .init(1, 1)
             ],
+            // Brand-coherent palette: the mesh speaks liquid mint, the same
+            // family as the accent — one product, one color voice.
             colors: isDark ? [
-                .black, .purple.opacity(0.6), .black,
-                .indigo.opacity(0.6), .black, .blue.opacity(0.5),
+                .black, Color(red: 0.24, green: 0.95, blue: 0.77).opacity(0.32), .black,
+                Color(red: 0.22, green: 0.78, blue: 0.93).opacity(0.28), .black,
+                Color(red: 0.10, green: 0.55, blue: 0.45).opacity(0.35),
                 .black, .black, .black
             ] : [
-                .white, .purple.opacity(0.2), .white,
-                .blue.opacity(0.2), .white, .indigo.opacity(0.2),
+                .white, Color(red: 0.04, green: 0.62, blue: 0.51).opacity(0.14), .white,
+                Color(red: 0.05, green: 0.55, blue: 0.62).opacity(0.12), .white,
+                Color(red: 0.04, green: 0.62, blue: 0.51).opacity(0.10),
                 .white, .white, .white
             ]
         )
