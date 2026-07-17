@@ -295,16 +295,27 @@ extension Color {
 }
 
 // ViewModel to encapsulate camera capturing and analysis
-class CameraViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleBufferDelegate {
+class CameraViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleBufferDelegate,
+                       AVCaptureDepthDataOutputDelegate {
     @Published var isCameraAuthorized = false
     @Published var isAnalyzing = false
     @Published var dominantLabel: String? = nil
     @Published var matchedLabel: String? = nil
     @Published var analysisTimeMs: Double = 0.0
-    
+    /// LiDAR distance to the focus point, meters (nil when depth unavailable).
+    @Published var focusDepthMeters: Float? = nil
+
     let captureSession = AVCaptureSession()
     private let videoDataOutput = AVCaptureVideoDataOutput()
+    private let depthDataOutput = AVCaptureDepthDataOutput()
     private let cameraQueue = DispatchQueue(label: "camera.frame.processing")
+
+    /// Latest LiDAR depth map (DepthFloat32), written by the depth delegate.
+    private var latestDepthMap: CVPixelBuffer?
+    private let depthLock = NSLock()
+    /// Depth gate: pixels farther than this from the focus-point depth are
+    /// treated as background and masked out before recognition.
+    private let depthToleranceMeters: Float = 0.15
     
     /// Agent coordinator flips this off while the LFM is thinking/speaking so
     /// CLIP/Vision don't fight the LLM for the ANE/GPU (froze the preview).
@@ -359,24 +370,40 @@ class CameraViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampl
         captureSession.beginConfiguration()
         captureSession.sessionPreset = .hd1280x720
         
-        guard let camera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
+        // Prefer the LiDAR camera: same video feed, plus a synchronized depth
+        // stream used to cut the background away from recognition.
+        let lidar = AVCaptureDevice.default(.builtInLiDARDepthCamera, for: .video, position: .back)
+        guard let camera = lidar
+                ?? AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
               let input = try? AVCaptureDeviceInput(device: camera) else {
             print("Failed to access camera device.")
             captureSession.commitConfiguration()
             return
         }
-        
+
         if captureSession.canAddInput(input) {
             captureSession.addInput(input)
         }
-        
+
+        // BGRA so the depth mask can paint background pixels directly.
+        videoDataOutput.videoSettings =
+            [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
         videoDataOutput.alwaysDiscardsLateVideoFrames = true
         videoDataOutput.setSampleBufferDelegate(self, queue: cameraQueue)
-        
+
         if captureSession.canAddOutput(videoDataOutput) {
             captureSession.addOutput(videoDataOutput)
         }
-        
+
+        if lidar != nil {
+            depthDataOutput.isFilteringEnabled = true   // smooth LiDAR holes
+            depthDataOutput.alwaysDiscardsLateDepthData = true
+            depthDataOutput.setDelegate(self, callbackQueue: cameraQueue)
+            if captureSession.canAddOutput(depthDataOutput) {
+                captureSession.addOutput(depthDataOutput)
+            }
+        }
+
         captureSession.commitConfiguration()
         
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
@@ -412,6 +439,107 @@ class CameraViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampl
         return sum.map { $0 / n }
     }
     
+    // MARK: - Depth-gated recognition (LiDAR background removal)
+
+    func depthDataOutput(_ output: AVCaptureDepthDataOutput,
+                         didOutput depthData: AVDepthData,
+                         timestamp: CMTime,
+                         connection: AVCaptureConnection) {
+        let converted = depthData.converting(toDepthDataType: kCVPixelFormatType_DepthFloat32)
+        depthLock.lock()
+        latestDepthMap = converted.depthDataMap
+        depthLock.unlock()
+    }
+
+    /// Returns a copy of the frame where, inside the focus zone, every pixel
+    /// whose LiDAR depth differs from the focus-point depth by more than the
+    /// gate tolerance is painted neutral gray. CLIP and feature prints then
+    /// see the *object*, not the background it happens to sit on.
+    /// Also returns the focus-point distance in meters.
+    private func depthGatedBuffer(from pixelBuffer: CVPixelBuffer,
+                                  roi: CGRect) -> (buffer: CVPixelBuffer, distance: Float)? {
+        depthLock.lock()
+        let depthOpt = latestDepthMap
+        depthLock.unlock()
+        guard let depth = depthOpt,
+              CVPixelBufferGetPixelFormatType(pixelBuffer) == kCVPixelFormatType_32BGRA
+        else { return nil }
+
+        CVPixelBufferLockBaseAddress(depth, .readOnly)
+        defer { CVPixelBufferUnlockBaseAddress(depth, .readOnly) }
+        guard let dBase = CVPixelBufferGetBaseAddress(depth) else { return nil }
+        let dw = CVPixelBufferGetWidth(depth)
+        let dh = CVPixelBufferGetHeight(depth)
+        let dRow = CVPixelBufferGetBytesPerRow(depth) / MemoryLayout<Float32>.size
+        let dData = dBase.assumingMemoryBound(to: Float32.self)
+
+        // Reference distance: median of a 3×3 patch at the focus point.
+        let fx = Int(focusDevicePoint.x * CGFloat(dw - 1))
+        let fy = Int(focusDevicePoint.y * CGFloat(dh - 1))
+        var samples: [Float] = []
+        for oy in -1...1 {
+            for ox in -1...1 {
+                let x = min(max(fx + ox, 0), dw - 1)
+                let y = min(max(fy + oy, 0), dh - 1)
+                let v = dData[y * dRow + x]
+                if v.isFinite && v > 0.05 { samples.append(v) }
+            }
+        }
+        guard !samples.isEmpty else { return nil }
+        let d0 = samples.sorted()[samples.count / 2]
+
+        // Copy the frame; the mask is painted into the copy.
+        let w = CVPixelBufferGetWidth(pixelBuffer)
+        let h = CVPixelBufferGetHeight(pixelBuffer)
+        var copyOut: CVPixelBuffer?
+        let attrs = [kCVPixelBufferIOSurfacePropertiesKey: [:] as CFDictionary] as CFDictionary
+        CVPixelBufferCreate(nil, w, h, kCVPixelFormatType_32BGRA, attrs, &copyOut)
+        guard let copy = copyOut else { return nil }
+
+        CVPixelBufferLockBaseAddress(pixelBuffer, .readOnly)
+        CVPixelBufferLockBaseAddress(copy, [])
+        defer {
+            CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly)
+            CVPixelBufferUnlockBaseAddress(copy, [])
+        }
+        guard let srcBase = CVPixelBufferGetBaseAddress(pixelBuffer),
+              let dstBase = CVPixelBufferGetBaseAddress(copy) else { return nil }
+        let srcRow = CVPixelBufferGetBytesPerRow(pixelBuffer)
+        let dstRow = CVPixelBufferGetBytesPerRow(copy)
+        for y in 0..<h {
+            memcpy(dstBase + y * dstRow, srcBase + y * srcRow, min(srcRow, dstRow))
+        }
+
+        // Focus zone in top-left pixel coordinates (roi is bottom-left based).
+        let x0 = Int(roi.minX * CGFloat(w))
+        let x1 = Int(roi.maxX * CGFloat(w))
+        let yTop = Int((1 - roi.maxY) * CGFloat(h))
+        let yBot = Int((1 - roi.minY) * CGFloat(h))
+
+        let dst = dstBase.assumingMemoryBound(to: UInt8.self)
+        let tol = depthToleranceMeters
+        var masked = 0, total = 0
+        for y in max(0, yTop)..<min(h, yBot) {
+            let dy = min(dh - 1, (y * dh) / h)
+            for x in max(0, x0)..<min(w, x1) {
+                total += 1
+                let dx = min(dw - 1, (x * dw) / w)
+                let d = dData[dy * dRow + dx]
+                if !(d.isFinite && abs(d - d0) <= tol) {
+                    let p = y * dstRow + x * 4
+                    dst[p] = 128; dst[p + 1] = 128; dst[p + 2] = 128; dst[p + 3] = 255
+                    masked += 1
+                }
+            }
+        }
+        #if DEBUG
+        if total > 0 {
+            print(String(format: "[DepthGate] d0=%.2fm masked=%d%%", d0, masked * 100 / total))
+        }
+        #endif
+        return (copy, d0)
+    }
+
     // SampleBuffer Delegate to analyze frames at 1Hz throttle rate
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         let now = Date()
@@ -422,12 +550,23 @@ class CameraViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampl
         defer { isProcessingFrame = false }
         
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-        
-        // Build image request handler on pixel buffer
-        let requestHandler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .up, options: [:])
+
+        let roi = visionROI
+
+        // Depth gate: cut the background out of the focus zone so every
+        // matcher below sees the object itself, not the scene behind it.
+        var analysisBuffer = pixelBuffer
+        var focusDistance: Float? = nil
+        if let gated = depthGatedBuffer(from: pixelBuffer, roi: roi) {
+            analysisBuffer = gated.buffer
+            focusDistance = gated.distance
+        }
+        DispatchQueue.main.async { self.focusDepthMeters = focusDistance }
+
+        // Build image request handler on the (masked) pixel buffer
+        let requestHandler = VNImageRequestHandler(cvPixelBuffer: analysisBuffer, orientation: .up, options: [:])
 
         // Visual feature print of the focus zone — true instance recognition.
-        let roi = visionROI
         let printRequest = VNGenerateImageFeaturePrintRequest()
         printRequest.regionOfInterest = roi
 
@@ -465,7 +604,7 @@ class CameraViewModel: NSObject, ObservableObject, AVCaptureVideoDataOutputSampl
 
             // Zero-shot open-vocabulary label via MobileCLIP — concrete nouns
             // ("mug") instead of Apple's abstract taxonomy ("structure").
-            let clipMatch = CLIPEngine.shared.bestLabel(pixelBuffer: pixelBuffer, roi: roi)
+            let clipMatch = CLIPEngine.shared.bestLabel(pixelBuffer: analysisBuffer, roi: roi)
 
             DispatchQueue.main.async {
                 self.analysisTimeMs = duration

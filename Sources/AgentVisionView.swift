@@ -292,7 +292,8 @@ struct AgentVisionView: View {
                     center: focusScreenPoint ?? CGPoint(x: geo.size.width / 2,
                                                         y: geo.size.height / 2 - 40),
                     label: agent.currentSeen,
-                    isTrained: agent.camera.matchedLabel != nil
+                    isTrained: agent.camera.matchedLabel != nil,
+                    distanceMeters: agent.camera.focusDepthMeters
                 )
                 .ignoresSafeArea()
             } else {

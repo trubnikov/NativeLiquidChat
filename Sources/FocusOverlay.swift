@@ -13,6 +13,8 @@ struct FocusOverlay: View {
     var label: String = ""
     /// Trained instance (accent) vs generic/none (white).
     var isTrained: Bool = false
+    /// LiDAR distance to the focus point, meters (shown in the chip when known).
+    var distanceMeters: Float? = nil
 
     var body: some View {
         ZStack {
@@ -54,6 +56,13 @@ struct FocusOverlay: View {
                     Text(label)
                         .font(.footnote.weight(.semibold))
                         .lineLimit(1)
+                    if let d = distanceMeters {
+                        Text(d < 1 ? String(format: "%.0f cm", d * 100)
+                                   : String(format: "%.1f m", d))
+                            .font(.caption2.monospacedDigit())
+                            .opacity(0.75)
+                            .contentTransition(.numericText())
+                    }
                 }
                 .foregroundColor(isTrained ? DS.onAccent : .white)
                 .padding(.horizontal, 12)

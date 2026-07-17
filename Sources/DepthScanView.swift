@@ -1,18 +1,50 @@
 import SwiftUI
 import AVFoundation
+import ARKit
+import SceneKit
+import RoomPlan
 
-/// 3D surface scan (LiDAR): a live grid of dots lies on real-world surfaces —
-/// nearer geometry glows mint and lifts, farther geometry sinks and dims — and
-/// a scanning wave ripples across the relief in real time. The wave's phase is
-/// driven by *depth*, so it visibly bends around objects: you SEE what is
-/// higher and what is lower.
+/// 3D surface scan (LiDAR), two modes:
+/// - **Wave** — a live grid of dots lies on real-world surfaces; nearer
+///   geometry glows mint and lifts, and a scanning wave ripples across the
+///   relief, its phase driven by depth, so it visibly bends around objects.
+/// - **Mesh** — ARKit scene reconstruction: a real triangle mesh anchored in
+///   world space grows over every surface and *stays put* as you move.
 struct DepthScanView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var scanner = DepthScanViewModel()
+    @State private var mode: ScanMode = .wave
+
+    enum ScanMode: String, CaseIterable, Identifiable {
+        case wave, mesh, room
+        var id: String { rawValue }
+        var label: String {
+            switch self {
+            case .wave: return "Wave"
+            case .mesh: return "Mesh"
+            case .room: return "Room"
+            }
+        }
+    }
+
+    /// Live structure counts reported by RoomPlan while scanning.
+    @State private var roomStats = RoomScanStats()
 
     var body: some View {
         ZStack {
-            if scanner.isAvailable {
+            if mode == .room {
+                if RoomCaptureSession.isSupported {
+                    RoomScanView(stats: $roomStats)
+                        .ignoresSafeArea()
+                } else {
+                    Color.black.ignoresSafeArea()
+                    Text("Room scanning is not supported on this device")
+                        .foregroundStyle(.white)
+                }
+            } else if mode == .mesh {
+                MeshScanView()
+                    .ignoresSafeArea()
+            } else if scanner.isAvailable {
                 CameraPreviewView(session: scanner.session)
                     .ignoresSafeArea()
 
@@ -39,18 +71,36 @@ struct DepthScanView: View {
             // Top bar
             VStack {
                 HStack {
-                    // Depth legend
-                    HStack(spacing: 6) {
-                        Circle().fill(DS.accent).frame(width: 8, height: 8)
-                        Text("near").font(.caption2)
-                        Circle().fill(Color(red: 0.15, green: 0.3, blue: 0.45))
-                            .frame(width: 8, height: 8)
-                        Text("far").font(.caption2)
+                    // Live room-structure counts (room mode)
+                    if mode == .room, RoomCaptureSession.isSupported {
+                        HStack(spacing: 10) {
+                            Label("\(roomStats.walls)", systemImage: "square.split.bottomrightquarter")
+                            Label("\(roomStats.doors + roomStats.windows)", systemImage: "door.left.hand.open")
+                            Label("\(roomStats.objects)", systemImage: "chair.lounge")
+                        }
+                        .font(.caption.weight(.semibold))
+                        .contentTransition(.numericText())
+                        .animation(.snappy, value: roomStats)
+                        .foregroundStyle(.white.opacity(0.9))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .dsGlass(in: Capsule())
                     }
-                    .foregroundStyle(.white.opacity(0.85))
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(Capsule().fill(Color.black.opacity(0.55)))
+
+                    // Depth legend (wave mode only)
+                    if mode == .wave {
+                        HStack(spacing: 6) {
+                            Circle().fill(DS.accent).frame(width: 8, height: 8)
+                            Text("near").font(.caption2)
+                            Circle().fill(Color(red: 0.15, green: 0.3, blue: 0.45))
+                                .frame(width: 8, height: 8)
+                            Text("far").font(.caption2)
+                        }
+                        .foregroundStyle(.white.opacity(0.85))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .dsGlass(in: Capsule())
+                    }
 
                     Spacer()
 
@@ -66,10 +116,140 @@ struct DepthScanView: View {
                 }
                 .padding()
                 Spacer()
+
+                // Mode switch: dot wave vs. anchored reconstruction mesh.
+                Picker("Mode", selection: $mode) {
+                    ForEach(ScanMode.allCases) { m in
+                        Text(m.label).tag(m)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .frame(maxWidth: 240)
+                .padding(.bottom, 24)
             }
         }
-        .onAppear { scanner.start() }
+        .onAppear { if mode == .wave { scanner.start() } }
         .onDisappear { scanner.stop() }
+        .onChange(of: mode) { _, newMode in
+            // The AVCapture session, the ARKit session and RoomPlan can't
+            // share the camera — run exactly one at a time.
+            if newMode == .wave { scanner.start() } else { scanner.stop() }
+        }
+    }
+}
+
+// MARK: - RoomPlan (room mode)
+
+/// Live counts of what RoomPlan has recognized so far.
+struct RoomScanStats: Equatable {
+    var walls = 0
+    var doors = 0
+    var windows = 0
+    var objects = 0
+}
+
+/// Apple RoomPlan capture: walks the room and builds a parametric model
+/// (walls, doors, windows, furniture) fully on-device. RoomCaptureView draws
+/// the live camera feed, the growing model and coaching hints itself.
+private struct RoomScanView: UIViewRepresentable {
+    @Binding var stats: RoomScanStats
+
+    func makeUIView(context: Context) -> RoomCaptureView {
+        let view = RoomCaptureView(frame: .zero)
+        view.captureSession.delegate = context.coordinator
+        var config = RoomCaptureSession.Configuration()
+        config.isCoachingEnabled = true
+        view.captureSession.run(configuration: config)
+        return view
+    }
+
+    func updateUIView(_ uiView: RoomCaptureView, context: Context) {}
+
+    static func dismantleUIView(_ uiView: RoomCaptureView, coordinator: Coordinator) {
+        uiView.captureSession.stop()
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator(stats: $stats) }
+
+    final class Coordinator: NSObject, RoomCaptureSessionDelegate {
+        private let stats: Binding<RoomScanStats>
+        init(stats: Binding<RoomScanStats>) { self.stats = stats }
+
+        func captureSession(_ session: RoomCaptureSession, didUpdate room: CapturedRoom) {
+            let next = RoomScanStats(walls: room.walls.count,
+                                     doors: room.doors.count,
+                                     windows: room.windows.count,
+                                     objects: room.objects.count)
+            DispatchQueue.main.async { [stats] in
+                if stats.wrappedValue != next { stats.wrappedValue = next }
+            }
+        }
+    }
+}
+
+// MARK: - ARKit scene reconstruction (mesh mode)
+
+/// Live ARKit mesh: LiDAR scene reconstruction rendered as a mint wireframe
+/// anchored to the world — walk around and the mesh stays on the surfaces.
+private struct MeshScanView: UIViewRepresentable {
+    func makeUIView(context: Context) -> ARSCNView {
+        let view = ARSCNView()
+        view.delegate = context.coordinator
+        view.automaticallyUpdatesLighting = true
+
+        let config = ARWorldTrackingConfiguration()
+        if ARWorldTrackingConfiguration.supportsSceneReconstruction(.mesh) {
+            config.sceneReconstruction = .mesh
+        }
+        config.environmentTexturing = .none
+        view.session.run(config)
+        return view
+    }
+
+    func updateUIView(_ uiView: ARSCNView, context: Context) {}
+
+    static func dismantleUIView(_ uiView: ARSCNView, coordinator: Coordinator) {
+        uiView.session.pause()
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    final class Coordinator: NSObject, ARSCNViewDelegate {
+        func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode? {
+            guard let mesh = anchor as? ARMeshAnchor else { return nil }
+            let node = SCNNode(geometry: Self.wireframe(from: mesh.geometry))
+            return node
+        }
+
+        func renderer(_ renderer: SCNSceneRenderer, didUpdate node: SCNNode, for anchor: ARAnchor) {
+            guard let mesh = anchor as? ARMeshAnchor else { return }
+            node.geometry = Self.wireframe(from: mesh.geometry)
+        }
+
+        private static func wireframe(from mesh: ARMeshGeometry) -> SCNGeometry {
+            let vertices = SCNGeometrySource(
+                buffer: mesh.vertices.buffer,
+                vertexFormat: mesh.vertices.format,
+                semantic: .vertex,
+                vertexCount: mesh.vertices.count,
+                dataOffset: mesh.vertices.offset,
+                dataStride: mesh.vertices.stride)
+            let faceData = Data(
+                bytes: mesh.faces.buffer.contents(),
+                count: mesh.faces.buffer.length)
+            let element = SCNGeometryElement(
+                data: faceData,
+                primitiveType: .triangles,
+                primitiveCount: mesh.faces.count,
+                bytesPerIndex: mesh.faces.bytesPerIndex)
+            let geometry = SCNGeometry(sources: [vertices], elements: [element])
+            let material = SCNMaterial()
+            material.fillMode = .lines
+            material.diffuse.contents = UIColor(red: 0.24, green: 0.95, blue: 0.77, alpha: 0.8)
+            material.isDoubleSided = true
+            geometry.materials = [material]
+            return geometry
+        }
     }
 }
 
