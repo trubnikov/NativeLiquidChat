@@ -16,3 +16,13 @@ DerivedData/
 
 # OS metadata
 .DS_Store
+
+# reorg 2026-08-18: standard ignores
+node_modules/
+__pycache__/
+.venv/
+venv/
+.env
+Pods/
+dist-electron/
+.pytest_cache/
