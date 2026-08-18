@@ -274,14 +274,25 @@ final class DepthScanViewModel: NSObject, ObservableObject, AVCaptureDepthDataOu
     private let nearM: Float = 0.25
     private let farM: Float = 2.5
 
+    /// Accumulated "snow": each wave pass deposits brightness on the cells it
+    /// crosses, so the relief builds up scan after scan instead of flashing.
+    private var reveal: [Float]
+    /// Depth at which each cell was revealed — if the geometry under a cell
+    /// changes (camera or object moved), its snow melts and re-accumulates.
+    private var revealDepth: [Float]
+
     override init() {
         grid = Array(repeating: 1, count: cols * rows)
+        reveal = Array(repeating: 0, count: cols * rows)
+        revealDepth = Array(repeating: 1, count: cols * rows)
         super.init()
     }
 
     // MARK: - Capture
 
     func start() {
+        // Fresh snow on every scan session.
+        reveal = Array(repeating: 0, count: cols * rows)
         guard let device = AVCaptureDevice.default(.builtInLiDARDepthCamera,
                                                    for: .video, position: .back) else {
             DispatchQueue.main.async { self.isAvailable = false }
@@ -374,16 +385,30 @@ final class DepthScanViewModel: NSObject, ObservableObject, AVCaptureDepthDataOu
 
         for r in 0..<rows {
             for c in 0..<cols {
-                let depth = Double(g[r * cols + c])   // 0 near … 1 far
+                let i = r * cols + c
+                let depth = Double(g[i])              // 0 near … 1 far
 
                 // Wave phase bends with depth: the ripple visibly climbs
                 // near (raised) geometry earlier and reaches far later.
                 let dist = Double(hypot(CGFloat(c) - cx, CGFloat(r) - cy)) + depth * 10
                 let wave = max(0, 1 - abs(dist - waveR) / 2.6)   // 0…1 pulse
 
+                // Snow accumulation: the passing wave deposits brightness that
+                // STAYS after it moves on; each pass adds another layer.
+                if wave > 0.15 {
+                    reveal[i] = min(1, reveal[i] + Float(wave) * 0.28)
+                    revealDepth[i] = Float(depth)
+                } else if abs(Float(depth) - revealDepth[i]) > 0.06 {
+                    // Geometry under the cell changed — melt and rebuild.
+                    reveal[i] *= 0.80
+                    revealDepth[i] = Float(depth)
+                }
+                let rev = Double(reveal[i])
+
                 let near = 1 - depth                              // 0 far … 1 near
-                let baseAlpha = 0.10 + near * 0.55 + wave * 0.45
-                let radius = 1.2 + near * 2.4 + wave * 2.2
+                // Before any wave: a faint hint field. Revealed cells stay lit.
+                let baseAlpha = 0.05 + near * 0.10 + rev * (0.25 + near * 0.45) + wave * 0.45
+                let radius = 1.0 + near * 0.9 + rev * (0.6 + near * 1.9) + wave * 2.2
                 // Near dots lift up slightly — a parallax hint of relief.
                 let lift = CGFloat(near) * -5.0
 
