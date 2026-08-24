@@ -273,6 +273,8 @@ final class DepthScanViewModel: NSObject, ObservableObject, AVCaptureDepthDataOu
     /// Depth range mapped to the visual scale (meters).
     private let nearM: Float = 0.25
     private let farM: Float = 2.5
+    /// Session inputs/outputs are attached once and reused across mode switches.
+    private var isConfigured = false
 
     /// Accumulated "snow": each wave pass deposits brightness on the cells it
     /// crosses, so the relief builds up scan after scan instead of flashing.
@@ -300,26 +302,32 @@ final class DepthScanViewModel: NSObject, ObservableObject, AVCaptureDepthDataOu
         }
         guard !session.isRunning else { return }
 
-        session.beginConfiguration()
-        session.sessionPreset = .vga640x480
+        // Configure exactly once: re-entering Wave mode after Mesh/Room must
+        // not re-add inputs/outputs (AVFoundation would silently corrupt the
+        // session — black preview, frozen dots).
+        if !isConfigured {
+            isConfigured = true
+            session.beginConfiguration()
+            session.sessionPreset = .vga640x480
 
-        if let input = try? AVCaptureDeviceInput(device: device),
-           session.canAddInput(input) {
-            session.addInput(input)
-        }
-
-        depthOutput.isFilteringEnabled = true   // smooth LiDAR holes
-        depthOutput.setDelegate(self, callbackQueue: queue)
-        if session.canAddOutput(depthOutput) {
-            session.addOutput(depthOutput)
-        }
-        // Portrait orientation for the depth stream when supported.
-        if let conn = depthOutput.connection(with: .depthData) {
-            if conn.isVideoRotationAngleSupported(90) {
-                conn.videoRotationAngle = 90
+            if let input = try? AVCaptureDeviceInput(device: device),
+               session.canAddInput(input) {
+                session.addInput(input)
             }
+
+            depthOutput.isFilteringEnabled = true   // smooth LiDAR holes
+            depthOutput.setDelegate(self, callbackQueue: queue)
+            if session.canAddOutput(depthOutput) {
+                session.addOutput(depthOutput)
+            }
+            // Portrait orientation for the depth stream when supported.
+            if let conn = depthOutput.connection(with: .depthData) {
+                if conn.isVideoRotationAngleSupported(90) {
+                    conn.videoRotationAngle = 90
+                }
+            }
+            session.commitConfiguration()
         }
-        session.commitConfiguration()
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             self?.session.startRunning()

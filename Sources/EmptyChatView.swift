@@ -4,8 +4,16 @@ import SwiftUI
 struct EmptyChatView: View {
     let modelName: String
     let systemPrompt: String
+    /// False on first run, before any model has been downloaded — the empty
+    /// state then guides the user to the Models screen instead of suggesting
+    /// prompts that cannot work yet.
+    var isModelReady: Bool = true
+    var onOpenModels: () -> Void = {}
     let onPick: (String) -> Void
     @State private var appeared = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @AppStorage("appLanguage") private var appLanguage = AppLanguage.russian.rawValue
+    private var ru: Bool { appLanguage == AppLanguage.russian.rawValue }
 
     private var info: ModelInfo? { ModelCatalog.info(for: modelName) }
 
@@ -23,7 +31,9 @@ struct EmptyChatView: View {
     var body: some View {
         VStack(spacing: 20) {
             Image(systemName: info?.kind.iconName ?? "message").font(.system(size: 34))
-                .symbolEffect(.breathe.pulse.byLayer, options: .repeat(.periodic(delay: 2.5)))
+                .symbolEffect(.breathe.pulse.byLayer,
+                              options: .repeat(.periodic(delay: 2.5)),
+                              isActive: !reduceMotion)
                 .foregroundStyle(DS.onAccent)
                 .frame(width: 76, height: 76)
                 .background(DS.accentGradient, in: RoundedRectangle(cornerRadius: DS.Radius.l, style: .continuous))
@@ -48,6 +58,28 @@ struct EmptyChatView: View {
                     .padding(.horizontal)
             }
 
+            if !isModelReady {
+                // First run: nothing works until a model is on the device.
+                VStack(spacing: 12) {
+                    Text(ru ? "Сначала скачайте модель — она работает целиком на устройстве."
+                            : "First, download a model — it runs entirely on your device.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                    Button {
+                        onOpenModels()
+                    } label: {
+                        Label(ru ? "Открыть «Модели»" : "Open Models",
+                              systemImage: "shippingbox")
+                            .font(.body.weight(.semibold))
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+                .padding(.horizontal)
+                .padding(.top, 8)
+            } else {
             VStack(spacing: 10) {
                 ForEach(Array(suggestions.enumerated()), id: \.element) { i, prompt in
                     Button {
@@ -75,6 +107,7 @@ struct EmptyChatView: View {
             }
             .padding(.horizontal)
             .padding(.top, 8)
+            }
         }
         .frame(maxWidth: 440)
         .onAppear { appeared = true }

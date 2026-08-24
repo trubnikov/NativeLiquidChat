@@ -26,6 +26,7 @@ struct ContentView: View {
     @State private var showingTrainingCamera = false
     @State private var showingAgentVision = false
     @State private var showingDepthScan = false
+    @State private var showingLab = false
     @AppStorage("appLanguage") private var appLanguage = AppLanguage.russian.rawValue
     @AppStorage("appTheme") private var appThemeRaw = AppTheme.system.rawValue
 
@@ -90,11 +91,13 @@ struct ContentView: View {
                     }) {
                         Image(systemName: "square.and.pencil").font(.system(size: 20))
                     }
+                    .accessibilityLabel(appLanguage == "ru" ? "Новый чат" : "New chat")
                 }
                 ToolbarItem(placement: .topBarLeading) {
                     Button(action: { showingModels = true }) {
                         Image(systemName: "shippingbox").font(.system(size: 20))
                     }
+                    .accessibilityLabel(appLanguage == "ru" ? "Модели" : "Models")
                 }
             }
             .sheet(isPresented: $showingModels) {
@@ -122,7 +125,12 @@ struct ContentView: View {
                                     if session.messages.isEmpty {
                                         EmptyChatView(
                                             modelName: session.modelName,
-                                            systemPrompt: session.systemPrompt
+                                            systemPrompt: session.systemPrompt,
+                                            isModelReady: ModelCatalog.all.contains {
+                                                if case .downloaded = models.status(for: $0.id) { return true }
+                                                return false
+                                            },
+                                            onOpenModels: { showingModels = true }
                                         ) { prompt in
                                             inputText = prompt
                                             isInputFocused = true
@@ -264,6 +272,7 @@ struct ContentView: View {
                                     .background(DS.surfaceElevated, in: Circle())
                             }
                             .buttonStyle(PressableStyle())
+                            .accessibilityLabel(appLanguage == "ru" ? "Прикрепить изображение" : "Attach image")
 
                             // Voice
                             Button(action: { store.toggleConversationMode() }) {
@@ -274,20 +283,25 @@ struct ContentView: View {
                                     .background(store.conversationMode ? AnyShapeStyle(DS.accentGradient) : AnyShapeStyle(DS.surfaceElevated), in: Circle())
                             }
                             .buttonStyle(PressableStyle())
+                            .accessibilityLabel(appLanguage == "ru" ? "Голосовой режим" : "Voice mode")
+                            .accessibilityAddTraits(store.conversationMode ? [.isSelected] : [])
 
                             // Camera / Vision
                             Menu {
                                 Button { showingAgentVision = true } label: { Label(appLanguage == "ru" ? "Агент смотрит" : "Agent watches", systemImage: "eye") }
                                 Button { showingTrainingCamera = true } label: { Label(appLanguage == "ru" ? "Режим обучения" : "Training mode", systemImage: "graduationcap") }
                                 Button { showingDepthScan = true } label: { Label(appLanguage == "ru" ? "3D-сканер" : "3D Scan", systemImage: "cube.transparent") }
+                                Button { showingLab = true } label: { Label(appLanguage == "ru" ? "Лаборатория" : "Lab", systemImage: "testtube.2") }
                             } label: {
                                 Image(systemName: "camera").font(.system(size: 22))
                                     .foregroundStyle(.secondary)
                                     .frame(width: 44, height: 44)
                                     .background(DS.surfaceElevated, in: Circle())
                             }
+                            .accessibilityLabel(appLanguage == "ru" ? "Камера и зрение" : "Camera and vision")
 
-                            TextField("Message LFM...", text: $inputText, axis: .vertical)
+                            TextField(appLanguage == "ru" ? "Сообщение…" : "Message LFM...",
+                                      text: $inputText, axis: .vertical)
                                 .focused($isInputFocused)
                                 .lineLimit(1...6)
                                 .padding(.horizontal, DS.Space.m)
@@ -303,6 +317,7 @@ struct ContentView: View {
                                         .background(DS.surfaceElevated, in: Circle())
                                 }
                                 .buttonStyle(PressableStyle())
+                                .accessibilityLabel(appLanguage == "ru" ? "Остановить генерацию" : "Stop generating")
                             } else {
                                 Button(action: {
                                     let text = inputText
@@ -322,6 +337,7 @@ struct ContentView: View {
                                         .opacity(inputText.isEmpty && attachedImage == nil ? 0.4 : 1)
                                 }
                                 .buttonStyle(PressableStyle())
+                                .accessibilityLabel(appLanguage == "ru" ? "Отправить" : "Send")
                                 .disabled(inputText.isEmpty && attachedImage == nil)
                             }
                         }
@@ -534,6 +550,9 @@ struct ContentView: View {
                 }
                 .fullScreenCover(isPresented: $showingDepthScan) {
                     DepthScanView()
+                }
+                .sheet(isPresented: $showingLab) {
+                    LabView()
                 }
                 .onChange(of: selectedItem) { _, newItem in
                     Task {
@@ -839,6 +858,8 @@ struct AnimatedMeshBackground: View {
         )
         .ignoresSafeArea()
         .onAppear {
+            // Static gradient when the user asks the system for less motion.
+            guard !UIAccessibility.isReduceMotionEnabled else { return }
             withAnimation(.easeInOut(duration: 8).repeatForever(autoreverses: true)) {
                 appear.toggle()
             }

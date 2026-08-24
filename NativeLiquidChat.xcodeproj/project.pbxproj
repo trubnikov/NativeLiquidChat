@@ -37,6 +37,7 @@
 		990525241861E4323560EA7E /* mobileclip_s0_image.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = 9FF98E1557CF79DC62471295 /* mobileclip_s0_image.mlpackage */; };
 		9C511557CF618083F21762FE /* clip_vocab_embeddings.bin in Resources */ = {isa = PBXBuildFile; fileRef = 72C70BF090A12A8F641543BD /* clip_vocab_embeddings.bin */; };
 		A35DA2A751E4DE05708E095A /* seed_knowledge.json in Resources */ = {isa = PBXBuildFile; fileRef = 6C9531E98C8E8F9907D315F5 /* seed_knowledge.json */; };
+		B6B6E958765718F178DC3C0B /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 6E8E6B1B2A8A6672E23E2176 /* PrivacyInfo.xcprivacy */; };
 		B85690B35EC2BFC602DD2081 /* SpeechRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF9196F8EE93E4FE9A194001 /* SpeechRecognizer.swift */; };
 		BEC00D3464B79E2650BC7152 /* LeapModelDownloader in Frameworks */ = {isa = PBXBuildFile; productRef = DCF3CAF6641D234A4BF0225F /* LeapModelDownloader */; };
 		D2F3D03013A7E37BB773832C /* CLIPEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ED45C87D8EE9335E0FD054C /* CLIPEngine.swift */; };
@@ -82,6 +83,7 @@
 		69FC04211C6B05B6079D97C8 /* TypingIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingIndicator.swift; sourceTree = "<group>"; };
 		6C9531E98C8E8F9907D315F5 /* seed_knowledge.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = seed_knowledge.json; sourceTree = "<group>"; };
 		6CC0A995538EEBA3AFEA9B69 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
+		6E8E6B1B2A8A6672E23E2176 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		72C70BF090A12A8F641543BD /* clip_vocab_embeddings.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = clip_vocab_embeddings.bin; sourceTree = "<group>"; };
 		78BC4A65983AE654D17B9C9F /* clip_vocabulary.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = clip_vocabulary.txt; sourceTree = "<group>"; };
 		821DDAB6BBC05F2339B6D563 /* clip_vocab_labels.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = clip_vocab_labels.json; sourceTree = "<group>"; };
@@ -197,6 +199,7 @@
 				72C70BF090A12A8F641543BD /* clip_vocab_embeddings.bin */,
 				821DDAB6BBC05F2339B6D563 /* clip_vocab_labels.json */,
 				78BC4A65983AE654D17B9C9F /* clip_vocabulary.txt */,
+				6E8E6B1B2A8A6672E23E2176 /* PrivacyInfo.xcprivacy */,
 				6C9531E98C8E8F9907D315F5 /* seed_knowledge.json */,
 			);
 			path = Resources;
@@ -301,6 +304,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5B69FF61701D2BF9A8C08879 /* Assets.xcassets in Resources */,
+				B6B6E958765718F178DC3C0B /* PrivacyInfo.xcprivacy in Resources */,
 				9C511557CF618083F21762FE /* clip_vocab_embeddings.bin in Resources */,
 				4BE20ADF85DA4720BC0C4D44 /* clip_vocab_labels.json in Resources */,
 				6C1C31048B7D3B90521AC645 /* clip_vocabulary.txt in Resources */,
@@ -400,10 +404,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = Q4MWQ3X44V;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited) LEAP_DUAL_IMPORT_ALLOW=1";
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Liquid Chat";
 				INFOPLIST_KEY_NSCameraUsageDescription = "We need access to your camera to capture images for the visual model.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need access to your microphone to capture audio prompts.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We need access to your photo library to select images for the visual model.";
@@ -411,6 +417,7 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/Frameworks/LeapSDK.framework/Frameworks @executable_path/Frameworks/LeapModelDownloader.framework/Frameworks";
+				MARKETING_VERSION = 1.0.0;
 				OTHER_LDFLAGS = "$(inherited) -ObjC -L$(BUILT_PRODUCTS_DIR)/LeapSDK.framework/Frameworks -L$(BUILT_PRODUCTS_DIR)/LeapModelDownloader.framework/Frameworks -linference_engine -linference_engine_llamacpp_backend";
 				OTHER_SWIFT_FLAGS = "$(inherited) -DLEAP_DUAL_IMPORT_ALLOW";
 				PRODUCT_BUNDLE_IDENTIFIER = com.dimatrubnikov.NativeLiquidChat;
@@ -504,10 +511,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = Q4MWQ3X44V;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited) LEAP_DUAL_IMPORT_ALLOW=1";
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Liquid Chat";
 				INFOPLIST_KEY_NSCameraUsageDescription = "We need access to your camera to capture images for the visual model.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need access to your microphone to capture audio prompts.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We need access to your photo library to select images for the visual model.";
@@ -515,6 +524,7 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/Frameworks/LeapSDK.framework/Frameworks @executable_path/Frameworks/LeapModelDownloader.framework/Frameworks";
+				MARKETING_VERSION = 1.0.0;
 				OTHER_LDFLAGS = "$(inherited) -ObjC -L$(BUILT_PRODUCTS_DIR)/LeapSDK.framework/Frameworks -L$(BUILT_PRODUCTS_DIR)/LeapModelDownloader.framework/Frameworks -linference_engine -linference_engine_llamacpp_backend";
 				OTHER_SWIFT_FLAGS = "$(inherited) -DLEAP_DUAL_IMPORT_ALLOW";
 				PRODUCT_BUNDLE_IDENTIFIER = com.dimatrubnikov.NativeLiquidChat;

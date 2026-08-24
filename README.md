@@ -2,7 +2,7 @@
 
 **A fully offline multimodal AI agent for iOS — it chats, sees, listens, speaks, and learns your world. No cloud. No account. Not a single network call at runtime.**
 
-![Platform](https://img.shields.io/badge/platform-iOS%2017%2B-blue)
+![Platform](https://img.shields.io/badge/platform-iOS%2018%2B-blue)
 ![Swift](https://img.shields.io/badge/Swift-5.9-orange)
 ![UI](https://img.shields.io/badge/UI-SwiftUI-purple)
 ![Inference](https://img.shields.io/badge/inference-100%25%20on--device-brightgreen)
@@ -24,7 +24,7 @@ Local LFM2/LFM2.5 language & vision models (Liquid AI LEAP SDK) + Apple's on-dev
 - 📦 **Model manager (LM-Studio style)** — download / activate / delete models with live progress, plus a per-device fit check (RAM & free storage → *Fits / Heavy / Too large / No space*).
 - 🔬 **Lab** — LiDAR-assisted object measurements and a Metal compute-shader GPU vs CPU vector-search benchmark.
 - 🌐 **RU / EN localization**, dark/light/system themes, offline translation layer, QCA · Ocean reasoning persona preset.
-- 🎨 **"Private Intelligence" design system** — graphite surfaces with a single liquid-mint accent, floating glass input dock, token-driven theming (`DesignSystem.swift`), and [Lucide](https://lucide.dev) icons shipped as template vector assets.
+- 🎨 **"Private Intelligence" design system** — graphite surfaces with a single liquid-mint accent, real Liquid Glass surfaces on iOS 26+ (`.glassEffect()` with material fallback), token-driven theming (`DesignSystem.swift`), and SF Symbols with live symbol effects (variableColor while listening, pulse while thinking, breathe on the empty state).
 
 ---
 
@@ -73,8 +73,8 @@ Models download on demand inside the app (📦 Models screen) and persist in the
 
 ## Requirements
 
-- **Xcode 16+** (project generated with [XcodeGen](https://github.com/yonaskolb/XcodeGen))
-- **A physical iPhone/iPad (arm64), iOS 17+** — ⚠️ **the Simulator does not work**: the LEAP SDK ships arm64-only slices, so x86_64 Simulators (Intel Macs) cannot build/run it. Build for a device.
+- **Xcode 26+** (project generated with [XcodeGen](https://github.com/yonaskolb/XcodeGen)) — older Xcode builds too, but without system Liquid Glass
+- **A physical iPhone/iPad (arm64), iOS 18+** — ⚠️ **the Simulator does not work**: the LEAP SDK ships arm64-only slices, so x86_64 Simulators (Intel Macs) cannot build/run it. Build for a device.
 - An Apple Developer signing identity (automatic signing is preconfigured — set your own `DEVELOPMENT_TEAM` in `project.yml`).
 
 ## Getting started
@@ -127,8 +127,8 @@ Sources/
 ├── SpeechManager.swift        # TTS: streaming sentences, voice selection
 ├── SpeechRecognizer.swift     # Strictly on-device STT with end-of-turn detection
 ├── PromptPresets.swift        # QCA · Ocean reasoning persona
-├── DesignSystem.swift         # Design tokens: colors, radii, type, Lucide helper
-├── Assets.xcassets/Icons/     # Lucide icon set (30 template vector assets)
+├── DesignSystem.swift         # Design tokens: colors, radii, glass, symbol effects
+├── DepthScanView.swift        # LiDAR 3D: wave field / ARKit mesh / RoomPlan
 ├── LabView.swift              # LiDAR measurements + Metal GPU benchmark
 └── ...
 Resources/
@@ -160,7 +160,7 @@ The same pattern powers the knowledge graph: facts are synthesized once, travers
 - [ ] Foreground segmentation (`VNGenerateForegroundInstanceMaskRequest`) — embed the object, not the background
 - [ ] LFM-VL as a "slow lane" in the agent loop — rich scene descriptions on stable frames
 - [ ] Optional cloud teacher (opt-in): one-shot naming/facts for objects zero-shot can't resolve
-- [ ] Liquid Glass UI adoption (requires Xcode 26 toolchain)
+- [x] Liquid Glass UI adoption (system glass + `.glassEffect()` on custom surfaces)
 
 ## Acknowledgments
 

@@ -9,7 +9,9 @@ import NaturalLanguage
 /// Used only from the main thread (via `ChatStore`), so no extra isolation needed.
 final class SpeechManager: NSObject {
     private let synthesizer = AVSpeechSynthesizer()
-    private var sessionConfigured = false
+    /// Reset externally (ChatStore) after the audio session is deactivated so
+    /// the category is re-asserted on next use.
+    var sessionConfigured = false
 
     /// Sentinel for "pick automatically by the reply's language".
     static let autoVoiceID = ""

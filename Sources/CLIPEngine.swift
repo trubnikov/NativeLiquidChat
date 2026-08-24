@@ -108,7 +108,8 @@ final class CLIPEngine {
         do {
             try handler.perform([request])
             guard let obs = request.results?.first as? VNCoreMLFeatureValueObservation,
-                  let arr = obs.featureValue.multiArrayValue else { return nil }
+                  let arr = obs.featureValue.multiArrayValue,
+                  arr.count >= dim else { return nil }   // model/vocab dimension mismatch must not trap
             var v = [Float](repeating: 0, count: dim)
             for i in 0..<dim { v[i] = arr[i].floatValue }
             // L2-normalize so dot product == cosine.

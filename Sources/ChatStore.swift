@@ -244,7 +244,11 @@ class ChatStore {
         
         let success = await ensureModelLoaded(for: session.modelName)
         guard success, let runner = modelRunner else {
-            appendMessage(to: index, content: "Failed to initialize \(session.modelName). Please try again.", isUser: false)
+            let isRu = (UserDefaults.standard.string(forKey: "appLanguage") ?? AppLanguage.russian.rawValue) == AppLanguage.russian.rawValue
+            let hint = isRu
+                ? "Не удалось загрузить модель \(session.modelName). Откройте «Модели» (значок 📦 слева сверху), скачайте и активируйте модель, затем повторите."
+                : "Couldn't load \(session.modelName). Open Models (📦 top-left), download and activate a model, then try again."
+            appendMessage(to: index, content: hint, isUser: false)
             return
         }
         
@@ -470,7 +474,7 @@ class ChatStore {
             startBargeInListening()
         }
 
-        streamResponse(for: userMessage, sessionIndex: index)
+        streamResponse(for: userMessage, sessionId: sessions[index].id)
     }
     
     // MARK: - Voice/Audio Chat
@@ -557,7 +561,7 @@ class ChatStore {
         
         playbackManager.reset()
         
-        streamResponse(for: chatMessage, sessionIndex: index)
+        streamResponse(for: chatMessage, sessionId: sessions[index].id)
     }
     
     // MARK: - Common Stream Manager
@@ -651,6 +655,10 @@ class ChatStore {
         liveTranscript = ""
         recognizer.stop()
         speech.stop()
+        // Release the audio route: otherwise the mic indicator stays lit and
+        // other apps' audio remains ducked after leaving voice mode.
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        speech.sessionConfigured = false   // re-assert TTS category on next use
     }
 
     /// Enters the listening phase and wires up recognition callbacks.
@@ -769,7 +777,7 @@ class ChatStore {
     }
 
     @MainActor
-    private func streamResponse(for message: ChatMessage, sessionIndex: Int) {
+    private func streamResponse(for message: ChatMessage, sessionId: UUID) {
         guard let conversation = conversation else { return }
 
         // A new answer is starting — silence any reply still being read aloud.
@@ -783,7 +791,7 @@ class ChatStore {
             guard let self else { return }
             for await event in stream {
                 if Task.isCancelled { break }
-                await self.handleEvent(event, sessionIndex: sessionIndex)
+                await self.handleEvent(event, sessionId: sessionId)
             }
             self.generationTask = nil
         }
@@ -807,7 +815,7 @@ class ChatStore {
     }
     
     @MainActor
-    private func handleEvent(_ event: any MessageResponse, sessionIndex: Int) async {
+    private func handleEvent(_ event: any MessageResponse, sessionId: UUID) async {
         switch onEnum(of: event) {
         case .chunk(let chunk):
             currentAssistantMessage.append(chunk.text)
@@ -842,6 +850,16 @@ class ChatStore {
             var finalText = text
             if finalText.isEmpty { finalText = currentAssistantMessage }
 
+            // Re-resolve by id at write time: while the reply streamed, the
+            // user may have deleted this chat (index would trap) or created a
+            // new one (index would point at the wrong chat).
+            guard let sessionIndex = sessions.firstIndex(where: { $0.id == sessionId }) else {
+                isLoadingResponse = false
+                currentAssistantMessage = ""
+                currentThinkingLog = nil
+                if streamingTTS { speech.finishStreaming() }
+                return
+            }
             let session = sessions[sessionIndex]
             if session.isTranslationEnabled && !finalText.isEmpty {
                 executionStatus = "Translating..."

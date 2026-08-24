@@ -26,3 +26,6 @@ venv/
 Pods/
 dist-electron/
 .pytest_cache/
+
+# Machine-local agent config
+.claude/

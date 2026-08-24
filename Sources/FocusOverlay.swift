@@ -15,6 +15,7 @@ struct FocusOverlay: View {
     var isTrained: Bool = false
     /// LiDAR distance to the focus point, meters (shown in the chip when known).
     var distanceMeters: Float? = nil
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ZStack {
@@ -34,9 +35,10 @@ struct FocusOverlay: View {
                 .allowsHitTesting(false)
 
             // Corner brackets: breathe softly while searching, glow when found.
-            TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: !label.isEmpty)) { timeline in
+            TimelineView(.animation(minimumInterval: 1.0 / 30.0,
+                                    paused: !label.isEmpty || reduceMotion)) { timeline in
                 let t = timeline.date.timeIntervalSinceReferenceDate
-                let breathe = label.isEmpty ? 1 + 0.015 * sin(t * 2.2) : 1.0
+                let breathe = (label.isEmpty && !reduceMotion) ? 1 + 0.015 * sin(t * 2.2) : 1.0
                 CornerBrackets()
                     .stroke(bracketColor, style: StrokeStyle(lineWidth: 3, lineCap: .round))
                     .frame(width: side, height: side)

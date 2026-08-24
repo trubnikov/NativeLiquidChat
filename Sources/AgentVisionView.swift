@@ -63,6 +63,10 @@ final class AgentVisionCoordinator: ObservableObject {
         }
 
         camera.checkAuthorizationAndStart()
+        // The agent asks questions aloud and listens for the answer — request
+        // speech authorization up front, not at the moment it first listens
+        // (a denied-and-never-asked state made the agent silently deaf).
+        SpeechRecognizer.requestAuthorization { _ in }
         phase = .observing
 
         tick?.invalidate()
@@ -298,8 +302,27 @@ struct AgentVisionView: View {
                 .ignoresSafeArea()
             } else {
                 Color.black.ignoresSafeArea()
-                Text("Camera access required")
-                    .foregroundColor(.white)
+                VStack(spacing: 16) {
+                    Image(systemName: "video.slash")
+                        .font(.largeTitle)
+                        .foregroundStyle(.secondary)
+                    Text(Locale.preferredLanguages.first?.hasPrefix("ru") == true
+                         ? "Агенту нужна камера, чтобы видеть мир"
+                         : "The agent needs the camera to see the world")
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                    Button {
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
+                    } label: {
+                        Label(Locale.preferredLanguages.first?.hasPrefix("ru") == true
+                              ? "Открыть Настройки" : "Open Settings",
+                              systemImage: "gear")
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+                .padding()
             }
 
             VStack {
@@ -316,6 +339,7 @@ struct AgentVisionView: View {
                             .foregroundColor(.white.opacity(0.85))
                             .shadow(radius: 4)
                     }
+                    .accessibilityLabel("Close")
                 }
                 .padding()
 
