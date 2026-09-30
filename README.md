@@ -1,6 +1,18 @@
+<p align="center"><img src="docs/icon.png" width="128" alt="NativeLiquidChat icon"></p>
+
 # NativeLiquidChat
 
 **A fully offline multimodal AI agent for iOS — it chats, sees, listens, speaks, and learns your world. No cloud. No account. Not a single network call at runtime.**
+
+**Designed and built solo by [Dima Trubnikov](https://www.dimatrubnikov.com) — product design, SwiftUI, on-device model integration and the design system.**
+
+▶️ **See it running on a real iPhone:** [camera + on-device LLM demo (video)](https://www.linkedin.com/feed/update/urn:li:activity:7483477552812953600/)
+
+<p align="center">
+  <img src="docs/AS-1.jpg" width="260" alt="On-device chat">
+  <img src="docs/AS-2.jpg" width="260" alt="Model manager">
+  <img src="docs/AS-3.jpg" width="260" alt="Vision, voice, offline">
+</p>
 
 ![Platform](https://img.shields.io/badge/platform-iOS%2017%2B-blue)
 ![Swift](https://img.shields.io/badge/Swift-5.9-orange)

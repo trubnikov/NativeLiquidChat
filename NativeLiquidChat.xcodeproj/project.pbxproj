@@ -328,7 +328,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -e\nFRAMEWORKS_DIR=\"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Frameworks\"\n[ -d \"$FRAMEWORKS_DIR\" ] || exit 0\n[ \"$CODE_SIGNING_ALLOWED\" = \"YES\" ] || exit 0\nfind \"$FRAMEWORKS_DIR\" -name \"*.dylib\" | while read dylib; do\n  codesign --force --sign \"$EXPANDED_CODE_SIGN_IDENTITY\" --timestamp=none \"$dylib\"\ndone\n";
+			shellScript = "set -e\nFRAMEWORKS_DIR=\"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Frameworks\"\n[ -d \"$FRAMEWORKS_DIR\" ] || exit 0\nfor fw in LeapSDK LeapModelDownloader; do\n  N=\"$FRAMEWORKS_DIR/$fw.framework/Frameworks\"\n  if [ -d \"$N\" ]; then\n    for d in \"$N\"/*.dylib; do [ -e \"$FRAMEWORKS_DIR/$(basename \"$d\")\" ] || cp \"$d\" \"$FRAMEWORKS_DIR/\"; done\n    rm -rf \"$N\"\n  fi\n  B=\"$FRAMEWORKS_DIR/$fw.framework/$fw\"\n  if [ -f \"$B\" ]; then\n    for L in $(otool -L \"$B\" | awk '/@rpath\\/libswift/ {print $1}'); do install_name_tool -change \"$L\" \"/usr/lib/swift/${L##*/}\" \"$B\"; done\n    [ \"$CODE_SIGNING_ALLOWED\" = \"YES\" ] && codesign --force --sign \"$EXPANDED_CODE_SIGN_IDENTITY\" --timestamp=none \"$FRAMEWORKS_DIR/$fw.framework\"\n  fi\ndone\n[ \"$CODE_SIGNING_ALLOWED\" = \"YES\" ] || exit 0\nfind \"$FRAMEWORKS_DIR\" -name \"*.dylib\" | while read dylib; do\n  codesign --force --sign \"$EXPANDED_CODE_SIGN_IDENTITY\" --timestamp=none \"$dylib\"\ndone\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -404,6 +404,10 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited) LEAP_DUAL_IMPORT_ALLOW=1";
 				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				CURRENT_PROJECT_VERSION = 2;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSCameraUsageDescription = "We need access to your camera to capture images for the visual model.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need access to your microphone to capture audio prompts.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We need access to your photo library to select images for the visual model.";
@@ -416,7 +420,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.dimatrubnikov.NativeLiquidChat;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.9;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -508,6 +512,10 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited) LEAP_DUAL_IMPORT_ALLOW=1";
 				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				CURRENT_PROJECT_VERSION = 2;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSCameraUsageDescription = "We need access to your camera to capture images for the visual model.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need access to your microphone to capture audio prompts.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We need access to your photo library to select images for the visual model.";
@@ -520,7 +528,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.dimatrubnikov.NativeLiquidChat;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.9;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};

@@ -100,6 +100,14 @@ struct ContentView: View {
             .sheet(isPresented: $showingModels) {
                 ModelsView(store: store, models: models)
             }
+            .onAppear {
+                // Screenshot automation: `-shot models` opens the model manager on launch.
+                if let i = ProcessInfo.processInfo.arguments.firstIndex(of: "-shot"),
+                   ProcessInfo.processInfo.arguments.indices.contains(i + 1),
+                   ProcessInfo.processInfo.arguments[i + 1] == "models" {
+                    showingModels = true
+                }
+            }
         } detail: {
             // DETAIL VIEW: Active Chat Screen
             if let session = store.currentSession {
@@ -378,7 +386,7 @@ struct ContentView: View {
                             }
                         } label: {
                             Image(systemName: "ellipsis.circle").font(.system(size: 20))
-                                .foregroundStyle(DS.onAccent) // primary color fallback via DS.onAccent or similar if applicable, we can just use normal font
+                                .foregroundStyle(.primary)
                         }
                         .accessibilityLabel(appLanguage == "ru" ? "Дополнительные действия" : "More actions")
                     }
