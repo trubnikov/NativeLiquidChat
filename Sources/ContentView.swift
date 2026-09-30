@@ -80,7 +80,7 @@ struct ContentView: View {
                     }
                 }
             }
-            .navigationTitle("Liquid Chat")
+            .navigationTitle("Offline AI")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button(action: {

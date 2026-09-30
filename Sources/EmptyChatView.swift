@@ -31,7 +31,7 @@ struct EmptyChatView: View {
                 .padding(.top, 40)
 
             VStack(spacing: 6) {
-                Text(info?.displayName ?? "Liquid Chat")
+                Text(info?.displayName ?? "Offline AI")
                     .font(DS.display(24))
                 Text("Everything runs privately on your device.")
                     .font(.subheadline)

@@ -63,7 +63,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		01B274B2CD6315298B8BDBE6 /* NativeLiquidChat.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = NativeLiquidChat.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		01B274B2CD6315298B8BDBE6 /* NativeLiquidChat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NativeLiquidChat.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878B3A98605D4BDEC699587 /* ChatStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatStorageTests.swift; sourceTree = "<group>"; };
 		0B04BBD4BD7AC1B020A46B48 /* FocusOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusOverlay.swift; sourceTree = "<group>"; };
 		0C7B76C167EF4958D8DA35E4 /* AudioPlaybackManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlaybackManager.swift; sourceTree = "<group>"; };
@@ -90,14 +90,14 @@
 		890C24E5039C187ED13994BA /* NativeLiquidChatApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeLiquidChatApp.swift; sourceTree = "<group>"; };
 		8C895E9A62763237D24867D3 /* VisionProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionProcessor.swift; sourceTree = "<group>"; };
 		993DCDDF88FEF91ABE327C1C /* ChatStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatStore.swift; sourceTree = "<group>"; };
-		9FF98E1557CF79DC62471295 /* mobileclip_s0_image.mlpackage */ = {isa = PBXFileReference; path = mobileclip_s0_image.mlpackage; sourceTree = "<group>"; };
+		9FF98E1557CF79DC62471295 /* mobileclip_s0_image.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = mobileclip_s0_image.mlpackage; sourceTree = "<group>"; };
 		A6DF8B3584B34B39EE340864 /* KnowledgeGraphView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnowledgeGraphView.swift; sourceTree = "<group>"; };
 		A772B8164598C45FFC9648D9 /* ConversationBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationBanner.swift; sourceTree = "<group>"; };
 		BC36999EC0C748E6C0D2CD5C /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
 		BDE2E153EEE1892D2D0A3866 /* VectorSearch.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = VectorSearch.metal; sourceTree = "<group>"; };
 		CCEEC0E25493168C1338526B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		D521148AB7A23CDCFB9B9B8D /* ModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelsTests.swift; sourceTree = "<group>"; };
-		D9B3C350605FC09B6F0ED035 /* NativeLiquidChatTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = NativeLiquidChatTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D9B3C350605FC09B6F0ED035 /* NativeLiquidChatTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NativeLiquidChatTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E20F15652552BF8AC888C972 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		E8CD698D5720DCDCABC74A57 /* DepthScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepthScanView.swift; sourceTree = "<group>"; };
 		E9D3B65F4DD881E141C02829 /* AudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorder.swift; sourceTree = "<group>"; };
@@ -260,7 +260,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1430;
+				LastUpgradeCheck = 2610;
 				TargetAttributes = {
 					2D087F7ED63C5545B6DC00D8 = {
 						DevelopmentTeam = Q4MWQ3X44V;
@@ -328,7 +328,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -e\nFRAMEWORKS_DIR=\"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Frameworks\"\n[ -d \"$FRAMEWORKS_DIR\" ] || exit 0\nfor fw in LeapSDK LeapModelDownloader; do\n  N=\"$FRAMEWORKS_DIR/$fw.framework/Frameworks\"\n  if [ -d \"$N\" ]; then\n    for d in \"$N\"/*.dylib; do [ -e \"$FRAMEWORKS_DIR/$(basename \"$d\")\" ] || cp \"$d\" \"$FRAMEWORKS_DIR/\"; done\n    rm -rf \"$N\"\n  fi\n  B=\"$FRAMEWORKS_DIR/$fw.framework/$fw\"\n  if [ -f \"$B\" ]; then\n    for L in $(otool -L \"$B\" | awk '/@rpath\\/libswift/ {print $1}'); do install_name_tool -change \"$L\" \"/usr/lib/swift/${L##*/}\" \"$B\"; done\n    [ \"$CODE_SIGNING_ALLOWED\" = \"YES\" ] && codesign --force --sign \"$EXPANDED_CODE_SIGN_IDENTITY\" --timestamp=none \"$FRAMEWORKS_DIR/$fw.framework\"\n  fi\ndone\n[ \"$CODE_SIGNING_ALLOWED\" = \"YES\" ] || exit 0\nfind \"$FRAMEWORKS_DIR\" -name \"*.dylib\" | while read dylib; do\n  codesign --force --sign \"$EXPANDED_CODE_SIGN_IDENTITY\" --timestamp=none \"$dylib\"\ndone\n";
+			shellScript = "set -e\nFRAMEWORKS_DIR=\"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Frameworks\"\n[ -d \"$FRAMEWORKS_DIR\" ] || exit 0\nfor fw in LeapSDK LeapModelDownloader; do\n  N=\"$FRAMEWORKS_DIR/$fw.framework/Frameworks\"\n  if [ -d \"$N\" ]; then\n    for d in \"$N\"/*.dylib; do [ -e \"$FRAMEWORKS_DIR/$(basename \"$d\")\" ] || cp \"$d\" \"$FRAMEWORKS_DIR/\"; done\n    rm -rf \"$N\"\n  fi\n  B=\"$FRAMEWORKS_DIR/$fw.framework/$fw\"\n  if [ -f \"$B\" ]; then\n    for L in $(otool -L \"$B\" | awk '/@rpath\\/libswift/ {print $1}'); do install_name_tool -change \"$L\" \"/usr/lib/swift/${L##*/}\" \"$B\"; done\n    vtool -set-build-version ios 17.0 18.0 -replace -output \"$B.tmp\" \"$B\" && mv \"$B.tmp\" \"$B\"\n    /usr/libexec/PlistBuddy -c \"Set :MinimumOSVersion 17.0\" \"$FRAMEWORKS_DIR/$fw.framework/Info.plist\" || true\n    [ \"$CODE_SIGNING_ALLOWED\" = \"YES\" ] && codesign --force --sign \"$EXPANDED_CODE_SIGN_IDENTITY\" --timestamp=none \"$FRAMEWORKS_DIR/$fw.framework\"\n    [ \"$CODE_SIGNING_ALLOWED\" = \"YES\" ] && codesign --force --sign \"$EXPANDED_CODE_SIGN_IDENTITY\" --timestamp=none \"$FRAMEWORKS_DIR/$fw.framework\"\n  fi\ndone\n[ \"$CODE_SIGNING_ALLOWED\" = \"YES\" ] || exit 0\nfind \"$FRAMEWORKS_DIR\" -name \"*.dylib\" | while read dylib; do\n  codesign --force --sign \"$EXPANDED_CODE_SIGN_IDENTITY\" --timestamp=none \"$dylib\"\ndone\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -397,28 +397,49 @@
 		1D1038613FC3407C15340B6E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = Q4MWQ3X44V;
+				CURRENT_PROJECT_VERSION = 5;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
-				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited) LEAP_DUAL_IMPORT_ALLOW=1";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"LEAP_DUAL_IMPORT_ALLOW=1",
+				);
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				CURRENT_PROJECT_VERSION = 2;
+				INFOPLIST_KEY_CFBundleDisplayName = "Offline AI";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSCameraUsageDescription = "We need access to your camera to capture images for the visual model.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need access to your microphone to capture audio prompts.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We need access to your photo library to select images for the visual model.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Speech recognition runs on-device to turn your voice into text for hands-free conversation.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/Frameworks/LeapSDK.framework/Frameworks @executable_path/Frameworks/LeapModelDownloader.framework/Frameworks";
-				OTHER_LDFLAGS = "$(inherited) -ObjC -L$(BUILT_PRODUCTS_DIR)/LeapSDK.framework/Frameworks -L$(BUILT_PRODUCTS_DIR)/LeapModelDownloader.framework/Frameworks -linference_engine -linference_engine_llamacpp_backend";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/Frameworks/LeapSDK.framework/Frameworks",
+					"@executable_path/Frameworks/LeapModelDownloader.framework/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+					"-L$(BUILT_PRODUCTS_DIR)/LeapSDK.framework/Frameworks",
+					"-L$(BUILT_PRODUCTS_DIR)/LeapModelDownloader.framework/Frameworks",
+					"-linference_engine",
+					"-linference_engine_llamacpp_backend",
+				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -DLEAP_DUAL_IMPORT_ALLOW";
 				PRODUCT_BUNDLE_IDENTIFIER = com.dimatrubnikov.NativeLiquidChat;
 				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_VERSION = 5.9;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
@@ -429,8 +450,10 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = Q4MWQ3X44V;
-				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited) LEAP_DUAL_IMPORT_ALLOW=1";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"LEAP_DUAL_IMPORT_ALLOW=1",
+				);
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -481,6 +504,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = Q4MWQ3X44V;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -496,6 +520,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
@@ -505,28 +530,49 @@
 		B7AE00E2E721198C01E45096 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = Q4MWQ3X44V;
+				CURRENT_PROJECT_VERSION = 5;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
-				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited) LEAP_DUAL_IMPORT_ALLOW=1";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"LEAP_DUAL_IMPORT_ALLOW=1",
+				);
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				CURRENT_PROJECT_VERSION = 2;
+				INFOPLIST_KEY_CFBundleDisplayName = "Offline AI";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSCameraUsageDescription = "We need access to your camera to capture images for the visual model.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need access to your microphone to capture audio prompts.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We need access to your photo library to select images for the visual model.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Speech recognition runs on-device to turn your voice into text for hands-free conversation.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/Frameworks/LeapSDK.framework/Frameworks @executable_path/Frameworks/LeapModelDownloader.framework/Frameworks";
-				OTHER_LDFLAGS = "$(inherited) -ObjC -L$(BUILT_PRODUCTS_DIR)/LeapSDK.framework/Frameworks -L$(BUILT_PRODUCTS_DIR)/LeapModelDownloader.framework/Frameworks -linference_engine -linference_engine_llamacpp_backend";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/Frameworks/LeapSDK.framework/Frameworks",
+					"@executable_path/Frameworks/LeapModelDownloader.framework/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+					"-L$(BUILT_PRODUCTS_DIR)/LeapSDK.framework/Frameworks",
+					"-L$(BUILT_PRODUCTS_DIR)/LeapModelDownloader.framework/Frameworks",
+					"-linference_engine",
+					"-linference_engine_llamacpp_backend",
+				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -DLEAP_DUAL_IMPORT_ALLOW";
 				PRODUCT_BUNDLE_IDENTIFIER = com.dimatrubnikov.NativeLiquidChat;
 				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_VERSION = 5.9;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
@@ -537,8 +583,10 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = Q4MWQ3X44V;
-				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited) LEAP_DUAL_IMPORT_ALLOW=1";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"LEAP_DUAL_IMPORT_ALLOW=1",
+				);
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -589,6 +637,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = Q4MWQ3X44V;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -611,6 +660,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
