@@ -59,7 +59,7 @@ class ChatStore {
     var currentAssistantSpeed: Double?
     
     private var modelRunner: (any ModelRunner)?
-    private var conversation: (any Conversation)?
+    private var conversation: Conversation?
     private var generationTask: Task<Void, Never>?
     
     var showingCamera = false
@@ -187,10 +187,8 @@ class ChatStore {
     
     // MARK: - Model Loading
 
-    /// Loads the requested model via the high-level `Leap.shared.load` API, which
-    /// resolves and downloads the model from the LEAP library on demand and throws
-    /// catchable Swift errors. (The low-level `ModelDownloader` path crashed the
-    /// process on an invalid URL because the error escaped from a Kotlin coroutine.)
+    /// Loads the requested model from its bundle manifest, downloading the weights
+    /// first when they are not on disk yet. Once downloaded, loading needs no network.
     @MainActor
     func ensureModelLoaded(for modelName: String) async -> Bool {
         if loadedModelName == modelName && modelRunner != nil {
@@ -200,19 +198,18 @@ class ChatStore {
         isModelLoading = true
         downloadProgress = 0.0
 
-        // Release old model
+        // Release old model — two models in memory at once would not fit on a phone.
+        let previousRunner = modelRunner
         modelRunner = nil
         conversation = nil
         loadedModelName = nil
+        await previousRunner?.unload()
 
         do {
-            let options = LiquidInferenceEngineManifestOptions().with(contextSize: 4096)
-
-            let runner = try await Leap.shared.load(
-                model: modelName,
-                quantization: "Q4_0",
-                options: options,
-                progress: { [weak self] progress, _ in
+            let runner = try await Leap.load(
+                manifestURL: ModelCatalog.manifestURL(for: modelName),
+                options: LiquidInferenceEngineManifestOptions(contextSize: 4096),
+                downloadProgressHandler: { [weak self] progress, _ in
                     Task { @MainActor in
                         self?.downloadProgress = progress
                     }
@@ -446,7 +443,7 @@ class ChatStore {
             contentArray.append(ChatMessageContent.text(sendingText))
         }
         
-        let userMessage = ChatMessage_withArray(role: .user, content: contentArray)
+        let userMessage = ChatMessage(role: .user, content: contentArray)
         
         setupConversationIfNeeded(for: session, runner: runner, customSystemPrompt: dynamicSystemPrompt)
         
@@ -532,17 +529,12 @@ class ChatStore {
             return
         }
         
-        // FIX: Handled the throwing call properly!
-        guard let content = try? ChatMessageContent.fromFloatSamples(samples, sampleRate: sampleRate) else {
-            appendMessage(to: index, content: "Failed to process audio samples.", isUser: false)
-            return
-        }
-        
-        let chatMessage = ChatMessage(role: .user, content: content)
+        let content = ChatMessageContent.fromFloatSamples(samples, sampleRate: sampleRate)
+        let chatMessage = ChatMessage(role: .user, content: [content])
         
         var audioData: Data? = nil
-        if case .audio(let audioContent) = onEnum(of: content) {
-            audioData = audioContent.data.toData()
+        if case .audio(let wavData) = content {
+            audioData = wavData
         }
         
         setupConversationIfNeeded(for: session, runner: runner)
@@ -587,16 +579,20 @@ class ChatStore {
 
         let transient = Conversation(
             modelRunner: runner,
-            history: [ChatMessage(role: .system, textContent: system)]
+            history: [ChatMessage(role: .system, content: [.text(system)])]
         )
         let stream = transient.generateResponse(
-            message: ChatMessage(role: .user, textContent: user))
+            message: ChatMessage(role: .user, content: [.text(user)]))
 
         var text = ""
-        for await event in stream {
-            if case .chunk(let c) = onEnum(of: event) {
-                text += c.text
+        do {
+            for try await event in stream {
+                if case .chunk(let chunk) = event {
+                    text += chunk
+                }
             }
+        } catch {
+            print("[ChatStore] one-shot generation failed: \(error.localizedDescription)")
         }
         return text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
@@ -781,9 +777,16 @@ class ChatStore {
         
         generationTask = Task { @MainActor [weak self] in
             guard let self else { return }
-            for await event in stream {
-                if Task.isCancelled { break }
-                await self.handleEvent(event, sessionIndex: sessionIndex)
+            do {
+                for try await event in stream {
+                    if Task.isCancelled { break }
+                    await self.handleEvent(event, sessionIndex: sessionIndex)
+                }
+            } catch {
+                // stopGeneration() already cleaned up after a cancellation.
+                if !Task.isCancelled && !(error is CancellationError) {
+                    self.handleGenerationFailure(error, sessionIndex: sessionIndex)
+                }
             }
             self.generationTask = nil
         }
@@ -806,29 +809,47 @@ class ChatStore {
         playbackManager.reset()
     }
     
+    /// Surfaces a failed generation in the chat and returns the UI to idle.
     @MainActor
-    private func handleEvent(_ event: any MessageResponse, sessionIndex: Int) async {
-        switch onEnum(of: event) {
+    private func handleGenerationFailure(_ error: Error, sessionIndex: Int) {
+        print("[ChatStore] generation failed: \(error.localizedDescription)")
+        let partial = currentAssistantMessage
+        currentAssistantMessage = ""
+        currentThinkingLog = nil
+        isLoadingResponse = false
+        executionStatus = nil
+        if streamingTTS {
+            speech.finishStreaming()
+            streamingTTS = false
+        }
+        appendMessage(
+            to: sessionIndex,
+            content: partial.isEmpty ? "Generation failed: \(error.localizedDescription)" : partial,
+            isUser: false
+        )
+        if conversationMode { conversationDidFinishSpeaking() }
+    }
+
+    @MainActor
+    private func handleEvent(_ event: MessageResponse, sessionIndex: Int) async {
+        switch event {
         case .chunk(let chunk):
-            currentAssistantMessage.append(chunk.text)
-            if streamingTTS { speech.appendStreaming(chunk.text) }
-        case .audioSample(let audioSample):
-            playbackManager.enqueue(
-                samples: audioSample.samples.toFloatArray(),
-                sampleRate: Int(audioSample.sampleRate)
-            )
+            currentAssistantMessage.append(chunk)
+            if streamingTTS { speech.appendStreaming(chunk) }
+        case .audioSample(let samples, let sampleRate):
+            playbackManager.enqueue(samples: samples, sampleRate: sampleRate)
         case .complete(let completion):
-            let text = completion.fullMessage.content.compactMap { content -> String? in
-                if case .text(let t) = onEnum(of: content) {
-                    return t.text
+            let text = completion.message.content.compactMap { content -> String? in
+                if case .text(let t) = content {
+                    return t
                 }
                 return nil
             }.joined()
 
             var audioData: Data? = nil
-            for content in completion.fullMessage.content {
-                if case .audio(let audioContent) = onEnum(of: content) {
-                    audioData = audioContent.data.toData()
+            for content in completion.message.content {
+                if case .audio(let wavData) = content {
+                    audioData = wavData
                 }
             }
 
@@ -857,12 +878,12 @@ class ChatStore {
             }
 
             #if DEBUG
-            let kinds = completion.fullMessage.content.map { c -> String in
-                switch onEnum(of: c) {
+            let kinds = completion.message.content.map { c -> String in
+                switch c {
                 case .text: return "text"
                 case .image: return "image"
                 case .audio: return "audio"
-                default: return "other"
+                @unknown default: return "other"
                 }
             }
             print("[VL/complete] content kinds: \(kinds), streamedChars: \(currentAssistantMessage.count), textChars: \(text.count)")
@@ -954,7 +975,7 @@ class ChatStore {
                 } else if let dynamic = customSystemPrompt, !dynamic.isEmpty {
                     systemPrompt += "\n\n[Perception context]\n" + dynamic
                 }
-                history.append(ChatMessage(role: .system, textContent: systemPrompt))
+                history.append(ChatMessage(role: .system, content: [.text(systemPrompt)]))
             }
 
             for msg in session.messages {
@@ -963,9 +984,7 @@ class ChatStore {
                 if msg.audioData != nil {
                     // Audio message content
                     if let audioData = msg.audioData, let extracted = extractFloatSamples(from: audioData) {
-                        if let audioContent = try? ChatMessageContent.fromFloatSamples(extracted.samples, sampleRate: extracted.sampleRate) {
-                            contentArray.append(audioContent)
-                        }
+                        contentArray.append(ChatMessageContent.fromFloatSamples(extracted.samples, sampleRate: extracted.sampleRate))
                     }
                 } else if msg.imageData != nil {
                     // Vision message content (+ text if not placeholder)
@@ -988,7 +1007,7 @@ class ChatStore {
                 }
                 
                 if !contentArray.isEmpty {
-                    let chatMsg = ChatMessage_withArray(role: msg.isUser ? .user : .assistant, content: contentArray)
+                    let chatMsg = ChatMessage(role: msg.isUser ? .user : .assistant, content: contentArray)
                     history.append(chatMsg)
                 }
             }

@@ -38,7 +38,6 @@
 		9C511557CF618083F21762FE /* clip_vocab_embeddings.bin in Resources */ = {isa = PBXBuildFile; fileRef = 72C70BF090A12A8F641543BD /* clip_vocab_embeddings.bin */; };
 		A35DA2A751E4DE05708E095A /* seed_knowledge.json in Resources */ = {isa = PBXBuildFile; fileRef = 6C9531E98C8E8F9907D315F5 /* seed_knowledge.json */; };
 		B85690B35EC2BFC602DD2081 /* SpeechRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF9196F8EE93E4FE9A194001 /* SpeechRecognizer.swift */; };
-		BEC00D3464B79E2650BC7152 /* LeapModelDownloader in Frameworks */ = {isa = PBXBuildFile; productRef = DCF3CAF6641D234A4BF0225F /* LeapModelDownloader */; };
 		D2F3D03013A7E37BB773832C /* CLIPEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ED45C87D8EE9335E0FD054C /* CLIPEngine.swift */; };
 		D3083BE98A2F2BDA4005DB80 /* ChatStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19A56CD75751D17343CEC018 /* ChatStoreTests.swift */; };
 		D38AF406B3820698E643C475 /* LabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DD8185353ED69EB9F33C82 /* LabView.swift */; };
@@ -114,7 +113,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				1FC480EDCD9B7D66AA14C661 /* LeapSDK in Frameworks */,
-				BEC00D3464B79E2650BC7152 /* LeapModelDownloader in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -220,7 +218,6 @@
 				BE248C754EF8B63F2D79E6B0 /* Sources */,
 				B1F3D3683D6601EAD81E3B41 /* Resources */,
 				2DF4D88C64054725BEB66728 /* Frameworks */,
-				BEEE4A815686137B7E2950CA /* Sign nested LeapSDK dylibs */,
 			);
 			buildRules = (
 			);
@@ -229,7 +226,6 @@
 			name = NativeLiquidChat;
 			packageProductDependencies = (
 				E4F9D45BB1DF427DA74E3E04 /* LeapSDK */,
-				DCF3CAF6641D234A4BF0225F /* LeapModelDownloader */,
 			);
 			productName = NativeLiquidChat;
 			productReference = 01B274B2CD6315298B8BDBE6 /* NativeLiquidChat.app */;
@@ -282,7 +278,7 @@
 			mainGroup = C9125EE81014ABD4EB8B3B36;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				A775239C9FA272ABC0DD72B7 /* XCRemoteSwiftPackageReference "leap-sdk" */,
+				A775239C9FA272ABC0DD72B7 /* XCRemoteSwiftPackageReference "leap-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 7835BE6507B65EEC2986D007 /* Products */;
@@ -309,28 +305,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		BEEE4A815686137B7E2950CA /* Sign nested LeapSDK dylibs */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Sign nested LeapSDK dylibs";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "set -e\nFRAMEWORKS_DIR=\"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Frameworks\"\n[ -d \"$FRAMEWORKS_DIR\" ] || exit 0\nfor fw in LeapSDK LeapModelDownloader; do\n  N=\"$FRAMEWORKS_DIR/$fw.framework/Frameworks\"\n  if [ -d \"$N\" ]; then\n    for d in \"$N\"/*.dylib; do [ -e \"$FRAMEWORKS_DIR/$(basename \"$d\")\" ] || cp \"$d\" \"$FRAMEWORKS_DIR/\"; done\n    rm -rf \"$N\"\n  fi\n  B=\"$FRAMEWORKS_DIR/$fw.framework/$fw\"\n  if [ -f \"$B\" ]; then\n    for L in $(otool -L \"$B\" | awk '/@rpath\\/libswift/ {print $1}'); do install_name_tool -change \"$L\" \"/usr/lib/swift/${L##*/}\" \"$B\"; done\n    vtool -set-build-version ios 17.0 18.0 -replace -output \"$B.tmp\" \"$B\" && mv \"$B.tmp\" \"$B\"\n    /usr/libexec/PlistBuddy -c \"Set :MinimumOSVersion 17.0\" \"$FRAMEWORKS_DIR/$fw.framework/Info.plist\" || true\n    [ \"$CODE_SIGNING_ALLOWED\" = \"YES\" ] && codesign --force --sign \"$EXPANDED_CODE_SIGN_IDENTITY\" --timestamp=none \"$FRAMEWORKS_DIR/$fw.framework\"\n    [ \"$CODE_SIGNING_ALLOWED\" = \"YES\" ] && codesign --force --sign \"$EXPANDED_CODE_SIGN_IDENTITY\" --timestamp=none \"$FRAMEWORKS_DIR/$fw.framework\"\n  fi\ndone\n[ \"$CODE_SIGNING_ALLOWED\" = \"YES\" ] || exit 0\nfind \"$FRAMEWORKS_DIR\" -name \"*.dylib\" | while read dylib; do\n  codesign --force --sign \"$EXPANDED_CODE_SIGN_IDENTITY\" --timestamp=none \"$dylib\"\ndone\n";
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		BE248C754EF8B63F2D79E6B0 /* Sources */ = {
@@ -397,16 +371,11 @@
 		1D1038613FC3407C15340B6E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 7;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"$(inherited)",
-					"LEAP_DUAL_IMPORT_ALLOW=1",
-				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Offline AI";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -421,19 +390,8 @@
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
-					"@executable_path/Frameworks/LeapSDK.framework/Frameworks",
-					"@executable_path/Frameworks/LeapModelDownloader.framework/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-ObjC",
-					"-L$(BUILT_PRODUCTS_DIR)/LeapSDK.framework/Frameworks",
-					"-L$(BUILT_PRODUCTS_DIR)/LeapModelDownloader.framework/Frameworks",
-					"-linference_engine",
-					"-linference_engine_llamacpp_backend",
-				);
-				OTHER_SWIFT_FLAGS = "$(inherited) -DLEAP_DUAL_IMPORT_ALLOW";
 				PRODUCT_BUNDLE_IDENTIFIER = com.dimatrubnikov.NativeLiquidChat;
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -450,17 +408,12 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"$(inherited)",
-					"LEAP_DUAL_IMPORT_ALLOW=1",
-				);
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				OTHER_SWIFT_FLAGS = "$(inherited) -DLEAP_DUAL_IMPORT_ALLOW";
 				PRODUCT_BUNDLE_IDENTIFIER = com.dimatrubnikov.NativeLiquidChatTests;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.9;
@@ -515,7 +468,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -530,16 +483,11 @@
 		B7AE00E2E721198C01E45096 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 7;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"$(inherited)",
-					"LEAP_DUAL_IMPORT_ALLOW=1",
-				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Offline AI";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -554,19 +502,8 @@
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
-					"@executable_path/Frameworks/LeapSDK.framework/Frameworks",
-					"@executable_path/Frameworks/LeapModelDownloader.framework/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-ObjC",
-					"-L$(BUILT_PRODUCTS_DIR)/LeapSDK.framework/Frameworks",
-					"-L$(BUILT_PRODUCTS_DIR)/LeapModelDownloader.framework/Frameworks",
-					"-linference_engine",
-					"-linference_engine_llamacpp_backend",
-				);
-				OTHER_SWIFT_FLAGS = "$(inherited) -DLEAP_DUAL_IMPORT_ALLOW";
 				PRODUCT_BUNDLE_IDENTIFIER = com.dimatrubnikov.NativeLiquidChat;
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -583,17 +520,12 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"$(inherited)",
-					"LEAP_DUAL_IMPORT_ALLOW=1",
-				);
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				OTHER_SWIFT_FLAGS = "$(inherited) -DLEAP_DUAL_IMPORT_ALLOW";
 				PRODUCT_BUNDLE_IDENTIFIER = com.dimatrubnikov.NativeLiquidChatTests;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.9;
@@ -654,7 +586,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -700,25 +632,20 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		A775239C9FA272ABC0DD72B7 /* XCRemoteSwiftPackageReference "leap-sdk" */ = {
+		A775239C9FA272ABC0DD72B7 /* XCRemoteSwiftPackageReference "leap-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Liquid4All/leap-sdk";
+			repositoryURL = "https://github.com/Liquid4All/leap-ios";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.10.0;
+				kind = upToNextMinorVersion;
+				minimumVersion = 0.9.4;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		DCF3CAF6641D234A4BF0225F /* LeapModelDownloader */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = A775239C9FA272ABC0DD72B7 /* XCRemoteSwiftPackageReference "leap-sdk" */;
-			productName = LeapModelDownloader;
-		};
 		E4F9D45BB1DF427DA74E3E04 /* LeapSDK */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = A775239C9FA272ABC0DD72B7 /* XCRemoteSwiftPackageReference "leap-sdk" */;
+			package = A775239C9FA272ABC0DD72B7 /* XCRemoteSwiftPackageReference "leap-ios" */;
 			productName = LeapSDK;
 		};
 /* End XCSwiftPackageProductDependency section */

@@ -37,6 +37,10 @@ struct ModelInfo: Identifiable, Hashable, Codable {
     let minRAMBytes: Int64
 
     var iconName: String { kind.iconName }
+
+    /// The bundle manifest on Hugging Face: lists the weights (and, for vision
+    /// models, the image projector) that make up this model.
+    var manifestURL: URL { ModelCatalog.manifestURL(id: id, quantization: quantization) }
 }
 
 /// On-disk state of a model.
@@ -188,5 +192,19 @@ enum ModelCatalog {
 
     static func info(for modelName: String) -> ModelInfo? {
         all.first { $0.id == modelName }
+    }
+
+    private static let bundlesBaseURL = URL(string: "https://huggingface.co/LiquidAI/LeapBundles/resolve/main")!
+
+    static func manifestURL(id: String, quantization: String) -> URL {
+        bundlesBaseURL
+            .appendingPathComponent("\(id)-GGUF")
+            .appendingPathComponent("\(quantization).json")
+    }
+
+    /// Manifest for a model name stored in a chat session. Names that are no
+    /// longer in the catalog fall back to the default quantization.
+    static func manifestURL(for modelName: String) -> URL {
+        info(for: modelName)?.manifestURL ?? manifestURL(id: modelName, quantization: "Q4_0")
     }
 }
